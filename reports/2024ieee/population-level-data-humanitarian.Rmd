@@ -1,0 +1,40 @@
+---
+title: "A Computational Framework for Leveraging Population-level Data to Explore Humanitarian and Justice-oriented Perspectives"
+author: 
+  - "Nathan Alexander, PhD ^[Howard University, nathan.alexander@howard.edu]"
+  - "Hye Ryeon Jang, PhD ^[Morehouse College]"
+output:
+  word_document:
+    toc: false
+    reference_docx: conference-template-letter.docx
+  pdf_document:
+    toc: false
+    toc_depth: 2
+    number_section: true 
+  html_document:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+    theme: flatly
+editor_options:
+  markdown:
+    wrap: sentence
+---
+
+\newpage
+
+# Abstract
+
+While data-driven decision-making has become a gold standard in most industry settings, there is a differential availability of large-scale datasets addressing various humanitarian issues and injustices across the globe. By integrating database development and conceptual reviews, computational practices can be situated within a framework that enables a nuanced analysis of demographic trends, disparities, and their implications on various societal dimensions based on theoretical or conceptual constructs. This study focuses on two cohorts of undergraduate students who engaged in computational practices, analyzing their ability to interpret and model population-level data. Through this experiential learning approach, students developed a deeper understanding of the factors influencing educational attainment, healthcare access, and income inequality. The study's findings demonstrate that a globally-situated framework and related data not only improve statistical literacy and analytical skills but also foster increased attention to the differential goals of various theoretical constructs when engaging in quantification and computational modeling practices.
+
+*Keywords*: census, data, literacy, population, statistics
+
+\newpage
+
+# Introdouction
+
+Text goes here.
+
+\newpage
+
+# References

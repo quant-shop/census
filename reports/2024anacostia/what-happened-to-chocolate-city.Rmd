@@ -1,0 +1,196 @@
+---
+title: "What happened to 'Chocolate City'?"
+subtitle: "Lesson Plan"
+author: 
+  - "Nathan Alexander (Howard University)"
+  - "Anika Hobbs (Nubian Hueman)"
+  - "Zoe Williams (Howard University)"
+  - "Qyana Stewart (Howard University)"
+bibliography: references.bib
+csl: apa.csl
+css: style.css
+always_allow_html: true
+output:
+  html_document:
+    toc: false
+    toc_depth: 2
+    number_sections: true
+    theme: flatly
+  pdf_document:
+    toc: false
+    toc_depth: 2
+    number_section: true 
+  word_document:
+    toc: false
+    reference_docx: word-styles-reference.docx
+geometry: margin=1.0in
+editor_options:
+  markdown:
+    wrap: sentence
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE, # By default, hide code; set to TRUE to see code
+  fig.pos = 'th', # Places figures at top or here
+  out.width = '100%', dpi = 300, # Figure resolution and size
+  fig.env="figure"
+) # Latex figure environment
+
+# install.packages("tidycensus")
+library(tidycensus)
+
+layout="l-body-outset"
+library(rmarkdown)
+
+options(knitr.table.format = "latex") # For kable tables to write LaTeX table directly
+```
+
+
+```{r, include=F, warning=F}
+## set up, load libraries
+library(dplyr)
+library(readtext)
+library(tidyverse)
+library(here)
+library(gt)
+library(ggplot2)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+here::i_am("what-happened-to-chocolate-city.Rmd")
+```
+
+\newpage
+
+# Lesson Overview
+
+In this module, participants will analyze the changing racial demographics of Washington, DC, using mathematical models and census data to understand the isolation of Black residents in less developed areas.
+
+# Pre-Lesson Activities
+
+# Opening activity: What is a 'Chocolate City'?
+
+## Local history and context
+
+The nickname "Chocolate City" for Washington, D.C. originated in the early 1970s, coined by local radio personalities to reflect the city's status as the first major U.S. city with a Black majority population, which it achieved in 1957. The term gained widespread recognition with the release of Parliament's 1975 album and song of the same name. "Chocolate City" became a source of pride and cultural identity for Black residents, symbolizing Black political power, culture, and community in the nation's capital, especially after the 1973 Home Rule Act allowed D.C. residents to elect their own mayor and city council. The nickname celebrated Black identity and the unique character of Washington, D.C. as a center of Black American life, extending its meaning to other cities with significant Black populations. However, recent demographic changes have sparked discussions about the ongoing relevance and legacy of this culturally significant moniker.
+
+The nickname "Chocolate City" for Washington, D.C. originated and gained cultural significance in the following ways:
+
+1. The term "Chocolate City" was coined and popularized in the early 1970s by Washington, D.C. radio personalities[1][2]. It reflected the city's status as the first major U.S. city with a Black majority population.
+
+2. Washington, D.C. became the first majority-Black city in America in 1957[2]. The Black population in D.C. peaked at 71% in 1970[3], cementing its status as a "Chocolate City."
+
+3. The nickname gained wider recognition when the funk band Parliament released their album and song titled "Chocolate City" in 1975, further popularizing the term[2].
+
+4. "Chocolate City" became a point of pride and cultural identity for Black residents of D.C. It symbolized Black political power, culture, and community in the nation's capital[3].
+
+5. The term reflected the city's significance in Black culture and politics, especially after the passage of the Home Rule Act in 1973, which allowed D.C. residents to elect their own mayor and city council[1].
+
+6. "Chocolate City" also represented a broader concept of urban areas with large Black populations and cultural influence, extending beyond just Washington, D.C. to other cities with significant Black communities[3].
+
+The nickname held great cultural significance as it celebrated Black identity, political empowerment, and the unique character of Washington, D.C. as a center of Black American life and culture. However, demographic changes in recent decades have altered the city's racial makeup, leading to discussions about the ongoing relevance and legacy of the "Chocolate City" moniker[2][4].
+
+Citations:
+[1] https://chriscardi.com/blogs/news/an-ode-to-d-c-s-chocolate-city-legacy
+[2] https://www.washingtonian.com/2017/04/26/dc-may-no-longer-chocolate-city-exhibit-keeping-name-alive/
+[3] https://rapteez.com/blogs/news/chocolate-city
+[4] https://www.npr.org/2011/02/15/133754531/d-c-long-chocolate-city-becoming-more-vanilla
+[5] https://thekojonnamdishow.org/shows/2017-11-15/chocolate-city-a-history-of-race-and-democracy-in-the-nations-capital
+
+### Postwar suburbs
+(from Wikipedia: With the flight of much of the middle class out of the neighborhood during the late 1950s and 1960s with the opportunity to move to newer housing in postwar suburbs, Anacostia's demographics changed dramatically as the neighborhood became predominantly African American.)
+
+### Gentrification
+
+From [*In Hot Water: The Causes of Gentrification along the Anacostia River*:](https://rhetorikos.blog.fordham.edu/?p=2162#)
+While many agree that Anacostia is beginning to turn down this path, Anacostia is a unique example of gentrification due to its unusual causes.
+
+# Quantification
+
+## Data sources
+
+## U.S. census data
+
+https://www.census.gov/topics/housing/housing-patterns/guidance/appendix-b.html
+
+# Modeling activity
+
+## Segregation Indices
+
+## Index of Dissimilarity
+
+
+The Index of Dissimilarity (D) $$ \dfrac{1}{2} \Sigma \dfrac{b_i}{B} - \dfrac{w_i}{W} $$
+
+Here's a lesson plan outline for "What happened to 'Chocolate City'?" focusing on the changes in racial demographics of Washington, DC, using mathematical models and census data:
+
+## Lesson Plan: What happened to 'Chocolate City'?
+
+**Objective:** Students will analyze the changing racial demographics of Washington, DC, using mathematical models and census data to understand the isolation of Black residents in less developed areas.
+
+## Introduction (15 minutes)
+
+- Brief history of Washington, DC as "Chocolate City"
+- Explanation of the city's significance in Black culture and politics[3]
+
+## Part 1: Historical Context (20 minutes)
+
+**The Rise of Chocolate City**
+- DC becomes first majority Black major city in 1957
+- Growth of Black population and political power
+- Home Rule Act of 1973 and its impact[3]
+
+## Part 2: Data Analysis (30 minutes)
+
+**Census Data Examination**
+- Students work in groups to analyze census data from 1950 to 2020
+- Create graphs showing changes in racial demographics over time
+- Calculate percentages of different racial groups for each decade
+
+**Mathematical Modeling**
+- Introduce simple population growth models
+- Students use models to predict future demographic trends
+
+## Part 3: Gentrification and Displacement (25 minutes)
+
+**Mapping Exercise**
+- Students use GIS software or printed maps to plot areas of gentrification
+- Overlay demographic changes with real estate development data
+
+**Economic Analysis**
+- Compare median income and property values across different neighborhoods
+- Calculate correlation between racial demographics and economic indicators
+
+## Part 4: Case Studies (20 minutes)
+
+**Neighborhood Focus**
+- Examine specific neighborhoods like LeDroit Park or Howardtown[2]
+- Analyze how these areas changed over time
+
+**Policy Impact**
+- Discuss the effects of urban renewal and "beautification" efforts[2]
+- Compare historical policies with current gentrification trends
+
+## Part 5: Group Discussion and Reflection (20 minutes)
+
+- Students present their findings from data analysis
+- Discuss factors contributing to demographic shifts
+- Explore the concept of "displacement" and its impact on communities
+
+## Conclusion (10 minutes)
+
+- Summarize key findings and trends
+- Discuss the current state of DC's racial demographics (less than 45% Black population)[3]
+- Reflect on the ongoing legacy of "Chocolate City" in DC's culture and identity
+
+## Extension Activities
+
+1. Research project on specific DC neighborhoods and their demographic changes
+2. Comparative study with other major U.S. cities experiencing similar demographic shifts
+3. Policy proposal exercise to address issues of gentrification and displacement
+
+This lesson plan integrates mathematical analysis with historical context, allowing students to understand the complex factors contributing to Washington, DC's changing demographics. By using real data and modeling techniques, students can gain insights into the processes of gentrification and displacement that have reshaped the city's racial landscape.
+
+\newpage
+
