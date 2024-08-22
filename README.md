@@ -16,7 +16,7 @@ Various projects and reports that take a critical approach to Census and populat
     - Insert your census API key via `Sys.getenv("CENSUS_API_KEY")`
     
     
-#### Project PI
+#### Project PIs
 Nathan Alexander (Howard University) & Hye Ryeon Jang (Morehouse College)
 
 #### Contributors
