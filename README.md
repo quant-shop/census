@@ -14,3 +14,10 @@ Various projects and reports that take a critical approach to Census and populat
         - Insert `CENSUS_API_KEY='your_api_key'` into the `.Renviron` file
   
     - Insert your census API key via `Sys.getenv("CENSUS_API_KEY")`
+    
+    
+#### Project PI
+Nathan Alexander (Howard University) & Hye Ryeon Jang (Morehouse College)
+
+#### Contributors
+Myles Ndiritu (Morehouse College), Zoe Williams (Howard University)
