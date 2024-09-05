@@ -1,0 +1,196 @@
+---
+title: "What happened to *Chocolate City*?"
+subtitle: "The Mathematics of Racial and Residential Segregation in Washington, DC"
+author: "The Quant Shop + Nubian Hueman"
+description: "Using US census data to explore racial and residential segregation."
+draft: true
+bibliography: references.bib
+csl: apa.csl
+css: style.css
+always_allow_html: true
+output:
+  html_document:
+    toc: false
+    toc_depth: 2
+    number_sections: false
+    self_contained: yes
+    mode: selfcontained
+    rmdformats::readthedown:
+    prettydoc::html_pretty:
+      theme: architect
+  pdf_document:
+    toc: false
+    toc_depth: 2
+    number_section: false 
+  word_document:
+    toc: false
+    reference_docx: word-styles-reference.docx
+geometry: margin=1.0in
+editor_options:
+  markdown:
+    wrap: sentence
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE, # By default, hide code; set to TRUE to see code
+  fig.pos = 'th', # Places figures at top or here
+  out.width = '100%', dpi = 300, # Figure resolution and size
+  fig.env="figure"
+) # Latex figure environment
+
+library(here)
+here::i_am("what-happened-to-chocolate-city.Rmd")
+
+# install.packages("tidycensus")
+# install.packages("rmarkdown")
+# install.packages("tm")
+install.packages(c("survey", "srvyr"), repos = "http://cran.us.r-project.org")
+
+## load libraries
+### general libraries
+library(ggplot2)
+library(dplyr)
+library(knitr)
+library(tidyverse)
+library(dplyr)
+library(readtext)
+library(tidyverse)
+library(kableExtra)
+library(rmarkdown)
+layout="l-body-outset"
+options(knitr.table.format = "latex") # For kable tables to write LaTeX table directly
+
+### program specific libraries
+library(sf)
+library(tm)
+library(tidycensus)
+library(gt)
+library(segregation)
+library(tigris)
+library(tmap)
+library(rmapshaper)
+library(flextable)
+```
+
+\vfill
+
+```{r, echo=FALSE,out.width="50%", out.height="30%",fig.show='hold',fig.align='center'}
+# knitr::include_graphics(c("img/quant_workshop_logo.png","img/nubian-hueman.png"))
+``` 
+
+\vfill
+
+**Project Team**: 
+
+Nathan Alexander (Howard University)
+
+Anika Hobson (Nubian Hueman)
+
+Zoe Williams (Howard University)
+
+Qyana Stewart (Howard University)
+
+\newpage
+
+```{r, include=T, warning=F}
+### 2016-2020 census tract data
+dc.tracts <- get_acs(geography="tract",
+                     year = 2022,
+                     variables = c(totalpop = "B03002_001",
+                                   white = "B03002_003", 
+                                   black = "B03002_004",
+                                   asian = "B03002_006", 
+                                   hispanic = "B03002_012"),
+                     state = "DC",
+                     survey = "acs5",
+                     output = "wide",
+                     geometry = T)
+
+# Calculate proportions 
+dc.tracts <- dc.tracts %>% 
+  mutate(pwhite = 100*(whiteE/totalpopE), 
+         pblack = 100*(blackE/totalpopE), 
+         pasian = 100*(asianE/totalpopE), 
+         phisp = 100*(hispanicE/totalpopE)) %>%
+  select(GEOID,
+         totalpopE, 
+         pwhite, 
+         pblack, 
+         pasian, 
+         phisp,
+         whiteE, 
+         blackE,
+         asianE,
+         hispanicE)
+
+# City boundaries
+pl <- places(state = "DC", year = 2022, cb = TRUE)
+
+tracts <- dc.tracts %>%
+          st_join(pl)
+tracts
+```
+
+In our data, "totalpopE" is a single number representing the estimated population, while "totalpopM" represents a range around that estimate within which the true population is likely to fall. The designation for "E" and "M" follows in line as the estimate and the margin of error.
+
+```{r}
+### PUMS (Public Use Microdata Sample) variables
+pums_vars_2022 <- pums_variables %>% 
+  filter(year == 2018, survey == "acs1")
+pums_vars_2022 %>% 
+  distinct(var_code, var_label, data_type, level)
+
+pums_vars_2022
+
+# see tracts
+glimpse(pl)
+glimpse(dc.tracts)
+
+View(pl)
+View(dc.tracts)
+```
+
+
+```{r}
+dc.tracts %>%
+  tm_shape(unit = "mi") +
+    tm_polygons(col = "pblackE", style = "quantile", palette = "Reds", 
+              border.alpha = 0, title = "") +
+    tm_scale_bar(breaks = c(0, 1, 2), text.size = 0.75, position = c("right", "bottom")) + 
+  tm_compass(type = "4star", position = c("left", "top")) +
+  tm_layout(main.title = "Percent Black in DC Tracts", 
+            main.title.size = 0.9, frame = FALSE)
+
+```
+
+# OVERVIEW
+
+Whatever happened to *Chocolate City*, the term used to refer to Washington DC's Black population? 
+
+In this short report, we discuss some key historical and contemporary connections and then we analyze US census data to examine historical and continual shifts in Washington DC's Black population. We focus on racial isolation and residential segregation. We close with a discussion on how modern critical theories, mathematics, and population-level data can increase our general knowledge as a community and inform our perspectives on local policies and social action issues, like voting and community service.
+
+*The materials presented here are for the October 2024 workshop at Nubian Hueman studios in DC.*
+
+\newpage
+
+# DATA
+
+The discussions and analysis in this report are informed by the US Census microdata, which was accessed through the `tidycensus()` package in R. The American Community Survey (ACS) Public Use Microdata Sample (PUMS) is used to analyze pre-aggregate data at a local level. This data allowed us to make various custom estimates that may not be normally available by the US Census Bureau. 
+
+Learn more about the PUMAs [here](https://www.census.gov/programs-surveys/acs/microdata.html).
+
+
+\newpage
+
+### Map: Washington, DC
+
+```{r out.width='100%', echo=FALSE}
+library(leaflet)
+leaflet() %>% addTiles() %>%
+  setView(-77.0369, 38.8977, zoom = 10) %>%
+  addPopups(
+    -77.0369, 38.8977,
+    'This is <b>Washington, DC</b>, or Chocolate City.'
+  )
+```
