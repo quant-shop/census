@@ -134,28 +134,11 @@ tracts
 
 In our data, "totalpopE" is a single number representing the estimated population, while "totalpopM" represents a range around that estimate within which the true population is likely to fall. The designation for "E" and "M" follows in line as the estimate and the margin of error.
 
-```{r}
-### PUMS (Public Use Microdata Sample) variables
-pums_vars_2022 <- pums_variables %>% 
-  filter(year == 2018, survey == "acs1")
-pums_vars_2022 %>% 
-  distinct(var_code, var_label, data_type, level)
-
-pums_vars_2022
-
-# see tracts
-glimpse(pl)
-glimpse(dc.tracts)
-
-View(pl)
-View(dc.tracts)
-```
-
 
 ```{r}
-dc.tracts %>%
+tracts %>%
   tm_shape(unit = "mi") +
-    tm_polygons(col = "pblackE", style = "quantile", palette = "Reds", 
+    tm_polygons(col = "pblack", style = "quantile", palette = "Reds", 
               border.alpha = 0, title = "") +
     tm_scale_bar(breaks = c(0, 1, 2), text.size = 0.75, position = c("right", "bottom")) + 
   tm_compass(type = "4star", position = c("left", "top")) +
@@ -180,6 +163,15 @@ The discussions and analysis in this report are informed by the US Census microd
 
 Learn more about the PUMAs [here](https://www.census.gov/programs-surveys/acs/microdata.html).
 
+
+```{r}
+### PUMS (Public Use Microdata Sample) variables
+pums_vars_2022 <- pums_variables %>% 
+  filter(year == 2022, survey == "acs1")
+pums_vars_2022 %>% 
+  distinct(var_code, var_label, data_type, level)
+pums_vars_2022
+```
 
 \newpage
 
