@@ -134,8 +134,7 @@ tracts
 
 In our data, "totalpopE" is a single number representing the estimated population, while "totalpopM" represents a range around that estimate within which the true population is likely to fall. The designation for "E" and "M" follows in line as the estimate and the margin of error.
 
-
-```{r}
+```{r, include=T, warning=F}
 tracts %>%
   tm_shape(unit = "mi") +
     tm_polygons(col = "pblack", style = "quantile", palette = "Reds", 
