@@ -1,9 +1,10 @@
-## CRITICAL CENSUS
-Various projects and reports that take a critical approach to Census and population-level data analysis
+## CENSUS HISTORY PROJECT
+
+Various analyses and reports that take on an historical approach to population-level data analysis and database development.
 
 **Ancillary files**:
 
-* `api.R` helps new users generate and store a [Census API key](https://api.census.gov/data/key_signup.html).
+* `api.R` helps new users generate and store a [US Census API key](https://api.census.gov/data/key_signup.html).
 
   - You should never share your Census API key. Follow the steps below:
   

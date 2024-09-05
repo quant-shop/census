@@ -121,7 +121,7 @@ https://www.census.gov/topics/housing/housing-patterns/guidance/appendix-b.html
 ## Index of Dissimilarity
 
 
-The Index of Dissimilarity (D) $$ \dfrac{1}{2} \Sigma \dfrac{b_i}{B} - \dfrac{w_i}{W} $$
+The Index of Dissimilarity (D) $$ \dfrac{1}{2} \Sigma \big| \dfrac{b_i}{B} - \dfrac{w_i}{W} \big| $$
 
 Here's a lesson plan outline for "What happened to 'Chocolate City'?" focusing on the changes in racial demographics of Washington, DC, using mathematical models and census data:
 
