@@ -6,7 +6,7 @@ author:
 output:
   word_document:
     toc: false
-    reference_docx: conference-template-letter.docx
+    reference_docx: template.docx
   pdf_document:
     toc: false
     toc_depth: 2
@@ -31,10 +31,343 @@ While data-driven decision-making has become a gold standard in most industry se
 
 \newpage
 
-# Introdouction
+## Introduction
 
-Text goes here.
+## The PRISM Method: Proof, Research, Ideation, Synthesis, and Modeling
 
-\newpage
+This framework integrates scientific inquiry, mathematical proof, modeling, and creative ideation into a unified approach. The PRISM method combines mathematical reasoning with empirical scientific practices and creative problem-solving. It provides a structured yet flexible approach for tackling complex problems across pure and applied domains.
+
+Proof: This initial step of the PRISM method focuses on establishing a solid foundation through rigorous mathematical and logical reasoning. It involves formulating precise definitions and axioms, developing formal mathematical proofs, and applying deductive reasoning to validate logical arguments. Researchers identify necessary and sufficient conditions for their hypotheses and work to establish foundational truths. This stage ensures that subsequent steps are built upon a robust theoretical framework, reducing the likelihood of errors or inconsistencies later in the process.
+
+Research: The research phase is dedicated to gathering and analyzing existing information and data relevant to the problem at hand. This includes conducting comprehensive literature reviews, collecting data from various sources, and analyzing historical trends and patterns. Researchers work to identify gaps in current knowledge and formulate specific research questions and hypotheses. This stage provides crucial context and background, allowing the team to build upon existing work and avoid duplicating efforts. It also helps in refining the problem statement and identifying potential avenues for investigation.
+
+Ideation: During the ideation stage, the focus shifts to creative thinking and the generation of novel approaches. This phase encourages brainstorming potential solutions, exploring unconventional ideas, and applying lateral thinking techniques. Researchers combine concepts from different domains and challenge existing assumptions and paradigms. The goal is to expand the solution space and foster innovative thinking, potentially leading to breakthrough insights. This stage is crucial for addressing complex problems that may require non-traditional approaches.
+
+Synthesis: The synthesis step involves integrating insights from the previous stages to form coherent theories or solutions. This process includes combining ideas from different sources, identifying patterns and connections, and developing unified theories or frameworks. Researchers work to reconcile conflicting information and create a holistic understanding of the problem. This stage is critical for making sense of diverse and sometimes disparate information, leading to a more comprehensive and nuanced approach to the problem.
+
+Modeling: The final stage of the PRISM method focuses on creating tangible representations of the problem or solution. This includes developing mathematical or computational models, creating simulations or prototypes, and designing experiments to test hypotheses. Researchers also work on visualizing data and concepts to better communicate their findings. The modeling stage allows for testing and refinement of ideas in a controlled environment, providing valuable feedback that can inform further iterations of the process. It bridges the gap between theoretical concepts and practical applications, enabling researchers to validate their findings and make predictions about real-world scenarios.
+
+### Algorithm
+
+1. Problem Identification
+   - Define the problem or research question
+   - Conduct initial background research
+
+2. Rigorous Formulation  
+   - Develop formal mathematical definitions and axioms
+   - State hypotheses and conjectures precisely
+
+3. Ideation and Exploration
+   - Brainstorm creative approaches and potential solutions
+   - Explore informal examples and special cases
+
+4. Synthesis and Proof
+   - Construct formal mathematical proofs where applicable
+   - Develop logical arguments and deductive reasoning chains
+
+5. Modeling and Simulation
+   - Create mathematical or computational models
+   - Implement simulations and generate synthetic data
+
+6. Empirical Testing
+   - Design and conduct experiments or observational studies
+   - Collect and analyze real-world data
+
+7. Interpretation and Refinement
+   - Evaluate results and refine hypotheses/models
+   - Identify limitations and areas for further investigation
+
+8. Communication
+   - Document process and findings
+   - Present results to relevant audiences
+
+### Example: Racial Disparities in Traffic Stops
+
+We apply the PRISM method to investigate racial disparities in traffic stops based on the work of Khajavi (2019).
+
+1. Problem Identification
+   - Research question: Are there racial disparities in traffic stop rates?
+   - Background: Review existing literature on racial profiling in policing
+
+2. Rigorous Formulation
+   - Define terms: traffic stop, racial disparity, benchmark population
+   - Hypothesis: Traffic stop rates for minority drivers are disproportionately higher than for white drivers, controlling for relevant factors
+
+3. Ideation and Exploration
+   - Brainstorm potential contributing factors: implicit bias, over-policing in certain neighborhoods, socioeconomic factors
+   - Explore simplified scenarios and thought experiments
+
+4. Synthesis and Proof
+   - Develop statistical framework for measuring disparities
+   - Prove mathematical properties of chosen disparity metrics
+
+5. Modeling and Simulation
+   - Create agent-based model of traffic stops
+   - Simulate various scenarios with synthetic data
+
+6. Empirical Testing
+   - Analyze real traffic stop data from police departments
+   - Conduct statistical tests to assess disparities
+
+7. Interpretation and Refinement
+   - Evaluate results and refine initial hypotheses
+   - Identify limitations and propose further studies
+
+8. Communication
+   - Prepare research paper and data visualizations
+   - Present findings to policymakers and community stakeholders
+
+## Mathematical models
+
+To examine the foundations of the two examples provided (traffic stops and fatal police shootings), we should employ several mathematical models and statistical techniques. Here's an outline of the key models and approaches:
+
+## 1. Poisson and Negative Binomial Regression
+
+These models are appropriate for analyzing count data, such as the number of traffic stops or fatal shootings.
+
+- **Poisson Regression**: Used when the variance equals the mean.
+- **Negative Binomial Regression**: Preferred when there's overdispersion (variance > mean).
+
+The model takes the form:
+
+$$\log(E(Y_i)) = \beta_0 + \beta_1X_{1i} + \beta_2X_{2i} + ... + \beta_pX_{pi}$$
+
+Where $Y_i$ is the count outcome, and $X_{1i}, X_{2i}, ..., X_{pi}$ are predictor variables.
+
+## 2. Logistic Regression
+
+This model is useful for binary outcomes, such as whether a stop resulted in a search or not.
+
+$$\log\left(\frac{p}{1-p}\right) = \beta_0 + \beta_1X_1 + \beta_2X_2 + ... + \beta_pX_p$$
+
+Where $p$ is the probability of the event occurring.
+
+## 3. Multilevel Models
+
+These models account for hierarchical data structures, such as stops nested within officers or precincts.
+
+$$Y_{ij} = \beta_{0j} + \beta_{1j}X_{ij} + e_{ij}$$
+$$\beta_{0j} = \gamma_{00} + u_{0j}$$
+$$\beta_{1j} = \gamma_{10} + u_{1j}$$
+
+Where $i$ indexes individuals and $j$ indexes groups.
+
+## 4. Propensity Score Matching
+
+This technique helps control for confounding variables when estimating causal effects.
+
+$$e(X) = P(T=1|X)$$
+
+Where $e(X)$ is the propensity score, $T$ is the treatment indicator, and $X$ is a vector of covariates.
+
+## 5. Difference-in-Differences
+
+This approach can be used to analyze the impact of policy changes on racial disparities over time.
+
+$$Y_{it} = \beta_0 + \beta_1T_i + \beta_2P_t + \beta_3(T_i \times P_t) + \epsilon_{it}$$
+
+Where $T_i$ is the treatment group indicator, $P_t$ is the post-treatment time period indicator, and $T_i \times P_t$ is their interaction.
+
+## 6. Veil of Darkness Test
+
+This test, mentioned in the examples, uses logistic regression to compare the racial composition of stops during daylight versus darkness.
+
+$$\log\left(\frac{p_{minority}}{1-p_{minority}}\right) = \beta_0 + \beta_1Darkness + \beta_2X_2 + ... + \beta_pX_p$$
+
+Where $p_{minority}$ is the probability of a minority driver being stopped, and $Darkness$ is an indicator for stops made after dark.
+
+## 7. Synthetic Control Method
+
+This method could be used to construct a synthetic control group for analyzing the impact of policy changes on racial disparities in policing.
+
+$$Y_{1t} = \delta_t + \theta_tZ_t + \lambda_t\mu + \epsilon_{1t}$$
+
+Where $Y_{1t}$ is the outcome for the treated unit, $Z_t$ are observed covariates, $\mu$ are unobserved factors, and $\lambda_t$ are factor loadings.
+
+These models provide a robust framework for analyzing racial disparities in policing, allowing researchers to control for various confounding factors and test different hypotheses about the nature and causes of these disparities[1][2][3][4].
+
+Citations:
+[1] https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11181091/
+[2] https://assets.ipums.org/_files/mpc/wp2013-05.pdf
+[3] https://academic.oup.com/pnasnexus/article/1/4/pgac144/6652221
+[4] https://www.ppic.org/publication/racial-disparities-in-traffic-stops/
+[5] https://learn.arcgis.com/en/projects/examine-racial-disparities-in-police-stops/
+[6] https://www.sciencedirect.com/science/article/abs/pii/S0927537120301160
+[7] https://phys.org/news/2024-07-connecticut-racial-disparities-traffic-states.html
+[8] https://en.wikipedia.org/wiki/Scientific_method
+
+### Race and Traffic Stop Data
+
+```{r, include=T}
+library(dplyr)
+library(ggplot2)
+
+set.seed(123)
+
+# Generate synthetic population
+population <- data.frame(
+  race = sample(c("White", "Black", "Hispanic", "Other"), 10000, replace = TRUE, 
+                prob = c(0.6, 0.2, 0.15, 0.05)),
+  age = rnorm(10000, mean = 40, sd = 15),
+  speed = rnorm(10000, mean = 65, sd = 10)
+)
+
+# Simulate biased stop probabilities
+population <- population %>%
+  mutate(
+    stop_prob = case_when(
+      race == "White" ~ 0.05,
+      race == "Black" ~ 0.15,
+      race == "Hispanic" ~ 0.10,
+      race == "Other" ~ 0.07
+    ),
+    stopped = rbinom(n(), 1, stop_prob)
+  )
+
+# Analyze stop rates
+stop_rates <- population %>%
+  group_by(race) %>%
+  summarize(
+    stop_rate = mean(stopped),
+    n = n()
+  )
+
+# Visualize results
+ggplot(stop_rates, aes(x = race, y = stop_rate, fill = race)) +
+  geom_col() +
+  labs(title = "Simulated Traffic Stop Rates by Race",
+       y = "Stop Rate",
+       x = "Race") +
+  theme_minimal()
+```
+
+This code generates a synthetic population with racial demographics, simulates traffic stops with built-in racial disparities, and produces a visualization of the results. Researchers could use this as a starting point to explore various scenarios and test analytical methods before applying them to real-world data[1][2].
+
+Citations:
+[1] http://www.contrib.andrew.cmu.edu/~avigad/Papers/method.pdf
+[2] https://dept.math.lsa.umich.edu/~jchw/PrimerOnProof.pdf
+[3] https://math.osu.edu/undergrad/non-majors/resources/proof-method
+[4] https://www.reddit.com/r/math/comments/25f70a/does_the_study_of_pure_mathematics_use_the/
+[5] https://en.wikipedia.org/wiki/Scientific_method
+[6] https://www.sciencebuddies.org/science-fair-projects/science-fair/steps-of-the-scientific-method
+[7] https://math.libretexts.org/Courses/SUNY_Schenectady_County_Community_College/Discrete_Structures/03%3A_Constructing_and_Writing_Proofs_in_Mathematics/3.06%3A_Review_of_Proof_Methods
+
+Certainly. Let's apply the PRISM method to analyze fatal police shootings using the Washington Post's Fatal Force database. This example will focus on racial disparities in fatal police shootings.
+
+## Fatal Police Shootings Analysis
+
+1. Problem Identification
+   - Research question: Are there racial disparities in fatal police shootings?
+   - Background: Review the Washington Post's Fatal Force database methodology[1][3]
+
+2. Rigorous Formulation
+   - Define terms: fatal police shooting, racial disparity, population benchmark
+   - Hypothesis: Black individuals are disproportionately represented in fatal police shootings compared to their population share
+
+3. Ideation and Exploration
+   - Consider factors: geographic distribution, armed vs. unarmed victims, mental health crises
+   - Explore trends over time and potential policy impacts
+
+4. Synthesis and Proof
+   - Develop statistical framework for measuring disparities
+   - Calculate per capita rates and risk ratios
+
+5. Modeling and Analysis
+   - Use R to analyze the Washington Post's Fatal Force database
+   - Perform statistical tests and create visualizations
+
+6. Empirical Testing
+   - Compare findings to other studies and government data
+   - Assess limitations of the database and potential biases
+
+7. Interpretation and Refinement
+   - Evaluate results and refine initial hypotheses
+   - Identify areas for further investigation, such as local-level analyses
+
+8. Communication
+   - Prepare data visualizations and summary statistics
+   - Draft report for policymakers and community stakeholders
+
+### R Code for Analysis
+
+Here's R code to analyze the Washington Post's Fatal Force database:
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(readr)
+
+# Load the data
+url <- "https://raw.githubusercontent.com/washingtonpost/data-police-shootings/master/v2/fatal-police-shootings-data.csv"
+shootings <- read_csv(url)
+
+# Calculate shootings by race
+shootings_by_race <- shootings %>%
+  group_by(race) %>%
+  summarize(count = n()) %>%
+  mutate(percentage = count / sum(count) * 100)
+
+# Calculate per capita rates (using approximate 2020 US population data)
+population <- data.frame(
+  race = c("W", "B", "H", "A", "N"),
+  population = c(236992000, 41100000, 62100000, 19860000, 3400000)
+)
+
+shootings_per_capita <- shootings_by_race %>%
+  left_join(population, by = "race") %>%
+  mutate(per_million = (count / population) * 1000000)
+
+# Visualize results
+ggplot(shootings_per_capita, aes(x = race, y = per_million, fill = race)) +
+  geom_col() +
+  labs(title = "Fatal Police Shootings per Million by Race (2015-2024)",
+       y = "Shootings per Million",
+       x = "Race") +
+  theme_minimal()
+
+# Analyze trends over time
+yearly_trends <- shootings %>%
+  mutate(year = format(as.Date(date), "%Y")) %>%
+  group_by(year, race) %>%
+  summarize(count = n()) %>%
+  ungroup()
+
+ggplot(yearly_trends, aes(x = year, y = count, color = race, group = race)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Trends in Fatal Police Shootings by Race (2015-2024)",
+       y = "Number of Shootings",
+       x = "Year") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Analyze armed vs. unarmed shootings
+armed_analysis <- shootings %>%
+  mutate(armed_status = ifelse(is.na(armed_with) | armed_with == "unarmed", "Unarmed", "Armed")) %>%
+  group_by(race, armed_status) %>%
+  summarize(count = n()) %>%
+  ungroup()
+
+ggplot(armed_analysis, aes(x = race, y = count, fill = armed_status)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Armed vs. Unarmed Fatal Police Shootings by Race (2015-2024)",
+       y = "Number of Shootings",
+       x = "Race") +
+  theme_minimal()
+```
+
+This code analyzes the Washington Post's Fatal Force database, calculating shooting rates by race, examining trends over time, and comparing armed vs. unarmed shootings[5]. The analysis reveals that Black individuals are disproportionately affected by fatal police shootings, being shot at more than double the rate of White Americans despite representing only about 14 percent of the U.S. population[5].
+
+The visualizations and statistics produced by this code can help researchers, policymakers, and the public better understand patterns in fatal police shootings and inform discussions about police reform and racial justice. However, it's important to note the limitations of the data and consider additional factors that may influence these patterns.
+
+Citations:
+[1] https://www.washingtonpost.com/investigations/2022/12/05/washington-post-fatal-police-shootings-methodology/
+[2] https://www.washingtonpost.com/pr/2022/12/06/pulitzer-prize-winning-fatal-force-database-updated-with-federal-ids-police-departments-involved-fatal-shootings/
+[3] https://github.com/washingtonpost/data-police-shootings/blob/master/README.md
+[4] https://peabodyawards.com/fatalforce/
+[5] https://www.washingtonpost.com/graphics/investigations/police-shootings-database/
+[6] https://www.washingtonpost.com/investigations/interactive/2022/fatal-police-shootings-unreported/
+[7] https://www.washingtonpost.com/investigations/2023/02/21/fatal-police-shootings-increase-2022/
+[8] https://www.washingtonpost.com/education/interactive/school-shootings-database/
 
 # References
