@@ -1,6 +1,4 @@
-THE CENSUS HISTORY PROJECT
-
-The Census History Project focuses on the exploration, extraction, analysis of U.S. Census data. Our users group takes an historical approach to considering the quantification of population-level data, the methods and measures used to explore and extract and analyze data.
+The **CENSUS HISTORY PROJECT** focuses on the exploration, extraction, and analysis of U.S. Census data for further research purposes. Our users group takes on a critical historical approach to understanding population-level data on the United States, the methods used to gather the data, and the measures applied to explore, extract, and analyze the data.
 
 **Ancillary files**:
 
@@ -23,10 +21,17 @@ group: census-users
 initiated: fall 2022
 
 #### Project PIs
-Nathan Alexander (Howard University), Hye Ryeon Jang (Morehouse College), & Christopher Agbonkhese (Bates College)
+- Nathan Alexander (Howard University)
+- Hye Ryeon Jang (Morehouse College)
+- Christopher Agbonkhese (Bates College)
 
 #### Contributors
-Myles Ndiritu (Morehouse College), Zoe Williams (Howard University), Jibek Gupta (Howard University), Maxwell Messiah (Dalton), Bayowa Onabajo (Howard University)
+- Sayid Achilov (Brown University)
+- Myles Ndiritu (Morehouse College)
+- Jibek Gupta (Howard University)
+- Zoe Williams (Howard University)
+- Maxwell Messiah (Dalton)
+- Bayowa Onabajo (Howard University)
 
 #### Funding
 
