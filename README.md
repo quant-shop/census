@@ -25,7 +25,7 @@ Funding for this project is provided by [Data.org](https://data.org) and the [Al
 
 **Ancillary files**:
 
-* [`api.R`](code/api.R) helps new users generate and store a [US Census API key](https://api.census.gov/data/key_signup.html).
+* [`api.R`](https://github.com/quant-shop/census/blob/main/code/api.R) helps new users generate and store a [US Census API key](https://api.census.gov/data/key_signup.html).
 
   - You should never share your Census API key. Follow the steps below:
   
