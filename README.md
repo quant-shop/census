@@ -1,6 +1,6 @@
 THE CENSUS HISTORY PROJECT
 
-The Census History Project focuses on the extraction, analysis, and reporting of U.S. census data. Our project team uses an historical approach to considering the quantification of population-level data and in the development of databases.
+The Census History Project focuses on the exploration, extraction, analysis of U.S. Census data. Our users group takes an historical approach to considering the quantification of population-level data, the methods and measures used to explore and extract and analyze data.
 
 **Ancillary files**:
 
