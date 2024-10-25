@@ -2,9 +2,11 @@ The **CENSUS HISTORY PROJECT** focuses on the exploration, extraction, and analy
 
 
 ::: {layout-ncol=2}
+
 ![](img/census1900.jpg){fig-alt="A drawing of the population distribution of the United States in 1890." width=25%}
 
 ![](img/1890-map-population-distribution.jpg){fig-alt="Black Angelenos in 1910." width=25%}
+
 :::
 
 Images from the U.S. Census Bureau and the California African American Museum[^angelenos].
