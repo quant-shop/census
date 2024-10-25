@@ -1,4 +1,4 @@
-## CENSUS+HISTORY PROJECT
+CENSUS HISTORY PROJECT
 
 Various analyses and reports that take on an historical approach to population-level data analysis and database development.
 
@@ -18,7 +18,7 @@ Various analyses and reports that take on an historical approach to population-l
     
     
 #### Project PIs
-Nathan Alexander (Howard University) & Hye Ryeon Jang (Morehouse College)
+Nathan Alexander (Howard University), Hye Ryeon Jang (Morehouse College), & Christopher Agbonkhese (Bates College)
 
 #### Contributors
-Myles Ndiritu (Morehouse College), Zoe Williams (Howard University)
+Myles Ndiritu (Morehouse College), Zoe Williams (Howard University), Jibek Gupta (Howard University), Maxwell Messiah (Dalton), Bayowa Onabajo (Howard University)

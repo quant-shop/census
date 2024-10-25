@@ -21,27 +21,11 @@ library(survey)
 library(srvyr)
 library(ggplot2)
 
-# read in cleaned data
-fatal <- read.csv("data/fatal_clean.csv")
-
-# census poverty rate by state (2022)
-pov2022 <- read.csv("data/poverty/SAIPE_03-18-2024.csv")
-pov2022
-
-statepov22 <- pov2022 %>% 
-  select(Name, Percent.in.Poverty) %>% 
-  mutate(povper = Percent.in.Poverty) %>% 
-  as_tibble()
-
-statepov22
-statepov22 %>% 
-  ggplot(aes(x = povper, y = reorder(Name, povper))) +
-  geom_point() + 
-  xlab(Poverty Rate) + ylab(State)
-  labs(title = "Poverty Rates by US State", subtitle = "2022", caption = "Based on US Decennial Census Data")
-
 # fips codes
 fips_codes
+head(fips_codes) 
+tail(fips_codes)
+View(fips_codes)
 
 #### gist code modified from ehbick01 @ https://gist.github.com/ehbick01/1746d6ef2e9d5f74d0a80b83b75b2a45
 library(purrr) 
@@ -82,17 +66,17 @@ age2020 %>%
 totalpop <- map_df(us, function(x) {
   get_acs(geography = "tract",
           variables = "B01003_001",
-          state = "x")
+          state = "DC") # Change state location
 })
 
 totalpop
 
 
-# tract-level population for GA
-totalpop_ga <- map_df(us, function(x) {
+# tract-level population for DC
+totalpop_dc <- map_df(us, function(x) {
   get_acs(geography = "tract",
           variables = "B01003_001",
-          state = "GA")
+          state = "DC")
 })
 
 # tract-level poverty populations for GA

@@ -66,9 +66,6 @@ data$label
 # install packages
 install.packages("terra")
 
-# initialize your API key
-census_api_key("c7d784a095f768d468c885b95e86ab2c1b54b17e", install = TRUE)
-
 # get_acs(): is used to pull data from the American Community Survey (ACS)
 # get_decennial(): is used to pull data from the Decennial Census
 
