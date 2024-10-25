@@ -4,7 +4,7 @@ The Census History Project focuses on the extraction, analysis, and reporting of
 
 **Ancillary files**:
 
-* `api.R` helps new users generate and store a [US Census API key]((https://api.census.gov/data/key_signup.html){.external target="_blank"}).
+* `api.R` helps new users generate and store a [US Census API key](https://api.census.gov/data/key_signup.html){.external target="_blank"}.
 
   - You should never share your Census API key. Follow the steps below:
   
@@ -30,4 +30,4 @@ Myles Ndiritu (Morehouse College), Zoe Williams (Howard University), Jibek Gupta
 
 #### Funding
 
-Funding for this project is provided by [Data.org]((https://data.org){.external target="_blank"}) and the [Alfred P. Sloan Foundation]((https://sloan.org){.external target="_blank"}).
+Funding for this project is provided by [Data.org](https://data.org){.external target="_blank"} and the [Alfred P. Sloan Foundation](https://sloan.org){.external target="_blank"}.
