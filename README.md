@@ -1,5 +1,8 @@
 The **CENSUS HISTORY PROJECT** focuses on the exploration, extraction, and analysis of U.S. Census data for further research purposes. Our users group takes on a critical historical approach to understanding population-level data on the United States, the methods used to gather the data, and the measures applied to explore, extract, and analyze the data.
 
+
+![[Image from California African American Museum](https://caamuseum.org/learn/600state/black-history/blackhistory-on-june-1-1900-the-first-census-of-the-20th-century-counted-2-131-black-angelenos)](img/census1900.jpg){width=50%}
+
 #### Group Info
 
 group: census-users
