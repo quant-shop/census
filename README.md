@@ -1,6 +1,15 @@
 The **CENSUS HISTORY PROJECT** focuses on the exploration, extraction, and analysis of U.S. Census data for further research purposes. Our users group takes on a critical historical approach to understanding population-level data on the United States, the methods used to gather the data, and the measures applied to explore, extract, and analyze the data.
 
-[![Image from California African American Museum](img/census1900.jpg){width="1000"}](https://caamuseum.org/learn/600state/black-history/blackhistory-on-june-1-1900-the-first-census-of-the-20th-century-counted-2-131-black-angelenos)
+
+::: {#fig-layout-ncol=2}
+
+![](img/census1900.jpg){fig-alt="A drawing of the population distribution of the United States in 1890." fig-align="left" width=35%}
+
+![Image from the California African American Museum[^angelenos]](img/1890-map-population-distribution.jpg){fig-alt="Black Angelenos in 1910." fig-align="left" width=35%}
+
+:::
+
+[^angelenos]: https://caamuseum.org/learn/600state/black-history/blackhistory-on-june-1-1900-the-first-census-of-the-20th-century-counted-2-131-black-angelenos
 
 #### Group Info
 
