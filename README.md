@@ -1,19 +1,5 @@
 The **CENSUS HISTORY PROJECT** focuses on the exploration, extraction, and analysis of U.S. Census data for further research purposes. Our users group takes on a critical historical approach to understanding population-level data on the United States, the methods used to gather the data, and the measures applied to explore, extract, and analyze the data.
 
-**Ancillary files**:
-
-* `api.R` helps new users generate and store a [US Census API key](https://api.census.gov/data/key_signup.html).
-
-  - You should never share your Census API key. Follow the steps below:
-  
-    - Set up an environment variable to hold your api key with `usethis::edit_r_environ()`
-
-    - Transfer information into `.Renviron` (pop-up file) 
-    
-        - Insert `CENSUS_API_KEY='your_api_key'` into the `.Renviron` file
-  
-    - Insert your census API key via `Sys.getenv("CENSUS_API_KEY")`
-
 #### Group Info
 
 group: census-users
@@ -36,3 +22,17 @@ initiated: fall 2022
 #### Funding
 
 Funding for this project is provided by [Data.org](https://data.org) and the [Alfred P. Sloan Foundation](https://sloan.org).
+
+**Ancillary files**:
+
+* [`api.R`](code/api.R) helps new users generate and store a [US Census API key](https://api.census.gov/data/key_signup.html).
+
+  - You should never share your Census API key. Follow the steps below:
+  
+    - Set up an environment variable to hold your api key with `usethis::edit_r_environ()`
+
+    - Transfer information into `.Renviron` (pop-up file) 
+    
+        - Insert `CENSUS_API_KEY='your_api_key'` into the `.Renviron` file
+  
+    - Insert your census API key via `Sys.getenv("CENSUS_API_KEY")`
