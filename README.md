@@ -1,6 +1,6 @@
-CENSUS HISTORY PROJECT
+THE CENSUS HISTORY PROJECT
 
-Various analyses and reports that take on an historical approach to population-level data analysis and database development.
+The Census History Project focuses on the extraction, analysis, and reporting of U.S. census data. Our project team uses an historical approach to considering the quantification of population-level data and in the development of databases.
 
 **Ancillary files**:
 
@@ -16,9 +16,18 @@ Various analyses and reports that take on an historical approach to population-l
   
     - Insert your census API key via `Sys.getenv("CENSUS_API_KEY")`
     
-    
+#### Group Info
+
+group: census-users
+
+initiated: fall 2022
+
 #### Project PIs
 Nathan Alexander (Howard University), Hye Ryeon Jang (Morehouse College), & Christopher Agbonkhese (Bates College)
 
 #### Contributors
 Myles Ndiritu (Morehouse College), Zoe Williams (Howard University), Jibek Gupta (Howard University), Maxwell Messiah (Dalton), Bayowa Onabajo (Howard University)
+
+#### Funding
+
+Funding for this project is provided by [Data.org](https://data.org) and the [Alfred P. Sloan Foundation](https://sloan.org).
