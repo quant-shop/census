@@ -1,6 +1,6 @@
 The **CENSUS HISTORY PROJECT** focuses on the exploration, extraction, and analysis of U.S. Census data for further research purposes. Our users group takes on a critical historical approach to understanding population-level data on the United States, the methods used to gather the data, and the measures applied to explore, extract, and analyze the data.
 
-![](img/1890-map-population-distribution.jpg)
+<img src="img/1890-map-population-distribution.jpg" width="500">
 
 #### Group Info
 
@@ -48,7 +48,7 @@ Funding for this project is provided by [Data.org](https://data.org) and the [Al
 
         -   Insert your census API key via `Sys.getenv("CENSUS_API_KEY")`
 
-![](img/census1900.jpg)
+<img src="img/census1900.jpg" width="500">
 
 Images from the U.S. Census Bureau and the California African American Museum[^angelenos].
 
