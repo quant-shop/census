@@ -2,15 +2,12 @@ The **CENSUS HISTORY PROJECT** focuses on the exploration, extraction, and analy
 
 ![](img/1890-map-population-distribution.jpg)
 
-![](img/census1900.jpg)
-
-Images from the U.S. Census Bureau and the California African American Museum[^angelenos].
-
-[^angelenos]: https://caamuseum.org/learn/600state/black-history/blackhistory-on-june-1-1900-the-first-census-of-the-20th-century-counted-2-131-black-angelenos
-
 #### Group Info
 
-group: census-users
+primary users: 
+
+- aj-lab
+- census-users
 
 initiated: fall 2022
 
@@ -29,11 +26,15 @@ initiated: fall 2022
 -   Maxwell Messiah (Dalton)
 -   Bayowa Onabajo (Howard University)
 
+#### Contact
+
+Contact us at quant-shop [at] gmail [dot] com
+
 #### Funding
 
 Funding for this project is provided by [Data.org](https://data.org) and the [Alfred P. Sloan Foundation](https://sloan.org).
 
-**Ancillary files**:
+#### Files
 
 -   [`api.R`](https://github.com/quant-shop/census/blob/main/code/api.R) helps new users generate and store a [US Census API key](https://api.census.gov/data/key_signup.html).
 
@@ -46,3 +47,9 @@ Funding for this project is provided by [Data.org](https://data.org) and the [Al
             -   Insert `CENSUS_API_KEY='your_api_key'` into the `.Renviron` file
 
         -   Insert your census API key via `Sys.getenv("CENSUS_API_KEY")`
+
+![](img/census1900.jpg)
+
+Images from the U.S. Census Bureau and the California African American Museum[^angelenos].
+
+[^angelenos]: https://caamuseum.org/learn/600state/black-history/blackhistory-on-june-1-1900-the-first-census-of-the-20th-century-counted-2-131-black-angelenos
