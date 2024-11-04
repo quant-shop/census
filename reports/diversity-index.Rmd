@@ -59,4 +59,83 @@ We examine three cases in Washington, DC, Oakland, CA, and  Charlotte, NC.
 
 This proof demonstrates how contextual probabilities can be incorporated into the analysis of community diversity changes over time. By using census data to estimate $p_{i,t}$ and historical trends to determine $C_i$, we can predict and analyze community changes more accurately.
 
+---
+
+## Extended Proof: Temporal Change in Community Diversity with Contextual Probability
+
+**Definitions:**
+- Let $$D_t$$ be the diversity index of a community at time $$t$$
+- Let $$p_{i,t}$$ be the proportion of individuals belonging to group $$i$$ at time $$t$$
+- Let $$n$$ be the number of distinct groups in the community
+- Let $$C_i$$ be the contextual probability of change for group $$i$$
+- Let $$f(t)$$ be a time-dependent function modeling the rate of change
+
+**Theorem:** The change in community diversity $$\Delta D$$ between two time points $$t_1$$ and $$t_2$$ can be expressed as a function of the changes in group proportions, weighted by their contextual probabilities, and influenced by external factors.
+
+**Extended Proof:**
+
+1. We start with the Shannon entropy formula for diversity:
+
+   $$D_t = -\sum_{i=1}^n p_{i,t} \log(p_{i,t})$$
+
+   This formula captures the evenness of distribution across groups in the community.
+
+2. The change in diversity $$\Delta D$$ between $$t_1$$ and $$t_2$$ is:
+
+   $$\Delta D = D_{t_2} - D_{t_1} = -\sum_{i=1}^n p_{i,t_2} \log(p_{i,t_2}) + \sum_{i=1}^n p_{i,t_1} \log(p_{i,t_1})$$
+
+3. We introduce the contextual probability $$C_i$$ for each group $$i$$. This probability is determined by various factors:
+
+   $$C_i = g(h_i, e_i, m_i, s_i)$$
+
+   Where:
+   - $$h_i$$ represents historical trends for group $$i$$
+   - $$e_i$$ represents economic factors affecting group $$i$$
+   - $$m_i$$ represents migration patterns for group $$i$$
+   - $$s_i$$ represents social factors influencing group $$i$$
+
+   The function $$g$$ combines these factors to produce a probability.
+
+4. We model the change in proportion for each group as:
+
+   $$\Delta p_i = p_{i,t_2} - p_{i,t_1} = C_i \cdot f(t_2 - t_1)$$
+
+   Where $$f(t)$$ is a time-dependent function that models the rate of change. This function could be linear, exponential, or more complex depending on the specific community dynamics.
+
+5. We can now express $$p_{i,t_2}$$ in terms of $$p_{i,t_1}$$:
+
+   $$p_{i,t_2} = p_{i,t_1} + C_i \cdot f(t_2 - t_1)$$
+
+6. Substituting this into our diversity change equation:
+
+   $$\Delta D = -\sum_{i=1}^n (p_{i,t_1} + C_i \cdot f(t_2 - t_1)) \log(p_{i,t_1} + C_i \cdot f(t_2 - t_1)) + \sum_{i=1}^n p_{i,t_1} \log(p_{i,t_1})$$
+
+7. To make this equation more tractable, we can use a Taylor series expansion:
+
+   $$\log(p_{i,t_1} + C_i \cdot f(t_2 - t_1)) \approx \log(p_{i,t_1}) + \frac{C_i \cdot f(t_2 - t_1)}{p_{i,t_1}} - \frac{(C_i \cdot f(t_2 - t_1))^2}{2p_{i,t_1}^2}$$
+
+8. Substituting this approximation and simplifying:
+
+   $$\Delta D \approx -\sum_{i=1}^n C_i \cdot f(t_2 - t_1) \left(\log(p_{i,t_1}) + 1 - \frac{C_i \cdot f(t_2 - t_1)}{2p_{i,t_1}}\right)$$
+
+9. This final equation allows us to calculate the change in diversity as a function of:
+   - Initial proportions ($$p_{i,t_1}$$)
+   - Contextual probabilities ($$C_i$$)
+   - Time difference ($$t_2 - t_1$$)
+   - The rate of change function ($$f(t)$$)
+
+**Additional Considerations:**
+
+1. **Normalization**: We must ensure that $$\sum_{i=1}^n p_{i,t} = 1$$ at all times. This constraint can be enforced by normalizing the probabilities after each calculation.
+
+2. **Interdependence**: Changes in one group's proportion may affect others. We can model this by introducing an interdependence matrix $$I_{ij}$$ where $$I_{ij}$$ represents the influence of group $$j$$ on group $$i$$.
+
+3. **External Shocks**: Sudden events (e.g., natural disasters, policy changes) can be modeled by introducing a shock function $$S(t)$$ that modifies $$f(t)$$.
+
+4. **Confidence Intervals**: Given the probabilistic nature of our model, we should calculate confidence intervals for our diversity predictions.
+
+**Conclusion:** This extended proof provides a robust framework for analyzing community diversity changes over time, incorporating contextual probabilities and various real-world factors. By using census data to estimate $$p_{i,t}$$ and historical trends to determine $$C_i$$, we can predict and analyze community changes with greater accuracy and nuance.
+
+This proof demonstrates how our project can leverage automated reasoning techniques to process complex temporal data, incorporating contextual probabilities and multiple influencing factors. It provides a solid foundation for developing algorithms that can offer deep insights into demographic shifts and community dynamics, aligning perfectly with our proposed research objectives.
+
 
