@@ -7,7 +7,7 @@
 usethis::edit_r_environ()
 
 # transfer information into your `.Renviron`
-CENSUS_API_KEY="your_api_key"
+CENSUS_API_KEY="a876b48cdd106e0c2ce01a0ce6e5735eab0f3ac7"
 
 # insert your census API key
 Sys.getenv(CENSUS_API_KEY)
