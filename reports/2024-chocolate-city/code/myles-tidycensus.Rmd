@@ -1,0 +1,97 @@
+---
+title: "Tidycensus Tutorial"
+author: "Myles Ndiritu"
+output: pdf_document
+date: "2023-09-26"
+urlcolor: purple
+---
+
+Let's go over how to use Tidycensus to find and extract census data.
+
+## STEP 0: Load the required packages:
+
+```{r setup, warning=FALSE, message=FALSE}
+library(tidycensus)
+library(tidyverse)
+```
+
+## STEP 1: Run API key
+
+You will need an API key to access the data. I have included my key below, but in the event that it doesn't work visit this website to get a key: <https://api.census.gov/data/key_signup.html>
+  
+```{r api, include=FALSE}
+census_api_key("f82508cd291cb6c902d7e0558e5d8962e5900ba5")
+
+```
+
+```{r api1, eval=FALSE}
+census_api_key("YOUR KEY HERE")
+
+```
+
+## STEP 2: Loading U.S. Decennial Census data
+
+```{r d1}
+v20 <- load_variables(2020, "pl", cache = T)
+View(v20)
+head(v20, 7)
+```
+
+Please become familiar with this format, as we will use it repeatedly when loading census data.
+
+Adjust the year value in the code to change the year. 2020 is the most recent.
+
+Examine the name column in this v20 data frame. Each code corresponds to a specific variable. For the next step, lets look at the black population variable, code name "P1_004N."
+
+## STEP 3: Loading specific datasets
+
+```{r d2}
+
+black2020 <- get_decennial(geography = "state",
+                             variables = "P1_004N",
+                             year = 2020)
+head(black2020)
+
+```
+
+The value column shows the black population for that county.
+
+We'll also need to be familiar with the American Community Survey (ACS) data. Luckily, the method of extracting it is the same.
+
+## STEP 4: Loading American Community Survey Data
+
+Again, load the data set to see the variables and variable code names:
+
+```{r d3}
+
+acs20 <- load_variables(2020, "acs5", cache = T)
+View(acs20)
+
+```
+
+## STEP 5: Loading specific ACS datasets
+
+After finding a variable you want, extract it by defining the required parameters, and specifying the variable name:
+
+```{r d4}
+
+# Median Income of African American Household in 2020 
+blackmedianincome <- get_acs(geography = "state",
+                          variables = "B19013B_001",
+                          year = 2020)
+head(blackmedianincome)
+
+```
+
+## STEP 6: Extracting Data to CSV
+
+Finally, let's export our data frame to a csv. Change the value names as needed to match your variables. This method works for both decennial and ACS datasets.
+
+```{r d5}
+
+write.csv(black2020, file = "black2020.csv", row.names = T)
+write.csv(blackmedianincome, file = "blackmedianincome.csv", row.names = T)
+
+```
+
+Hopefully this will help you get started with Tidycensus. For more information or advice please consult this website: <https://walker-data.com/tidycensus/articles/basic-usage.html> Also please feel free to reach out to me on GroupMe or email: [myles.ndiritu\@morehouse.edu](mailto:myles.ndiritu@morehouse.edu){.email}

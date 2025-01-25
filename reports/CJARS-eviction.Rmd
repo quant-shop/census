@@ -1,0 +1,327 @@
+---
+title: "Education and Stability"
+author: 
+- "Nathan Alexander"
+- "Center for Applied Data Science and Analytics (CADSA)"
+- "Howard University"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme: journal
+  toc: true
+  toc_float: true
+---
+
+## Introduction
+
+This document provides an overview of the proposed research for the CADSA RDC project. Here, I will highlight the significance of studying the role of education and other correlates in the eviction rates among African Americans and the impact on stability (defined as a measure of housing stability, job security, and related features).
+
+## Literature Review
+
+This section will summarize existing literature on eviction rates, income disparities, education levels, and racial inequities in housing. Key studies and findings will be discussed to provide context for the research questions:
+
+- **Eviction Disparities**: Black households face disproportionately high eviction rates compared to white households. Over 50% of eviction filings in the U.S. are against Black families, despite them comprising only 18.6% of the renter population [1][3]. Black women with children are particularly vulnerable, representing a significant portion of eviction filings [1].
+
+- **Impact of Education**: Research indicates that Black and Latino renters with some college education experience higher rates of nonpayment of rent than their white counterparts [5]. This suggests that education alone does not mitigate the risk of eviction for these groups.
+
+- **Health Implications**: Eviction is linked to adverse health outcomes, particularly among Black children and families. The stress associated with eviction can lead to various health issues, including low birth weights and cognitive development challenges [1].
+
+- **Economic Factors**: The relationship between income and eviction is complex; even Black households earning over $80,000 experience higher eviction risks than white households earning under $20,000 [1][3]. This disparity highlights systemic issues beyond individual income levels.
+
+- **Racial and Economic Segregation**: Areas with high rates of racial segregation often see higher eviction rates. For example, Atlanta is noted for its significant racial segregation and high poverty rates, which contribute to elevated eviction rates among low-income households [2].
+
+## Research Questions
+
+1. **Demographic Analysis**: 
+   - How do eviction rates differ among individuals identified as Black or African American in areas with varying levels of education?
+
+2. **Income Correlation**: 
+   - What is the relationship between low-income status and eviction rates among African Americans?
+
+3. **Education Impact**: 
+   - How does educational attainment influence eviction rates among African Americans?
+
+4. **Spatial Analysis**: 
+   - How does geographic location influence the likelihood of eviction among lower-income Black or African American individuals?
+
+## Data and Methods
+
+This section will describe the datasets used (CJARS and Census data), the methods for linking these datasets, and the statistical techniques employed to analyze the data.
+
+### Data Sources
+- **CJARS**: Overview of CJARS data relevant to the study.
+- **Census Data**: Description of ACS variables used in the analysis.
+
+### Methods
+- Description of statistical methods (e.g., regression analysis, calculation of dissimilarity and isolation indices) that will be applied to answer the research questions.
+
+## R Code to Access Data
+
+```{r}
+# Load necessary libraries
+library(tidycensus)
+library(dplyr)
+library(ggplot2)
+# options(tigris_use_cache = TRUE)
+
+# Set your Census API key
+# census_api_key("YOUR_CENSUS_API_KEY", install = TRUE)
+
+# Define variables of interest
+variables <- c(
+  total_population = "B01001_001",         # Total Population
+  black_population = "B03002_004",         # Black or African American Population
+  lower_income = "B19001_002",             # Households with income less than $10,000
+  median_home_value = "B25077_001",        # Median Home Value
+  public_housing = "B25003_002",           # Occupied housing units that are renter-occupied and subsidized
+  public_assistance = "B19058_001",        # Households Receiving Public Assistance
+  median_household_income = "B19013_001",  # Median Household Income
+  bachelor = "B15003_017",                 # Population over 25 with a Bachelor's degree or higher
+  white_population = "B03002_003",         # White Population
+  hispanic_population = "B03002_012",      # Hispanic or Latino Population
+  male_population = "B01001_002",          # Male Population
+  female_population = "B01001_026",        # Female Population
+  median_age = "B01002_001",               # Median Age
+  employed = "B23025_002",                 # Employed population (age 16+)
+  unemployed = "B23025_003",               # Unemployed population (age 16+)
+  children_under_18 = "B09001_001"         # Total number of own children under 18 years
+  )
+
+
+get_census_data <- function(year) {
+  census_data <- get_acs(
+    geography = "tract",
+    variables = variables,
+    year = year,
+    state = "DC", # Change to your state of interest
+    output = "wide"
+  )
+}  
+```
+
+```{r}
+# check function, wide format data
+df1 <- get_census_data(2022)
+df1
+
+# load data for year directly from ACS
+df2 <- get_acs(
+  geography = "tract", 
+  variables = variables,
+  state = "DC", 
+  year = 2022,
+  geometry = TRUE
+)
+df2
+
+```
+
+```{r}
+# Create df1: Calculate percentages for Black population and lower income
+df1 <- df1 %>%
+  mutate(
+    black_only_percentage = black_populationE / total_populationE * 100,
+    low_income_percentage = lower_incomeE / total_populationE * 100
+  ) %>%
+  filter(black_only_percentage > 0 & low_income_percentage > 0) # Filter for relevant data
+
+# View df1
+print(df1)
+```
+
+```{r}
+
+df3 <- df1 %>%
+  mutate(
+    black_only_percentage = black_populationE / total_populationE * 100,
+    low_income_percentage = lower_incomeE / total_populationE * 100,
+    median = median_home_valueE,
+    assist = public_assistanceE
+  ) %>%
+  filter(black_only_percentage > 50 & 
+           low_income_percentage > mean(low_income_percentage) # return values above the mean
+         ) # Filter for relevant data
+
+# View df2
+print(df3)
+```
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+
+# Assuming df3 is your final dataset with relevant columns
+# Check the structure of df3
+str(df2)
+```
+
+```{r}
+# Build a linear regression model
+# For example, predicting median home value based on other variables
+model <- lm(median_home_valueE ~ black_only_percentage + low_income_percentage + public_assistanceE, data = df1)
+
+# Summarize the model to see coefficients and overall fit
+summary(model)
+```
+
+#### black_only_percentage
+
+The coefficient is -6,521.71, which means that for each 1% increase in the Black population percentage in a tract, the median home value decreases by approximately $6,521.71. This relationship is statistically significant (p-value = 1.75e-06), indicating a strong inverse relationship between Black population percentage and home values.
+
+```{r}
+# Evaluate model fit with diagnostic plots
+par(mfrow = c(2, 2))  # Set up a 2x2 plotting area
+plot(model)
+
+# Reset plotting area
+par(mfrow = c(1, 1))
+```
+
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+library(sf)
+library(tigris)
+
+# Assuming df3 is your final dataset with relevant columns
+# Check the structure of df3
+str(df2)
+
+# Create a new variable for isolation index (optional)
+# You can define your own method for calculating isolation
+df4 <- df1 %>%
+  mutate(isolation_index = black_only_percentage + low_income_percentage / (total_populationE) * 100)
+df4 %>% summary(isolation_index)
+```
+
+```{r}
+library(tmap)
+
+# Filter for low-income Black residents (for example, those with low_income_percentage > 20)
+low_income_black_residents <- df4 %>%
+  filter(isolation_index > 75)
+
+iso <- get_acs(
+  geography = "tract",
+  state = "DC",
+  variables = variables,
+  year = 2022,
+  geometry = TRUE)
+iso
+
+clt <- get_acs(
+  geography = "tract",
+  state = "NC",
+  county = "Mecklenburg",
+  variables = variables,
+  year = 2022,
+  geometry = TRUE)
+clt
+
+library(dplyr)
+
+# Assuming 'clt' is your data frame and 'variable' is a column that includes 'black_population'
+clt_black_pop <- clt %>%
+  filter(variable == "black_population")  # Use filter() to select rows where 'variable' equals 'black_population'
+
+
+# Assuming 'clt' is your spatial data frame and 'black_population' is a column in it
+tm_shape(clt_black_pop) + 
+  tm_polygons(col = "estimate", 
+               title = "", 
+               palette = "Blues") +
+  tm_layout(title = "Black Population Distribution")
+
+```
+
+```{r, eval=F}
+summary(df)
+summary(df$public_assistanceE)
+
+```
+
+```{r, eval=F}
+
+library(tidycensus)
+library(ggiraph)
+library(tidyverse)
+library(patchwork)
+library(scales)
+
+dc <- get_acs(
+  geography = "county",
+  variables = variables,
+  state = "DC",
+  year = 2022,
+  geometry = TRUE
+) %>%
+  mutate(NAME = str_remove(NAME, " County, Washington"))
+
+dc_map <- ggplot(dc, aes(fill = estimate)) + 
+  geom_sf_interactive(aes(data_id = GEOID)) + 
+  scale_fill_distiller(palette = "Greens",
+                       direction = 1, 
+                       guide = "none") + 
+  theme_void()
+
+dc_map
+iso
+# Assuming dc_map is your data frame and contains columns: estimate and moe (margin of error)
+p <- ggplot(iso, aes(x = estimate, y = reorder(variable, estimate), fill = estimate)) +
+  geom_bar(stat = "identity") +  # Use geom_bar for bar plots
+  geom_errorbar(aes(ymin = estimate - moe, ymax = estimate + moe), width = 0.2) +  # Add error bars
+  labs(title = "Estimates with Margin of Error",
+       x = "Estimate",
+       y = "Variable") +
+  theme_minimal()
+
+# Print the plot
+print(p)
+```
+
+```{r, eval=F}
+library(tidycensus)
+library(ggiraph)
+library(tidyverse)
+library(patchwork)
+library(scales)
+
+vt_income <- get_acs(
+  geography = "county",
+  variables = "B19013_001",
+  state = "NC",
+  year = 2020,
+  geometry = TRUE
+) %>%
+  mutate(NAME = str_remove(NAME, " County, North Carolina"))
+
+vt_map <- ggplot(vt_income, aes(fill = estimate)) + 
+  geom_sf_interactive(aes(data_id = GEOID)) + 
+  scale_fill_distiller(palette = "Greens",
+                       direction = 1, 
+                       guide = "none") + 
+  theme_void()
+
+vt_plot <- ggplot(vt_income, aes(x = estimate, y = reorder(NAME, estimate), 
+                                 fill = estimate)) +
+  geom_errorbar(aes(xmin = estimate - moe, xmax = estimate + moe)) +
+  geom_point_interactive(color = "black", size = 4, shape = 21,
+                         aes(data_id = GEOID)) +
+  scale_fill_distiller(palette = "Greens", direction = 1,
+                       labels = label_dollar()) + 
+  scale_x_continuous(labels = label_dollar()) + 
+  labs(title = "Household income by county in DC",
+       subtitle = "2016-2020 American Community Survey",
+       y = "",
+       x = "ACS estimate (bars represent margin of error)",
+       fill = "ACS estimate") + 
+  theme_minimal(base_size = 14)
+
+girafe(ggobj = vt_map + vt_plot, width_svg = 10, height_svg = 5) %>%
+  girafe_options(opts_hover(css = "fill:cyan;"))
+```
+
+

@@ -1,0 +1,155 @@
+---
+title: "Sample research report"
+author: 
+- "Nathan Alexander"
+- "Center for Applied Data Science and Analytics (CADSA)"
+- "Howard University"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme: journal
+  toc: true
+  toc_float: true
+editor_options: 
+  markdown: 
+    wrap: sentence
+---
+
+```{r}
+# Load necessary libraries
+library(tidycensus)
+library(dplyr)
+library(ggplot2)
+```
+
+
+```{r}
+# Set seed for reproducibility
+set.seed(123)
+
+# Number of observations
+n <- 100
+
+# Create sample Census tract identifiers
+# Format: State code (2 digits) + County code (3 digits) + Tract number (6 digits)
+state_code <- sample(1:50, n, replace = TRUE)
+county_code <- sample(1:999, n, replace = TRUE)
+tract_number <- sample(1:999999, n, replace = TRUE)
+
+census_tract <- sprintf("%02d%03d%06d", state_code, county_code, tract_number)
+
+# Create sample data frame
+data <- data.frame(
+  census_tract = census_tract,
+  total_population = round(runif(n, 1000, 50000)),
+  black_population = round(runif(n, 50, 15000)),
+  lower_income = round(runif(n, 10, 1000)),
+  median_home_value = round(runif(n, 100000, 1000000)),
+  public_housing = round(runif(n, 0, 500)),
+  public_assistance = round(runif(n, 10, 1000)),
+  median_household_income = round(runif(n, 30000, 150000)),
+  bachelor = round(runif(n, 100, 10000)),
+  white_population = round(runif(n, 100, 30000)),
+  hispanic_population = round(runif(n, 50, 10000)),
+  male_population = round(runif(n, 500, 25000)),
+  female_population = round(runif(n, 500, 25000)),
+  median_age = round(runif(n, 25, 50), 1),
+  employed = round(runif(n, 500, 20000)),
+  unemployed = round(runif(n, 10, 2000)),
+  children_under_18 = round(runif(n, 100, 10000))
+  )
+
+# Display the first few rows of the dataset
+head(data)
+
+# Summary statistics
+summary(data)
+```
+
+-   What is the total population across all census tracts in the sample?
+
+```{r}
+total_pop <- sum(data$total_population)
+cat("The total population across all census tracts is", total_pop)
+```
+-   How does the racial composition vary across census tracts?
+
+```{r}
+data %>%
+  summarise(
+    white_pct = mean(white_population / total_population * 100),
+    black_pct = mean(black_population / total_population * 100),
+    hispanic_pct = mean(hispanic_population / total_population * 100)
+  )
+```
+-   What is the average median household income across all tracts?
+
+```{r}
+avg_median_income <- mean(data$median_household_income)
+cat("The average median household income is $", round(avg_median_income, 2))
+
+```
+
+-   Is there a correlation between median home value and median household income?
+
+```{r}
+correlation <- cor(data$median_home_value, data$median_household_income)
+cat("The correlation between median home value and median household income is", round(correlation, 3))
+
+```
+
+-   How does the proportion of the population with a bachelor's degree or higher vary across tracts?
+
+```{r}
+ggplot(data, aes(x = bachelor / total_population * 100)) +
+  geom_histogram(bins = 20) +
+  labs(x = "Percentage with Bachelor's degree", y = "Count")
+
+```
+
+-   What is the average unemployment rate across the sampled tracts?
+
+```{r}
+avg_unemployment_rate <- mean(data$unemployed / (data$employed + data$unemployed) * 100)
+cat("The average unemployment rate is", round(avg_unemployment_rate, 2), "%")
+
+```
+
+-   Is there a relationship between the percentage of households receiving public assistance and median household income?
+
+```{r}
+ggplot(data, aes(x = median_household_income, y = public_assistance / total_population * 100)) +
+  geom_point() +
+  labs(x = "Median Household Income", y = "Percentage Receiving Public Assistance")
+
+```
+
+-   How does the ratio of male to female population vary across tracts?
+
+```{r}
+data %>%
+  mutate(male_female_ratio = male_population / female_population) %>%
+  summarise(
+    min_ratio = min(male_female_ratio),
+    max_ratio = max(male_female_ratio),
+    mean_ratio = mean(male_female_ratio)
+  )
+
+```
+
+-   What is the average median age across all tracts?
+
+```{r}
+avg_median_age <- mean(data$median_age)
+cat("The average median age across all tracts is", round(avg_median_age, 1), "years")
+
+```
+
+-   Is there a correlation between the number of children under 18 and the total population in each tract?
+
+```{r}
+correlation <- cor(data$children_under_18, data$total_population)
+cat("The correlation between children under 18 and total population is", round(correlation, 3))
+
+```
+

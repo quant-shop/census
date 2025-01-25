@@ -1,0 +1,606 @@
+---
+title: "Census research report - CADSA RDC Fellowship"
+author: 
+- "Nathan Alexander"
+- "Center for Applied Data Science and Analytics (CADSA)"
+- "Howard University"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme: journal
+  toc: true
+  toc_float: true
+editor_options: 
+  markdown: 
+    wrap: sentence
+---
+
+```{r setup}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+# Load necessary libraries
+library(tidycensus)
+library(dplyr)
+library(ggplot2)
+```
+
+```{r}
+# libraries
+library(tidycensus)
+library(dplyr)
+library(ggplot2)
+# options(tigris_use_cache = TRUE)
+
+# variables
+vars <- c(
+  total_population = "B01001_001",         # Total Population
+  black_population = "B03002_004",         # Black or African American Population
+  lower_income = "B19001_002",             # Households with income less than $10,000
+  median_home_value = "B25077_001",        # Median Home Value
+  public_housing = "B25003_002",           # Occupied housing units that are renter-occupied and subsidized
+  public_assistance = "B19058_001",        # Households Receiving Public Assistance
+  median_household_income = "B19013_001",  # Median Household Income
+  bachelor = "B15003_017",                 # Population over 25 with a Bachelor's degree or higher
+  white_population = "B03002_003",         # White Population
+  hispanic_population = "B03002_012",      # Hispanic or Latino Population
+  male_population = "B01001_002",          # Male Population
+  female_population = "B01001_026",        # Female Population
+  median_age = "B01002_001",               # Median Age
+  employed = "B23025_002",                 # Employed population (age 16+)
+  unemployed = "B23025_003",               # Unemployed population (age 16+)
+  children_under_18 = "B09001_001"         # Total number of own children under 18 years
+  )
+
+get_census_data <- function(year) {
+  census_data <- get_acs(
+    geography = "tract",
+    variables = vars,
+    year = year,
+    state = "DC",
+    output = "wide"
+  )
+}  
+```
+
+```{r}
+library(tidycensus)
+
+get_census_data <- function(year) {
+  census_data <- get_acs(
+    geography = "tract",
+    variables = vars,
+    year = year,
+    state = "DC",
+    output = "wide"
+  )
+  return(census_data)
+}
+
+# Create a list of years from 2012 to 2022
+years <- 2012:2022
+
+# Use lapply to create a list of data frames
+df_list <- lapply(years, get_census_data)
+
+# Assign each data frame to a variable named df10, df11, ..., df22
+for (i in seq_along(years)) {
+  assign(paste0("df", substr(years[i], 3, 4)), df_list[[i]])
+}
+
+# Print the first few rows of each data frame to verify
+for (year in years) {
+  cat("\nData for", year, ":\n")
+  print(head(get(paste0("df", substr(year, 3, 4)))))
+}
+
+```
+
+```{r}
+# view data
+head(df21)
+head(df14)
+
+# summary stats
+summary(df21)
+```
+
+
+-   What is the total population across all census tracts in the sample?
+
+```{r}
+total_pop <- sum(df22$total_populationE)
+cat("The total population across all census tracts is", total_pop)
+
+total_pop <- sum(df22$total_populationE, na.rm = TRUE)
+total_pop_moe <- sqrt(sum(df22$total_populationM^2, na.rm = TRUE))
+cat("The total population across all census tracts is:", total_pop, 
+    "±", round(total_pop_moe, 2), "(margin of error)")
+```
+
+-   How does the racial composition vary across census tracts?
+
+```{r}
+df22 %>%
+  summarise(
+    white_pct = mean(white_populationE / total_populationE * 100),
+    black_pct = mean(black_populationE / total_populationE * 100),
+    hispanic_pct = mean(hispanic_populationE / total_populationE * 100)
+  )
+
+df22 %>%
+  summarise(
+    white_pct = mean(white_populationE / total_populationE * 100, na.rm = TRUE),
+    white_pct_moe = sqrt(mean((white_populationM / total_populationE * 100)^2, na.rm = TRUE)),
+    black_pct = mean(black_populationE / total_populationE * 100, na.rm = TRUE),
+    black_pct_moe = sqrt(mean((black_populationM / total_populationE * 100)^2, na.rm = TRUE)),
+    hispanic_pct = mean(hispanic_populationE / total_populationE * 100, na.rm = TRUE),
+    hispanic_pct_moe = sqrt(mean((hispanic_populationM / total_populationE * 100)^2, na.rm = TRUE))
+  )
+
+```
+
+-   What is the average median household income across all tracts?
+
+```{r}
+avg_median_income <- mean(df22$median_household_incomeE, na.rm=T)
+cat("The average median household income is $", round(avg_median_income, 2))
+
+avg_median_income <- mean(df22$median_household_incomeE, na.rm = TRUE)
+avg_median_income_moe <- sqrt(mean(df22$median_household_incomeM^2, na.rm = TRUE))
+cat("The average median household income is: $", round(avg_median_income, 2),
+    "±", round(avg_median_income_moe, 2), "(margin of error)")
+
+```
+
+-   Is there a correlation between median home value and median household income?
+
+```{r}
+correlation <- cor(df22$median_home_valueE, df22$median_household_incomeE, use = "complete.obs")
+cat("The correlation between median home value and median household income is", round(correlation, 3))
+
+correlation <- cor(df22$median_home_valueE, df22$median_household_incomeE, use = "complete.obs")
+cat("The correlation between median home value and median household income is:", round(correlation, 3))
+
+```
+
+-   How does the proportion of the population with a bachelor's degree or higher vary across tracts?
+
+```{r}
+ggplot(df22, aes(x = bachelorE / total_populationE * 100)) +
+  geom_histogram(bins = 20) +
+  labs(x = "Percentage with Bachelor's degree", y = "Count")
+
+df22 %>%
+  mutate(bachelor_pct = bachelorE / total_populationE * 100,
+         bachelor_pct_moe = sqrt((bachelorM / total_populationE * 100)^2 + 
+                                 (bachelorE * total_populationM / total_populationE^2 * 100)^2)) %>%
+  ggplot(aes(x = bachelor_pct)) +
+  geom_histogram(bins = 20) +
+  labs(x = "Percentage with Bachelor's degree", y = "Count")
+
+```
+-   What is the average unemployment rate across the sampled tracts?
+
+```{r}
+avg_unemployment_rate <- mean(df22$unemployedE / (df22$employedE + df22$unemployedE) * 100)
+cat("The average unemployment rate is", round(avg_unemployment_rate, 2), "%")
+
+df22 %>%
+  mutate(unemployment_rate = unemployedE / (employedE + unemployedE) * 100,
+         unemployment_rate_moe = sqrt((unemployedM / (employedE + unemployedE) * 100)^2 +
+                                      (unemployedE * employedM / (employedE + unemployedE)^2 * 100)^2)) %>%
+  summarise(avg_unemployment_rate = mean(unemployment_rate, na.rm = TRUE),
+            avg_unemployment_rate_moe = sqrt(mean(unemployment_rate_moe^2, na.rm = TRUE))) %>%
+  print()
+
+```
+
+Relationship between public assistance and median household income
+
+```{r}
+df22 %>%
+  mutate(public_assistance_pct = public_assistanceE / total_populationE * 100) %>%
+  ggplot(aes(x = median_household_incomeE, y = public_assistance_pct)) +
+  geom_point() +
+  labs(x = "Median Household Income", y = "Percentage Receiving Public Assistance")
+```
+
+Male to female population ratio variation
+
+```{r}
+
+df22 %>%
+  mutate(male_female_ratio = male_populationE / female_populationE,
+         male_female_ratio_moe = sqrt((male_populationM / female_populationE)^2 +
+                                      (male_populationE * female_populationM / female_populationE^2)^2)) %>%
+  summarise(
+    min_ratio = min(male_female_ratio, na.rm = TRUE),
+    max_ratio = max(male_female_ratio, na.rm = TRUE),
+    mean_ratio = mean(male_female_ratio, na.rm = TRUE),
+    mean_ratio_moe = sqrt(mean(male_female_ratio_moe^2, na.rm = TRUE))
+  )
+
+```
+
+Average median age
+
+```{r}
+avg_median_age <- mean(df22$median_ageE, na.rm = TRUE)
+avg_median_age_moe <- sqrt(mean(df22$median_ageM^2, na.rm = TRUE))
+cat("The average median age across all tracts is:", round(avg_median_age, 1), 
+    "±", round(avg_median_age_moe, 1), "years (margin of error)")
+```
+
+Correlation between children under 18 and total population
+
+```{r}
+correlation <- cor(df22$children_under_18E, df22$total_populationE, use = "complete.obs")
+cat("The correlation between children under 18 and total population is:", round(correlation, 3))
+```
+
+
+```{r}
+
+library(tidyverse)
+library(knitr)
+
+# Create a list of all dataframes
+df_list <- list(df12, df13, df14, df15, df16, df17, df18, df19, df20, df21, df22)
+
+# Extract year from each dataframe name
+years <- 2012:2022
+
+# Combine all dataframes into one, adding a year column
+combined_df <- map2_dfr(df_list, years, ~mutate(.x, year = .y))
+
+# Calculate the mean median household income for each year
+summary_df <- combined_df %>%
+  group_by(year) %>%
+  summarise(
+    mean_income = mean(median_household_incomeE, na.rm = TRUE),
+    se_income = sd(median_household_incomeE, na.rm = TRUE) / sqrt(n())
+  )
+
+# Create the plot
+ggplot(summary_df, aes(x = year, y = mean_income)) +
+  geom_smooth(method = "loess", se = TRUE, color = "blue", fill = "lightblue") +
+  theme_minimal() +
+  labs(title = "Trend in Median Household Income in DC (2012-2022)",
+       x = "Year",
+       y = "Median Household Income ($)") +
+  scale_x_continuous(breaks = 2012:2022) +
+  scale_y_continuous(labels = scales::dollar_format())
+
+# Create summary table
+summary_table <- combined_df %>%
+  group_by(year) %>%
+  summarise(
+    mean_income = mean(median_household_incomeE, na.rm = TRUE),
+    median_income = median(median_household_incomeE, na.rm = TRUE),
+    sd_income = sd(median_household_incomeE, na.rm = TRUE),
+    min_income = min(median_household_incomeE, na.rm = TRUE),
+    max_income = max(median_household_incomeE, na.rm = TRUE)
+  ) %>%
+  mutate(across(where(is.numeric), ~round(., 2)))
+
+# Display the table
+kable(summary_table, 
+      col.names = c("Year", "Mean", "Median", "Std Dev", "Min", "Max"),
+      caption = "Summary of Median Household Income by Year (2012-2022)")
+
+
+```
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(knitr)
+
+# Create a list of all dataframes
+df_list <- list(df12, df13, df14, df15, df16, df17, df18, df19, df20, df21, df22)
+
+# Extract year from each dataframe name
+years <- 2012:2022
+
+# Combine all dataframes into one, adding a year column
+combined_df <- map2_dfr(df_list, years, ~mutate(.x, year = .y))
+
+# Function to create summary table
+create_summary_table <- function(data, variable) {
+  data %>%
+    group_by(year) %>%
+    summarise(
+      mean = mean({{variable}}, na.rm = TRUE),
+      median = median({{variable}}, na.rm = TRUE),
+      sd = sd({{variable}}, na.rm = TRUE),
+      min = min({{variable}}, na.rm = TRUE),
+      max = max({{variable}}, na.rm = TRUE)
+    ) %>%
+    mutate(across(where(is.numeric), ~round(., 2)))
+}
+
+# Function to create smooth line plot
+create_smooth_plot <- function(data, variable, title, y_label) {
+  ggplot(data, aes(x = year, y = {{variable}})) +
+    geom_smooth(method = "loess", se = TRUE, color = "blue", fill = "lightblue") +
+    theme_minimal() +
+    labs(title = title, x = "Year", y = y_label) +
+    scale_x_continuous(breaks = 2012:2022)
+}
+
+# Total Population
+total_pop_summary <- create_summary_table(combined_df, total_populationE)
+total_pop_plot <- create_smooth_plot(combined_df, total_populationE, 
+                                     "Trend in Total Population (2012-2022)", 
+                                     "Total Population")
+
+# Median Home Value
+home_value_summary <- create_summary_table(combined_df, median_home_valueE)
+home_value_plot <- create_smooth_plot(combined_df, median_home_valueE, 
+                                      "Trend in Median Home Value (2012-2022)", 
+                                      "Median Home Value ($)")
+
+# Display tables
+cat("Summary of Total Population by Year (2012-2022)\n")
+print(kable(total_pop_summary, 
+            col.names = c("Year", "Mean", "Median", "Std Dev", "Min", "Max")))
+
+cat("\nSummary of Median Home Value by Year (2012-2022)\n")
+print(kable(home_value_summary, 
+            col.names = c("Year", "Mean", "Median", "Std Dev", "Min", "Max")))
+
+# Display plots
+print(total_pop_plot)
+print(home_value_plot)
+```
+
+```{r}
+# Identify lowest 10% income neighborhoods
+lowest_10_percent <- combined_df %>%
+  group_by(year) %>%
+  mutate(income_percentile = percent_rank(median_household_incomeE)) %>%
+  filter(income_percentile <= 0.1)
+
+# Function to create summary table
+create_summary_table <- function(data, variable) {
+  data %>%
+    group_by(year) %>%
+    summarise(
+      mean = mean({{variable}}, na.rm = TRUE),
+      median = median({{variable}}, na.rm = TRUE),
+      sd = sd({{variable}}, na.rm = TRUE),
+      min = min({{variable}}, na.rm = TRUE),
+      max = max({{variable}}, na.rm = TRUE)
+    ) %>%
+    mutate(across(where(is.numeric), ~round(., 2)))
+}
+
+# Function to create smooth line plot
+create_smooth_plot <- function(data, variable, title, y_label) {
+  ggplot(data, aes(x = year, y = {{variable}})) +
+    geom_smooth(method = "loess", se = TRUE, color = "blue", fill = "lightblue") +
+    theme_minimal() +
+    labs(title = title, x = "Year", y = y_label) +
+    scale_x_continuous(breaks = 2012:2022)
+}
+
+# Create plots and tables for all neighborhoods
+all_income_plot <- create_smooth_plot(combined_df, median_household_incomeE, 
+                                      "Median Household Income Trend (All Neighborhoods)", 
+                                      "Median Household Income ($)")
+all_pop_plot <- create_smooth_plot(combined_df, total_populationE, 
+                                   "Total Population Trend (All Neighborhoods)", 
+                                   "Total Population")
+all_home_value_plot <- create_smooth_plot(combined_df, median_home_valueE, 
+                                          "Median Home Value Trend (All Neighborhoods)", 
+                                          "Median Home Value ($)")
+
+all_income_summary <- create_summary_table(combined_df, median_household_incomeE)
+all_pop_summary <- create_summary_table(combined_df, total_populationE)
+all_home_value_summary <- create_summary_table(combined_df, median_home_valueE)
+
+# Create plots and tables for lowest 10% income neighborhoods
+low_income_plot <- create_smooth_plot(lowest_10_percent, median_household_incomeE, 
+                                      "Median Household Income Trend (Lowest 10% Income Neighborhoods)", 
+                                      "Median Household Income ($)")
+low_pop_plot <- create_smooth_plot(lowest_10_percent, total_populationE, 
+                                   "Total Population Trend (Lowest 10% Income Neighborhoods)", 
+                                   "Total Population")
+low_home_value_plot <- create_smooth_plot(lowest_10_percent, median_home_valueE, 
+                                          "Median Home Value Trend (Lowest 10% Income Neighborhoods)", 
+                                          "Median Home Value ($)")
+
+low_income_summary <- create_summary_table(lowest_10_percent, median_household_incomeE)
+low_pop_summary <- create_summary_table(lowest_10_percent, total_populationE)
+low_home_value_summary <- create_summary_table(lowest_10_percent, median_home_valueE)
+
+# Display plots side by side
+library(gridExtra)
+grid.arrange(all_income_plot, low_income_plot, ncol = 2)
+grid.arrange(all_pop_plot, low_pop_plot, ncol = 2)
+grid.arrange(all_home_value_plot, low_home_value_plot, ncol = 2)
+
+# Display summary tables
+print(kable(all_income_summary, caption = "Summary of Median Household Income (All Neighborhoods)"))
+print(kable(low_income_summary, caption = "Summary of Median Household Income (Lowest 10% Income Neighborhoods)"))
+
+print(kable(all_pop_summary, caption = "Summary of Total Population (All Neighborhoods)"))
+print(kable(low_pop_summary, caption = "Summary of Total Population (Lowest 10% Income Neighborhoods)"))
+
+print(kable(all_home_value_summary, caption = "Summary of Median Home Value (All Neighborhoods)"))
+print(kable(low_home_value_summary, caption = "Summary of Median Home Value (Lowest 10% Income Neighborhoods)"))
+
+
+```
+
+
+```{r}
+library(tidyverse)
+library(knitr)
+library(gridExtra)
+
+# Create a list of all dataframes
+df_list <- list(df12, df13, df14, df15, df16, df17, df18, df19, df20, df21, df22)
+
+# Extract year from each dataframe name
+years <- 2012:2022
+
+# Combine all dataframes into one, adding a year column
+combined_df <- map2_dfr(df_list, years, ~mutate(.x, year = .y))
+
+# Identify lowest 10% Black population neighborhoods
+lowest_10_percent_black <- combined_df %>%
+  group_by(year) %>%
+  mutate(black_population_percentile = percent_rank(black_populationE)) %>%
+  filter(black_population_percentile <= 0.1)
+
+# Function to create summary table
+create_summary_table <- function(data, variable) {
+  data %>%
+    group_by(year) %>%
+    summarise(
+      mean = mean({{variable}}, na.rm = TRUE),
+      median = median({{variable}}, na.rm = TRUE),
+      sd = sd({{variable}}, na.rm = TRUE),
+      min = min({{variable}}, na.rm = TRUE),
+      max = max({{variable}}, na.rm = TRUE)
+    ) %>%
+    mutate(across(where(is.numeric), ~round(., 2)))
+}
+
+# Function to create smooth line plot
+create_smooth_plot <- function(data, variable, title, y_label) {
+  ggplot(data, aes(x = year, y = {{variable}})) +
+    geom_smooth(method = "loess", se = TRUE, color = "blue", fill = "lightblue") +
+    theme_minimal() +
+    labs(title = title, x = "Year", y = y_label) +
+    scale_x_continuous(breaks = 2012:2022)
+}
+
+# Create plots and tables for all neighborhoods (Black population)
+all_black_pop_plot <- create_smooth_plot(combined_df, black_populationE, 
+                                         "Black Population Trend (All Neighborhoods)", 
+                                         "Black Population")
+all_black_pop_summary <- create_summary_table(combined_df, black_populationE)
+
+# Create plots and tables for lowest 10% income neighborhoods (Black population)
+low_black_pop_plot <- create_smooth_plot(lowest_10_percent_black, black_populationE, 
+                                         "Black Population Trend (Lowest 10% Income Neighborhoods)", 
+                                         "Black Population")
+low_black_pop_summary <- create_summary_table(lowest_10_percent_black, black_populationE)
+
+# Display plots side by side
+grid.arrange(all_black_pop_plot, low_black_pop_plot, ncol = 2)
+
+# Display summary tables
+cat("Summary of Black Population (All Neighborhoods)\n")
+print(kable(all_black_pop_summary, caption = "Summary of Black Population (All Neighborhoods)"))
+
+cat("\nSummary of Black Population (Lowest 10% Income Neighborhoods)\n")
+print(kable(low_black_pop_summary, caption = "Summary of Black Population (Lowest 10% Income Neighborhoods)"))
+
+
+```
+
+```{r}
+library(tidyverse)
+library(knitr)
+library(gridExtra)
+
+# Create a list of all dataframes
+df_list <- list(df12, df13, df14, df15, df16, df17, df18, df19, df20, df21, df22)
+
+# Extract year from each dataframe name
+years <- 2012:2022
+
+# Combine all dataframes into one, adding a year column
+combined_df <- map2_dfr(df_list, years, ~mutate(.x, year = .y))
+
+# Identify lowest 10% income neighborhoods
+lowest_10_percent <- combined_df %>%
+  group_by(year) %>%
+  mutate(income_percentile = percent_rank(median_household_incomeE)) %>%
+  filter(income_percentile <= 0.1)
+
+# Create plots and tables for all neighborhoods (Public Housing)
+all_public_housing_plot <- create_smooth_plot(combined_df, public_housingE, 
+                                              "Public Housing Trend (All Neighborhoods)", 
+                                              "Public Housing Units")
+all_public_housing_summary <- create_summary_table(combined_df, public_housingE)
+
+# Create plots and tables for lowest 10% income neighborhoods (Public Housing)
+low_public_housing_plot <- create_smooth_plot(lowest_10_percent, public_housingE, 
+                                              "Public Housing Trend (Lowest 10% Income Neighborhoods)", 
+                                              "Public Housing Units")
+low_public_housing_summary <- create_summary_table(lowest_10_percent, public_housingE)
+
+# Display plots side by side
+grid.arrange(all_public_housing_plot, low_public_housing_plot, ncol = 2)
+
+# Display summary tables
+cat("Summary of Public Housing Units (All Neighborhoods)\n")
+print(kable(all_public_housing_summary, caption = "Summary of Public Housing Units (All Neighborhoods)"))
+
+cat("\nSummary of Public Housing Units (Lowest 10% Income Neighborhoods)\n")
+print(kable(low_public_housing_summary, caption = "Summary of Public Housing Units (Lowest 10% Income Neighborhoods)"))
+
+
+```
+
+
+```{r}
+library(tidyverse)
+library(knitr)
+library(gridExtra)
+
+# Create a list of all dataframes
+df_list <- list(df12, df13, df14, df15, df16, df17, df18, df19, df20, df21, df22)
+
+# Extract year from each dataframe name
+years <- 2012:2022
+
+# Combine all dataframes into one, adding a year column
+combined_df <- map2_dfr(df_list, years, ~mutate(.x, year = .y))
+
+# Identify lowest 10% income neighborhoods
+lowest_10_percent <- combined_df %>%
+  group_by(year) %>%
+  mutate(income_percentile = percent_rank(median_household_incomeE)) %>%
+  filter(income_percentile <= 0.1)
+
+# Normalize proportions for all neighborhoods and lowest 10% income neighborhoods
+combined_df <- combined_df %>%
+  mutate(public_housing_proportion = public_housingE / total_populationE)
+
+lowest_10_percent <- lowest_10_percent %>%
+  mutate(public_housing_proportion = public_housingE / total_populationE)
+
+# Create smooth line plot for both groups on the same plot
+ggplot() +
+  geom_smooth(data = combined_df, aes(x = year, y = public_housing_proportion), 
+              method = "loess", color = "blue", fill = "lightblue", se = TRUE) +
+  geom_smooth(data = lowest_10_percent, aes(x = year, y = public_housing_proportion), 
+              method = "loess", color = "red", fill = "lightpink", se = TRUE) +
+  theme_minimal() +
+  labs(title = "Proportion of Public Housing Units (2012-2022)",
+       x = "Year",
+       y = "Proportion of Public Housing Units") +
+  scale_x_continuous(breaks = years) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 0.01))
+
+# Create summary tables for proportions
+all_public_housing_summary <- create_summary_table(combined_df, public_housing_proportion)
+low_public_housing_summary <- create_summary_table(lowest_10_percent, public_housing_proportion)
+
+# Display summary tables
+cat("Summary of Proportions of Public Housing Units (All Neighborhoods)\n")
+print(kable(all_public_housing_summary, caption = "Summary of Proportions of Public Housing Units (All Neighborhoods)"))
+
+cat("\nSummary of Proportions of Public Housing Units (Lowest 10% Income Neighborhoods)\n")
+print(kable(low_public_housing_summary, caption = "Summary of Proportions of Public Housing Units (Lowest 10% Income Neighborhoods)"))
+
+
+```
+
+
+
+
