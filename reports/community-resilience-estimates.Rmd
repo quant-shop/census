@@ -1,0 +1,187 @@
+---
+title: "Comparing Measures of Segregation and Community Resilience Estimates in U.S. Census Data"
+author: "Nathan Alexander"
+date: "2025-01-24"
+output: html_document
+---
+
+# Abstract
+
+We compare
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(tidycensus)
+library(sf)
+```
+
+## Data
+
+Information on the community resilience esitmates datasets can be found online [here](https://www.census.gov/programs-surveys/community-resilience-estimates/data/datasets.html).
+
+# Community resilience estimates at the tract level
+
+Pulling in 2022 CRE data from the census website.
+
+```{r, include=F}
+cre.2022.tract <- read.csv("https://www2.census.gov/programs-surveys/demo/datasets/community-resilience/2022/CRE_22_Tract.csv")
+str(cre.2022.tract)
+```
+
+```{r, include=F}
+# CRE data for DC
+cre.2022.tract.dc <- cre.2022.tract %>%
+  filter(STATE == "11") # FIPS code for DC
+```
+
+```{r, include=F}
+library(tidycensus)
+library(sf)
+
+# Get Census data with geometry
+dc.median.rent <- get_acs(geography = "tract", 
+                variables = "B25105_001", 
+                state = "DC", 
+                year = 2019, 
+                geometry = TRUE)
+
+str(dc.median.rent)
+df1 <- dc.median.rent
+```
+
+Merge data
+
+```{r}
+# Modify the GEO_ID in df2
+df2 <- cre.2022.tract.dc %>%
+  mutate(GEOID_modified = str_extract(GEO_ID, "\\d+$")) %>%
+  mutate(GEOID_modified = str_sub(GEOID_modified, -11)) %>% 
+  relocate(GEOID_modified)
+
+# Join data sets
+merged_df <- df1 %>%
+  left_join(df2, by = c("GEOID" = "GEOID_modified"))
+```
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(weights)  # for weighted correlation
+
+# Assuming your merged dataframe is called 'merged_df'
+# and contains columns: GEOID, median_rent_estimate, median_rent_moe, PRED3_PE, PRED3_PM
+
+# Calculate correlation
+correlation <- cor(merged_df$estimate, merged_df$PRED3_PE, use = "complete.obs")
+
+# Calculate weighted correlation (considering margins of error)
+weighted_correlation <- wtd.cor(merged_df$estimate, merged_df$PRED3_PE, 
+                                weight = 1 / (merged_df$moe^2 + merged_df$PRED3_PM^2))
+
+# Print correlations
+print(paste("Pearson correlation:", round(correlation, 3)))
+# print(paste("Weighted correlation:", round(weighted_correlation$correlation, 3)))
+```
+
+```{r}
+# Visualize relationship
+ggplot(merged_df, aes(x = estimate, y = PRED3_PE)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", color = "red") +
+  labs(title = "Median Rent vs. Community Resilience Estimate",
+       x = "Median Rent Estimate",
+       y = "% Population with 3+ Risk Factors") +
+  theme_minimal()
+
+# Additional analysis: Check for non-linear relationships
+ggplot(merged_df, aes(x = estimate, y = PRED3_PE)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "loess", color = "blue") +
+  labs(title = "Median Rent vs. Community Resilience Estimate (Non-linear)",
+       x = "Median Rent Estimate",
+       y = "% Population with 3+ Risk Factors") +
+  theme_minimal()
+
+
+
+```
+
+
+```{r}
+# Percent Black population data for DC tracts
+dc_black_pop <- get_acs(
+  geography = "tract",
+  variables = c(
+    total_pop = "B03002_001",
+    black_pop = "B03002_004"
+  ),
+  state = "DC",
+  year = 2022,
+  output = "wide"
+)
+
+# Calculate percent Black
+dc_black_pop <- dc_black_pop %>%
+  mutate(percent_black = (black_popE / total_popE) * 100)
+
+# Now join this with your merged_df
+df <- merged_df %>%
+  left_join(dc_black_pop %>% select(GEOID, percent_black), by = "GEOID")
+```
+
+```{r}
+ggplot(df, aes(x = estimate)) +
+  geom_point(aes(y = PRED3_PE, color = "CRE"), alpha = 0.5) +
+  geom_point(aes(y = percent_black, color = "Black"), alpha = 0.5) +
+  geom_smooth(aes(y = PRED3_PE, color = "CRE"), method = "lm", se = FALSE) +
+  geom_smooth(aes(y = percent_black, color = "Black"), method = "lm", se = FALSE) +
+  scale_color_manual(values = c("CRE" = "red", "Black" = "blue")) +
+  labs(title = "Median Rent vs. CRE and % Black Population in DC",
+       x = "Median Rent Estimate",
+       y = "Percentage",
+       color = "Variable") +
+  theme_minimal()
+
+```
+
+
+```{r}
+ggplot(df, aes(x = estimate)) +
+  geom_point(aes(y = PRED3_PE, color = "CRE"), alpha = 0.5) +
+  geom_point(aes(y = percent_black, color = "Black"), alpha = 0.5) +
+  geom_smooth(aes(y = PRED3_PE, color = "CRE"), method = "loess", se = FALSE) +
+  geom_smooth(aes(y = percent_black, color = "% Black"), method = "loess", se = FALSE) +
+  scale_color_manual(values = c("CRE" = "red", "Black" = "blue")) +
+  labs(title = "Median Rent vs. CRE and % Black Population in DC (Non-linear)",
+       x = "Median Rent Estimate",
+       y = "Percentage",
+       color = "Variable") +
+  theme_minimal()
+
+
+```
+
+
+```{r}
+
+
+# Get population data for DC census tracts
+dc_race_data <- get_acs(
+  geography = "tract",
+  variables = c(
+    total = "B03002_001",
+    black = "B03002_004"
+  ),
+  state = "DC",
+  year = 2019
+)
+
+# Calculate non-Black population
+dc_race_data <- dc_race_data %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
+  mutate(non_black = total - black)
+
+str(dc_race_data)
+```

@@ -1,0 +1,502 @@
+---
+title: "What ever happened to Chocolate City?"
+author: 
+- "The Quant Shop"
+- "Nathan Alexander, PhD"
+description: "Using US census data to explore racial and residential segregation."
+draft: true
+bibliography: references.bib
+csl: apa.csl
+css: style.css
+always_allow_html: true
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    number_sections: true
+    self_contained: yes
+    mode: selfcontained
+    rmdformats::readthedown:
+    theme: flatly
+  pdf_document:
+    toc: false
+    toc_depth: 2
+    number_section: false 
+  word_document:
+    toc: false
+    reference_docx: word-styles-reference.docx
+geometry: margin=1.0in
+editor_options:
+  markdown:
+    wrap: sentence
+---
+
+*The materials presented here are for an October 2024 workshop at Nubian Hueman studios in Washington, DC. This content was developed with the support of Anika Hobbs (Owner, Nubian Hueman), Zoe Williams (Howard University), and Qyana Stewart (Howard University).*
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE, # By default, hide code; set to TRUE to see code
+  fig.pos = 'th', # Places figures at top or here
+  out.width = '100%', dpi = 300, # Figure resolution and size
+  fig.env="figure"
+) # Latex figure environment
+
+library(here)
+here::i_am("what-happened-to-chocolate-city.Rmd")
+
+# install.packages("tidycensus")
+# install.packages("rmarkdown")
+# install.packages("tm")
+install.packages(c("survey", "srvyr"), repos = "http://cran.us.r-project.org")
+
+## load libraries
+### general libraries
+library(ggplot2)
+library(dplyr)
+library(knitr)
+library(tidyverse)
+library(dplyr)
+library(readtext)
+library(tidyverse)
+library(kableExtra)
+library(rmarkdown)
+layout="l-body-outset"
+options(knitr.table.format = "latex") # For kable tables to write LaTeX table directly
+
+### program specific libraries
+library(sf)
+library(tm)
+library(tidycensus)
+library(gt)
+library(segregation)
+library(tigris)
+library(tmap)
+library(rmapshaper)
+library(flextable)
+```
+
+\vfill
+
+```{r, echo=FALSE,out.width="50%", out.height="30%",fig.show='hold',fig.align='center'}
+# knitr::include_graphics(c("img/quant_workshop_logo.png","img/nubian-hueman.png"))
+```
+
+\vfill
+
+\newpage
+
+# OVERVIEW
+
+-   **Background**.
+    What is *Chocolate City* and what ever happened to it?
+
+    To answer this question, we discuss Washington DC and relate various theories on race to some basic mathematics and spatial measures to examine changing racial dynamics in large urban centers.
+
+-   **Data**.
+    We explore US Census micro-data to observe various economic and racial spatial patterns across Washington DC.
+
+-   **History**.
+    We frame the decline in DC's Black population and reference major historical events.
+
+-   **Hypothesis**.
+    We use theory and the research literature to generate a set of hypotheses around racial isolation and economic segregation.
+
+-   **Action**.
+    We close with a discussion on how modern critical theories, mathematics, and population-level data can increase our general knowledge as a community and inform our perspectives on local policies and social action issues, like voting and mutual aid.
+
+\newpage
+
+# BACKGROUND
+
+The phrase "Chocolate City" has been historically used to describe Washington, DC based on its significant Black population and vibrant Black communities (Cite author).
+However, in recent decades, the label has come into question due to shifting demographics and changing urban dynamics (Cite author).
+Washington, DC reached its peak as a majority-Black city in 1970, when African Americans made up 71% of the population (Cite author).
+Since then, the city has experienced a steady decline in its Black population.
+By 2015, DC's population of Black residents had decreased to 48% and the current population is 44% (Cite author).
+
+![Chris Myers Asch & George Musgrove's book *Chocolate City: A History of Race and Democracy in the Nation's Capital*](img/dc-chocolate-city.jpg){width=40%}
+
+## Changing Landscapes
+
+Several factors have contributed to drastic shifts in urban centers across the United States:
+
+-   [Gentrification]{.underline}: Rising property values and cost of living have pushed many long-time Black residents out of traditionally African American neighborhoods (Cite author)
+
+-   [Suburban migration]{.underline}: Many middle-class Black families have moved to more affordable suburbs; which has been the case in the DC, Maryland and Virginia (DMV) region (Cite author)
+
+-   [Urban redevelopment]{.underline}: The replacement of public housing projects with rapid urban development and mixed-income housing has further isolated and altered the demographic makeup of some areas (Cite author)
+
+## Isolation
+
+When taken together, gentrification, suburban migration, and urban redevelopment have resulted in racial isolation and serve as markers to the many ways that we think about racism [@banton2018concept].
+In the contemporary sense, racism and racial isolation are dynamic processes that depend on a host of factors and, in relation to spatial segregation, local decisions and policies developed by local government officials or changes advocated by community groups (Cite author).
+In Washington DC, isolation has occurred across multiple social categories.
+Here we explore the intersection of racial and economic isolation.
+
+## Segregation
+
+Despite increasing diversity, Washington DC remains highly segregated, which is a remnant of ongoing systemic racism and historical events.
+The Black-White segregation index in DC was 70 in 2015 (Cite author), showing only a slight change from 77 in 1980 (Cite author).
+This suggests that while the overall racial composition of the city has changed, residential patterns of segregation continue to persist, further isolating poor Black residents.
+
+# DATA
+
+As of 2022, the racial composition of Washington, DC has changed considerably:
+
+```         
+Black or African American (Non-Hispanic): 43.5%
+White (Non-Hispanic): 36.3%
+Hispanic (of any race): 4.05%
+Asian (Non-Hispanic): 3.95%
+Two or more races (Non-Hispanic): 3.94%
+```
+
+This shift represents a significant change from the city's historical Black majority.
+
+# Census data
+
+We will use the US Census micro-data, which can be accessed through the `tidycensus()` package in R, to examine some of the city's racial and economic dynamics.
+The American Community Survey (ACS) Public Use Microdata Sample (PUMS) was used to analyze pre-aggregate data at the local level.
+This data will allow us to make various custom estimates that are not normally made available by the US Census Bureau.
+
+Learn more about PUMS [here](https://www.census.gov/programs-surveys/acs/microdata.html).
+
+# HISTORY
+
+**The Rise of a Chocolate City**
+
+-   DC becomes first majority Black major city in 1957
+
+-   Growth and deline of Black population
+
+-   Political power
+
+-   [Home Rule Act of 1973](https://dccouncil.gov/dc-home-rule/) and its impact
+
+# HYPOTHESIS
+
+## Measures of segregation
+
+The Index of Dissimilarity (D) $$ \dfrac{1}{2} \Sigma \big| \dfrac{b_i}{B} - \dfrac{w_i}{W} \big| $$
+
+@green1992accumulation have conducted work related to race and the index of dissimilarity.
+
+## Maps
+
+```{r, include=F, warning=F}
+### PUMS (Public Use Microdata Sample) variables
+pums_vars_2022 <- pums_variables %>% 
+  filter(year == 2022, survey == "acs1")
+pums_vars_2022 %>% 
+  distinct(var_code, var_label, data_type, level)
+pums_vars_2022
+```
+
+```{r, include=F, warning=F}
+### 2016-2020 census tract data
+dc.tracts <- get_acs(geography="tract",
+                     year = 2020,
+                     variables = c(totalpop = "B03002_001",
+                                   white = "B03002_003", 
+                                   black = "B03002_004", # Black alone
+                                   asian = "B03002_006", 
+                                   hispanic = "B03002_012",
+                                   income = "B19013_001"), # Median household income
+                     state = "DC",
+                     survey = "acs5",
+                     output = "wide",
+                     geometry = T)
+
+# Calculate proportions 
+dc.tracts.mod <- dc.tracts %>% 
+  mutate(pwhite = 100*(whiteE/totalpopE), 
+         pblack = 100*(blackE/totalpopE), 
+         pasian = 100*(asianE/totalpopE), 
+         phisp = 100*(hispanicE/totalpopE)) %>%
+  select(GEOID,
+         totalpopE, 
+         pwhite, 
+         pblack, 
+         pasian, 
+         phisp,
+         whiteE, 
+         blackE,
+         asianE,
+         hispanicE,
+         incomeE)
+
+# City boundaries
+pl <- places(state = "DC", year = 2020, cb = TRUE)
+
+tracts <- dc.tracts.mod %>%
+          st_join(pl)
+tracts
+
+# In our data, "totalpopE" is a single number representing the estimated population, while "totalpopM" represents a range around that estimate within which the true population is likely to fall. The designation for "E" and "M" follows in line as the estimate and the margin of error.
+
+```
+
+```{r, include=T, warning=F}
+tracts %>%
+  tm_shape(unit = "mi") +
+    tm_polygons(col = "pblack", style = "quantile", palette = "Reds", 
+              border.alpha = 0, title = "") +
+    tm_scale_bar(breaks = c(0, 1, 2), text.size = 0.75, position = c("right", "bottom")) + 
+  tm_layout(main.title = "Percent Black Residents by Tract in DC (2022)", 
+            main.title.size = 0.9, frame = FALSE)
+```
+
+```{r, include=F, warning=F}
+# Example: Index of Dissimilarity calculation
+calculate_dissimilarity <- function(data, group_var, total_var) {
+  total_group <- sum(data[[group_var]])
+  total_pop <- sum(data[[total_var]])
+  
+  data %>%
+    mutate(
+      pi = !!sym(group_var) / total_group,
+      pj = (!!sym(total_var) - !!sym(group_var)) / (total_pop - total_group)
+    ) %>%
+    summarize(d = 0.5 * sum(abs(pi - pj))) %>%
+    pull(d)
+}
+```
+
+```{r, include=F, warning=F}
+dc.tracts <- dc.tracts[!is.na(dc.tracts$incomeE), ]
+
+dc_income <- dc.tracts %>%
+  mutate(incomeE = case_when(
+      incomeE < quantile(incomeE, 0.2) ~ "Lowest Quintile",
+      incomeE < quantile(incomeE, 0.4) ~ "Second Quintile",
+      incomeE < quantile(incomeE, 0.6) ~ "Middle Quintile",
+      incomeE < quantile(incomeE, 0.8) ~ "Fourth Quintile",
+      TRUE ~ "Highest Quintile"
+    )
+  )
+```
+
+```{r, include=T, warning=F}
+tm_shape(dc_income) +
+  tm_fill("incomeE", palette = "Greens", title = "DC Income Distribution")
+```
+
+```{r, include=F, warning=F}
+dc_black_income <- get_acs(
+  geography = "tract",
+  variables = c(
+    "B19001B_002", "B19001B_003", "B19001B_004", # Low income
+    "B19001B_005", "B19001B_006", "B19001B_007", # Middle income
+    "B19001B_008", "B19001B_009", "B19001B_010", "B19001B_011" # High income
+  ),
+  state = "DC",
+  year = 2020,
+  geometry = TRUE
+) %>%
+  group_by(GEOID) %>%
+  summarize(
+    low_income = sum(estimate[variable %in% c("B19001B_002", "B19001B_003", "B19001B_004")]),
+    middle_income = sum(estimate[variable %in% c("B19001B_005", "B19001B_006", "B19001B_007")]),
+    high_income = sum(estimate[variable %in% c("B19001B_008", "B19001B_009", "B19001B_010", "B19001B_011")])
+  )
+```
+
+```{r, include=T, warning=F}
+tm_shape(dc_black_income) +
+  tm_fill(c("low_income", "middle_income", "high_income"), 
+          palette = "YlGn", 
+          title = c("Low Income", "Middle Income", "High Income"))
+```
+
+```{r, include=F, warning=F}
+dc_black_median <- get_acs(
+  geography = "tract",
+  variables = c("B19013B_001"), # Median income for Black households
+  state = "DC",
+  year = 2020,
+  geometry = TRUE
+)
+
+dc_black_quintiles <- dc_black_median %>%
+  mutate(
+    income_group = case_when(
+      estimate < quantile(estimate, 0.2, na.rm = TRUE) ~ "Lowest Quintile",
+      estimate > quantile(estimate, 0.8, na.rm = TRUE) ~ "Highest Quintile",
+      TRUE ~ "Middle Quintiles"
+    )
+  )
+```
+
+```{r, include=T, warning=F}
+tm_shape(dc_black_quintiles) +
+  tm_fill("income_group", palette = "Set2", title = "Black Income Quintiles") 
+```
+
+```{r, include=F, warning=F}
+
+## try to layer the quadrants on top of the above ^ map (NE) or the wards.
+
+# Get census data for DC
+dc_data <- get_acs(
+  geography = "tract",
+  variables = c(
+    "B19013B_001", # Median income for Black households
+    "B02001_003",  # Black population
+    "B02001_001"   # Total population
+  ),
+  state = "DC",
+  year = 2020,
+  geometry = TRUE
+)
+
+# Reshape the data
+dc_data_wide <- dc_data %>%
+  select(-moe) %>%
+  pivot_wider(names_from = variable, values_from = estimate)
+
+# Calculate Black income quintiles
+dc_black_quintiles <- dc_data_wide %>%
+  mutate(
+    black_pct = B02001_003 / B02001_001,
+    income_quintile = ntile(B19013B_001, 5)
+  )
+```
+
+```{r, include=F, warning=F}
+calculate_dissimilarity <- function(data, group_var, total_var) {
+  total_group <- sum(data[[group_var]], na.rm = TRUE)
+  total_pop <- sum(data[[total_var]], na.rm = TRUE)
+  
+  data %>%
+    mutate(
+      pi = !!sym(group_var) / total_group,
+      pj = (!!sym(total_var) - !!sym(group_var)) / (total_pop - total_group)
+    ) %>%
+    summarize(d = 0.5 * sum(abs(pi - pj), na.rm = TRUE)) %>%
+    pull(d)
+}
+
+dissimilarity_indices <- dc_black_quintiles %>%
+  group_by(income_quintile) %>%
+  calculate_dissimilarity(., "B02001_003", "B02001_001")
+
+print(dissimilarity_indices)
+```
+
+```{r, include=T, warning=F}
+tm_shape(dc_black_quintiles) +
+  tm_fill("income_quintile", 
+          title = "Black Income Quintiles",
+          palette = "Reds",
+          style = "jenks") +
+  tm_borders() +
+  tm_layout(title = "Spatial Distribution of Black Income Quintiles in DC")
+```
+
+```{r, include=F, warning=F}
+tracts.mod <- tracts %>%
+      group_by(NAME) %>%
+      mutate(white.tot = sum(whiteE), 
+             asian.tot = sum(asianE), 
+             black.tot = sum(blackE), 
+             hisp.tot = sum(hispanicE), 
+             tpopc = sum(totalpopE)) %>%
+      ungroup()
+tracts.mod
+```
+
+```{r, include=F, warning=F}
+# Example for Hispanic population
+dc_hispanic_data <- get_acs(
+  geography = "tract",
+  variables = c(
+    "B19013I_001", # Median income for Hispanic households
+    "B03002_012",  # Hispanic population
+    "B02001_001"   # Total population
+  ),
+  state = "DC",
+  year = 2020,
+  geometry = TRUE
+)
+
+# Reshape and calculate quintiles for Hispanic population
+dc_hispanic_quintiles <- dc_hispanic_data %>%
+  select(-moe) %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
+  mutate(
+    hispanic_pct = B03002_012 / B02001_001,
+    income_quintile = ntile(B19013I_001, 5)
+  )
+
+# Calculate dissimilarity index for Hispanic population
+hispanic_dissimilarity_indices <- dc_hispanic_quintiles %>%
+  group_by(income_quintile) %>%
+  calculate_dissimilarity(., "B03002_012", "B02001_001")
+
+print(hispanic_dissimilarity_indices)
+```
+
+```{r, include=F, warning=F}
+comparison_df <- bind_cols(
+  dissimilarity_indices,
+  hispanic_dissimilarity_indices) %>% 
+   rename(Black = "...1") %>% 
+   rename(Hispanic = "...2")
+
+comparison_df # by quintile
+```
+
+# ACTION
+
+## Local policies
+
+## Social action
+
+The "Chocolate City" moniker continues to hold cultural significance, even as its demographic accuracy is challenged.
+It is important to notice that the term "Chocolate City" represented not just a numerical majority, but also the role of Black history, culture, and political aspirations as one of the city's important markers.
+As Washington, D.C.
+continues to evolve, some questions will remain as to whether the "Chocolate City" label will continue to resonate or if new descriptors should emerge to capture the city's changing identity.
+In either case, the contributions of the Black community to Washington, DC remains a significant factor.
+
+---
+
+```{r}
+# Define the years for the last four censuses
+years <- c(2000, 2010, 2020)
+
+# Function to get census data for a specific year
+get_census_data <- function(year) {
+  tidycensus::get_decennial(
+    geography = "tract",
+    state = "DC",
+    county = "District of Columbia",
+    variables = c(
+      total_pop = "B02001_001",
+      black_pop = "B02001_003"
+    ),
+    year = year,
+    geometry = FALSE
+  ) %>%
+    pivot_wider(names_from = variable, values_from = value) %>%
+    mutate(year = year)
+}
+
+# Fetch data for all years
+# census_data <- lapply(years, get_census_data) %>% bind_rows()
+
+```
+
+# Map: Washington, DC
+
+```{r out.width='100%', echo=FALSE}
+library(leaflet)
+leaflet() %>% addTiles() %>%
+  setView(-77.0369, 38.8977, zoom = 10) %>%
+  addPopups(
+    -77.0369, 38.8977,
+    'This is <b>Washington, DC</b>, or Chocolate City.'
+  )
+```
+
+# References

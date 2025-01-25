@@ -23,11 +23,12 @@ library(sf)
 load_variables(2020, "acs5")
 
 
-
 data_acs5_2020 <- load_variables(2020, "acs5")
 data_acs5_2015 <- load_variables(2015, "acs5")
 data_acs1_2021 <- load_variables(2021, "acs1")
+data_acs5_2022 <- load_variables(2022, "acs5") # load the data for 2022
 
+View(data_acs5_2022)
 View(data_acs1_2021)
 
 
@@ -51,13 +52,23 @@ data_acs5_2020 %>% filter(grepl('SEX|AGE.', concept))
 head(blackmedianincome)
 
 
+## total enrollment in public schools (9-12) for 2020
+total_public_school_acs5 <- get_acs(geography = "state",
+                                    variables = "B14002_017",
+                                    year = 2020)
+total_public_school_acs5
+
+total_public_school_acs5 %>% 
+  ggplot(aes(fill = estimate)) +
+  geom_sf(color = NA) + 
+  scale_fill_viridis_c(option = "magma") # total public school layer 1 issue (compute_layer)
+
+black_2020 %>%
+  ggplot(aes(fill = estimate)) +
+  geom_sf(color = NA) +
+  scale_fill_viridis_c(option = "magma")
 
 
-# this command gives us a list of variable name
-data$name
-
-# this command gives us a list of variable labels
-data$label
 
 
 # centennial use pl
@@ -65,6 +76,7 @@ data$label
 
 # install packages
 install.packages("terra")
+library(terra)
 
 # get_acs(): is used to pull data from the American Community Survey (ACS)
 # get_decennial(): is used to pull data from the Decennial Census
