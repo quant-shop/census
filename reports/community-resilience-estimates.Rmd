@@ -1,46 +1,67 @@
 ---
-title: "Comparing Measures of Segregation and Community Resilience Estimates in U.S. Census Data"
-author: "Nathan Alexander"
-date: "2025-01-24"
-output: html_document
+title: "Exploring Community Resilience Estimates in U.S. Census Data"
+author: 
+  - "Nathan Alexander, PhD"
+  - "Center for Applied Data Science and Analytics"
+  - "Howard University"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true  # Enable floating TOC in the sidebar
+    number_sections: true
+    theme: cerulean
+    always_allow_html: true
+    self_contained: true
+editor_options:
+  markdown:
+    wrap: sentence
 ---
 
 # Abstract
 
-We compare
+I explore the community resilience estimates (CRE) to prepare for future analysis with related variables. The CRE tool was developed by the U.S. Census Bureau to assess the social vulnerability and resilience of neighborhoods across the United States in response to disasters, such as COVID-19, extreme weather events, and economic shocks. It measures the capacity of individuals and households within a community to absorb, endure, and recover from external stresses. The CRE combines granular data from sources like the American Community Survey (ACS) and the Population Estimates Program (PEP) to identify socio-economic vulnerabilities at a detailed geographic level, such as census tracts or counties. 
 
-```{r setup, include=FALSE}
+*In this draft analysis, I explore the relationship between CRE and rent prices in DC.*
+
+```{r setup, include=T, warning=F, results=F, message=F}
 knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 library(tidycensus)
 library(sf)
+library(tidyverse)
+library(ggplot2)
+library(weights)  # weighted correlation
 ```
 
-## Data
+# Data
 
 Information on the community resilience esitmates datasets can be found online [here](https://www.census.gov/programs-surveys/community-resilience-estimates/data/datasets.html).
 
-# Community resilience estimates at the tract level
+## DC Community Resilience Estimates
 
 Pulling in 2022 CRE data from the census website.
 
-```{r, include=F}
+```{r, include=T}
 cre.2022.tract <- read.csv("https://www2.census.gov/programs-surveys/demo/datasets/community-resilience/2022/CRE_22_Tract.csv")
 str(cre.2022.tract)
 ```
 
-```{r, include=F}
+Adding the state code for Washington, DC.
+
+```{r, include=T}
 # CRE data for DC
 cre.2022.tract.dc <- cre.2022.tract %>%
   filter(STATE == "11") # FIPS code for DC
 ```
 
-```{r, include=F}
-library(tidycensus)
-library(sf)
+## DC Rent Prices
 
-# Get Census data with geometry
+Median rent prices.
+
+```{r, include=T, warning=F, message=F}
+# median rent data with geometry
 dc.median.rent <- get_acs(geography = "tract", 
                 variables = "B25105_001", 
                 state = "DC", 
@@ -51,42 +72,42 @@ str(dc.median.rent)
 df1 <- dc.median.rent
 ```
 
-Merge data
+Merging CRE data.
 
 ```{r}
-# Modify the GEO_ID in df2
+# modifying the GEO_ID in df2
 df2 <- cre.2022.tract.dc %>%
   mutate(GEOID_modified = str_extract(GEO_ID, "\\d+$")) %>%
   mutate(GEOID_modified = str_sub(GEOID_modified, -11)) %>% 
   relocate(GEOID_modified)
 
-# Join data sets
+# join data
 merged_df <- df1 %>%
   left_join(df2, by = c("GEOID" = "GEOID_modified"))
 ```
 
+# Analysis
+
+Next, I calculate the correlation between the merged data.
+
 ```{r}
-library(tidyverse)
-library(ggplot2)
-library(weights)  # for weighted correlation
-
-# Assuming your merged dataframe is called 'merged_df'
-# and contains columns: GEOID, median_rent_estimate, median_rent_moe, PRED3_PE, PRED3_PM
-
-# Calculate correlation
+# calculating correlation
 correlation <- cor(merged_df$estimate, merged_df$PRED3_PE, use = "complete.obs")
 
-# Calculate weighted correlation (considering margins of error)
+# weighted correlation (considering margins of error)
 weighted_correlation <- wtd.cor(merged_df$estimate, merged_df$PRED3_PE, 
                                 weight = 1 / (merged_df$moe^2 + merged_df$PRED3_PM^2))
 
-# Print correlations
 print(paste("Pearson correlation:", round(correlation, 3)))
 # print(paste("Weighted correlation:", round(weighted_correlation$correlation, 3)))
 ```
 
+# Visualization
+
+Then I visualize the relationship and check the non-linear relationship.
+
 ```{r}
-# Visualize relationship
+# visualize relationship
 ggplot(merged_df, aes(x = estimate, y = PRED3_PE)) +
   geom_point(alpha = 0.5) +
   geom_smooth(method = "lm", color = "red") +
@@ -95,7 +116,7 @@ ggplot(merged_df, aes(x = estimate, y = PRED3_PE)) +
        y = "% Population with 3+ Risk Factors") +
   theme_minimal()
 
-# Additional analysis: Check for non-linear relationships
+# examine non-linear relationships
 ggplot(merged_df, aes(x = estimate, y = PRED3_PE)) +
   geom_point(alpha = 0.5) +
   geom_smooth(method = "loess", color = "blue") +
@@ -104,13 +125,12 @@ ggplot(merged_df, aes(x = estimate, y = PRED3_PE)) +
        y = "% Population with 3+ Risk Factors") +
   theme_minimal()
 
-
-
 ```
 
+## Black population in DC
 
 ```{r}
-# Percent Black population data for DC tracts
+# I then calculate percent Black population data for DC tracts
 dc_black_pop <- get_acs(
   geography = "tract",
   variables = c(
@@ -131,6 +151,8 @@ df <- merged_df %>%
   left_join(dc_black_pop %>% select(GEOID, percent_black), by = "GEOID")
 ```
 
+Plot the median rent against Black population and CRE estimates.
+
 ```{r}
 ggplot(df, aes(x = estimate)) +
   geom_point(aes(y = PRED3_PE, color = "CRE"), alpha = 0.5) +
@@ -143,9 +165,9 @@ ggplot(df, aes(x = estimate)) +
        y = "Percentage",
        color = "Variable") +
   theme_minimal()
-
 ```
 
+Non-linear relationshp between the variables.
 
 ```{r}
 ggplot(df, aes(x = estimate)) +
@@ -164,9 +186,7 @@ ggplot(df, aes(x = estimate)) +
 ```
 
 
-```{r}
-
-
+```{r, include=F}
 # Get population data for DC census tracts
 dc_race_data <- get_acs(
   geography = "tract",
