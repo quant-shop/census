@@ -1,0 +1,51 @@
+---
+title: "Untitled"
+author: "Nathan Alexander"
+date: "2024-10-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidycensus)
+library(tidyverse)
+```
+
+```{r}
+# set your variables
+variables <- (population = "B01003_001")
+
+ny_county_data <- get_acs(
+  geography = "county",
+  state = "NY",
+  variables = variables,
+  year = 2019,
+  survey = "acs5"
+)
+
+write.csv(ny_county_data, "ny_county_pop.csv")
+```
+
+## Work with data in Python
+
+```{python}
+import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv('ny_county_pop.csv')
+plt.figure(figsize = (15,8))
+plt.bar(df['NAME'], df['estimate'])
+plt.xticks(rotation = 90)
+plt.title("NY Pop by County")
+plt.xlabl('County')
+plt.ylabel('Population/100,000')
+plt.show
+plt.tight_layout
+```
+
+```{python}
+
+```
+
+
+
