@@ -1,0 +1,437 @@
+---
+title: "virtual_seminar_decennial_census"
+author: "Bayowa"
+date: "2025-02-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+
+```{r}
+library(tidycensus)
+options(tigris_use_cache = TRUE)
+```
+
+
+
+
+# install.packages(c("tidycensus", "tidyverse", "mapview"))
+
+# library(tidycensus)
+# 
+# census_api_key("YOUR KEY GOES HERE", install = TRUE)
+
+```{r}
+pop20 <- get_decennial(
+  geography = "state",
+  variables = "P1_001N",
+  year = 2020
+)
+
+pop20
+```
+
+
+```{r}
+table_p2 <- get_decennial(
+  geography = "state", 
+  table = "P2", 
+  year = 2020
+)
+
+table_p2
+
+```
+
+
+
+```{r}
+mo_population <- get_decennial(
+  geography = "county",
+  variables = "P1_001N",
+  state = "MO",
+  sumfile = "dhc",
+  year = 2020
+)
+
+mo_population
+```
+
+
+```{r}
+stl_blocks <- get_decennial(
+  geography = "block",
+  variables = "P1_001N",
+  state = "MO",
+  county = "St. Louis city",
+  sumfile = "dhc",
+  year = 2020
+)
+
+stl_blocks
+```
+
+```{r}
+vars <- load_variables(2020, "dhc")
+ 
+View(vars)
+```
+
+
+```{r}
+single_year_age <- get_decennial(
+  geography = "state",
+  table = "PCT12",
+  year = 2020,
+  sumfile = "dhc"
+)
+
+
+single_year_age
+```
+
+
+```{r}
+single_year_age_wide <- get_decennial(
+  geography = "state",
+  table = "PCT12",
+  year = 2020,
+  sumfile = "dhc",
+  output = "wide" 
+)
+
+single_year_age_wide
+```
+ 
+ 
+```{r}
+fl_samesex <- get_decennial(
+  geography = "county",
+  state = "FL",
+  variables = c(married = "DP1_0116P",
+                partnered = "DP1_0118P"),
+  year = 2020,
+  sumfile = "dp",
+  output = "wide"
+)
+
+fl_samesex
+```
+
+
+
+
+
+library(tidyverse)
+
+tidyverse_logo()
+
+```{r}
+library(tidycensus)
+library(tidyverse)
+
+mo_population <- get_decennial(
+  geography = "county",
+  variables = "P1_001N",
+  year = 2020,
+  state = "MO",
+  sumfile = "dhc"
+)
+
+
+arrange(mo_population, value)
+```
+
+
+```{r}
+arrange(mo_population, desc(value))
+
+```
+
+
+```{r}
+below1000 <- filter(mo_population, value < 1000)
+
+below1000
+
+```
+
+
+```{r}
+below5000 <- filter(mo_population, value < 1000)
+
+below5000
+
+```
+
+
+```{r}
+countyquery <- filter(mo_population, value < 10000)
+
+countyquery
+```
+
+
+```{r}
+race_vars <- c(
+  Hispanic = "P5_010N",
+  White = "P5_003N",
+  Black = "P5_004N",
+  Native = "P5_005N",
+  Asian = "P5_006N",
+  HIPI = "P5_007N"
+)
+
+cbsa_race <- get_decennial(
+  geography = "cbsa",
+  variables = race_vars,
+  summary_var = "P5_001N", 
+  year = 2020,
+  sumfile = "dhc"
+)
+
+cbsa_race
+```
+
+
+```{r}
+cbsa_race_percent <- cbsa_race %>%
+  mutate(percent = 100 * (value / summary_value)) %>% 
+  select(NAME, variable, percent) 
+
+cbsa_race_percent
+```
+
+
+```{r}
+largest_group <- cbsa_race_percent %>%
+  group_by(NAME) %>% 
+  filter(percent == max(percent)) 
+
+largest_group
+```
+
+
+#largest_group <- cbsa_race_percent %>%
+  #group_by(NAME) %>% 
+  #filter(percent == max(percent)) 
+
+# Optionally, use `.by`: 
+# largest_group <- cbsa_race_percent %>%
+#   filter(percent == max(percent), .by = NAME) 
+
+#largest_group
+
+
+```{r}
+cbsa_race_percent %>%
+  group_by(variable) %>% 
+  summarize(median_pct = median(percent, na.rm = TRUE)) 
+```
+
+# Spatial census data
+```{r}
+wv_over_65 <- get_decennial(
+  geography = "tract",
+  variables = "DP1_0024P",
+  state = "WV",
+  geometry = TRUE,
+  sumfile = "dp",
+  year = 2020
+)
+
+
+wv_over_65
+```
+
+
+```{r}
+library(mapview)
+
+mapview(wv_over_65)
+
+```
+
+
+
+
+```{r}
+mapview(wv_over_65, zcol = "value")
+```
+
+
+
+```{r}
+mapview(wv_over_65, zcol = "value",
+        layer.name = "% age 65 and up<br>Census tracts in Iowa")
+```
+
+
+
+```{r}
+library(viridisLite)
+
+mapview(wv_over_65, zcol = "value",
+        layer.name = "% age 65 and up<br>Census tracts in W. Virginia",
+        col.regions = inferno(100))
+```
+
+
+```{r}
+ library(htmlwidgets)
+ 
+m2 <- mapview(wv_over_65, zcol = "value",
+         layer.name = "% age 65 and up<br>Census tracts in W. Virginia",
+         col.regions = inferno(100))
+```
+
+
+```{r}
+saveWidget(m2@map, "wv_over_65.html")
+```
+ 
+ 
+# saveWidget(m1@map, "wv_over_65.html")
+
+```{r}
+mn_population_groups <- get_decennial(
+  geography = "state",
+  variables = "T01001_001N",
+  state = "MN",
+  year = 2020,
+  sumfile = "ddhca",
+  pop_group = "all",
+  pop_group_label = TRUE
+)
+
+
+mn_population_groups
+```
+ 
+
+```{r}
+available_groups <- get_pop_groups(2020, "ddhca")
+available_groups
+```
+
+
+
+#code gets error
+try({
+get_decennial(
+  geography = "county",
+  variables = "T02001_001N",
+  state = "MN",
+  county = "Hennepin",
+  pop_group = "1325",
+  year = 2020,
+  sumfile = "ddhca"
+)
+})
+
+#check granular variables you can get
+```{r}
+check_ddhca_groups(
+  geography = "county", 
+  pop_group = "1325", 
+  state = "MN", 
+  county = "Hennepin"
+)
+```
+
+
+```{r}
+library(tidycensus)
+
+hennepin_somali <- get_decennial(
+  geography = "tract",
+  variables = "T01001_001N",
+  state = "MN",
+  county = "Hennepin",
+  year = 2020,
+  sumfile = "ddhca",
+  pop_group = "1325",
+  pop_group_label = TRUE,
+  geometry = TRUE
+)
+mapview(hennepin_somali, zcol = "value")
+```
+#gaps and sparse data are seen in the map above
+
+
+```{r}
+somali_dots <- as_dot_density(
+  hennepin_somali,
+  value = "value",
+  values_per_dot = 25
+)
+
+mapview(somali_dots, cex = 0.01, layer.name = "Somali population<br>1 dot = 25 people",
+        col.regions = "red", color = "red")
+```
+# mapview showing dots with each dot representing about 25 somalians in each region which is better than the zcol
+
+
+
+```{r}
+county_pop_10 <- get_decennial(
+  geography = "county",
+  variables = "P001001", 
+  year = 2010,
+  sumfile = "sf1"
+)
+
+
+county_pop_10
+
+```
+
+
+```{r}
+county_pop_10_clean <- county_pop_10 %>%
+  select(GEOID, value10 = value) 
+
+county_pop_10_clean
+```
+
+
+```{r}
+county_pop_20 <- get_decennial(
+  geography = "county",
+  variables = "P1_001N",
+  year = 2020,
+  sumfile = "dhc"
+) %>%
+  select(GEOID, NAME, value20 = value)
+```
+
+
+```{r}
+county_joined <- county_pop_20 %>%
+  left_join(county_pop_10_clean, by = "GEOID") 
+county_joined
+```
+
+
+```{r}
+county_change <- county_joined %>%
+  mutate( 
+    total_change = value20 - value10, 
+    percent_change = 100 * (total_change / value10) 
+  ) 
+
+
+county_change
+```
+
+
+```{r}
+filter(county_change, is.na(value10))
+```
+#counties that have a change in 2010: this illistrates why county census tract data isnt to good for time series analysis
+
+
