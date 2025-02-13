@@ -28,7 +28,7 @@ initiated: fall 2022
 
 #### Contact
 
-Contact us at quant-shop [at] gmail [dot] com
+Contact us at quantshopusers [at] gmail [dot] com
 
 #### Funding
 
