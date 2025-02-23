@@ -1,5 +1,5 @@
 ---
-title: "Evaluating Social Vulnerability Through Census Community Resilience Estimates"
+title: "Evaluating Social Vulnerability in Census Community Resilience Estimates"
 author: 
   - "Nathan Alexander, PhD"
   - "Center for Applied Data Science and Analytics"
@@ -20,9 +20,9 @@ editor_options:
 
 # Abstract
 
-We examine various correlates of community resilience estimates (CREs) to understand and assess their comparative performance across different quantitative models. The CRE datasets were developed by the U.S. Census Bureau to assess the social vulnerability and resilience of neighborhoods across the United States in response to disasters, such as COVID-19, extreme weather events, and economic shocks. These estimates measure the capacity of individuals and households within a community to absorb, endure, and recover from external stresses. The CREs combine granular data from the American Community Survey (ACS) and the Population Estimates Program (PEP) to identify social and economic vulnerabilities at a detailed geographic level. 
+We examine various correlates of community resilience estimates (CREs) to understand and assess their comparative performance across different quantitative models. The CRE data sets were developed by the U.S. Census Bureau to assess the social vulnerability and resilience of neighborhoods across the United States in response to disasters, such as COVID-19, extreme weather events, and economic shocks. These estimates measure the capacity of individuals and households within a community to absorb, endure, and recover from external stresses. The CREs combine granular data from the American Community Survey (ACS) and the Population Estimates Program (PEP) to identify social and economic vulnerabilities at a detailed geographic level. We argue, through the concept of the *proxy war* that estimates such as the CREs provide useful tools to help add substantive insights over the use of single indicators that are largely used to split individuals into a small set of discrete groupings. We model, however, the importance of maintaining the critical language and analyses that serve the historical linkages of ideas to their maturation in the research literature, such as would be found in qualitative studies. We assess a set of models of social vulnerability and examine their relationships to a series of single indicators.
 
-*In this case analysis, we explore relationships in DC and NC.*
+*In this draft case analysis, we explore relationships in DC and NC.*
 
 ```{r setup, include=T, warning=F, results=F, message=F}
 knitr::opts_chunk$set(echo = TRUE)

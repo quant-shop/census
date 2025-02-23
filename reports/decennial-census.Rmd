@@ -1,0 +1,308 @@
+---
+title: "Analyzing Decennial Census Data"
+author: 
+  - "Nathan Alexander, PhD"
+  - "Center for Applied Data Science and Analytics"
+  - "Howard University"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true  # Enable floating TOC in the sidebar
+    number_sections: true
+    theme: cerulean
+    always_allow_html: true
+    self_contained: true
+editor_options:
+  markdown:
+    wrap: sentence
+---
+
+This file will support users in accessing the U.S. Decennial Census data. 
+
+The code and data in this file is based on the 2025 workshop, "Working with Decennial Census Data in R" led by Prof. Kyle Walker (TCU); the slides for this workshop can be found [here](https://walker-data.com/umich-workshop-2025/decennial-census/#/title-slide) and the repository for the workshop can be found [here](https://github.com/walkerke/umich-workshop-2025).
+
+Variable selection and targets have been prioritized for members of the Quantitative Histories Workshop and other quant-shop-users. Please note that you will need to have your census API key installed on your local machine.
+
+```{r setup, include=T, warning=F, results=F, message=F}
+knitr::opts_chunk$set(echo = TRUE)
+
+pkgs <- c("tidycensus", "tidyverse", "mapview", "survey", "srvyr", "arcgislayers")
+# install.packages(pkgs) # uncomment to install the packages
+
+library(tidyverse)
+library(tidycensus)
+library(sf)
+library(tidyverse)
+library(ggplot2)
+library(weights)
+library(dplyr)
+library(stringr)
+
+options(tigris_use_cache = TRUE)
+```
+
+# Data
+
+We will access the 2020 Census data using tidycensus.
+
+## State-level population data
+
+We will gather the 2020 state-level population data using the PL 94-171 Redistricting Data Summary File. This data was used to inform redistricting as a part of a U.S. constitutional mandate.
+
+```{r, warning=F, message=F}
+pop20 <- get_decennial(
+  geography = "state",
+  variables = "P1_001N",
+  year = 2020
+)
+
+pop20
+```
+
+The table parameter obtains all related variables.
+
+```{r, warning=F, message=F}
+table_p2 <- get_decennial(
+  geography = "state", 
+  table = "P2", 
+  year = 2020
+)
+```
+
+```{r}
+head(table_p2)
+tail(table_p2)
+```
+
+## DC data
+
+We will start with data on Washington, DC. 
+
+Take note of the tibble dimensions.
+
+```{r, message=F, warning=F}
+dc_population <- get_decennial(
+  geography = "county",
+  variables = "P1_001N",
+  state = "DC",
+  sumfile = "dhc",
+  year = 2020
+)
+
+dc_population
+```
+
+## NC data
+
+We will also collect data on North Carolina.
+
+```{r, message=F, warning=F}
+nc_population <- get_decennial(
+  geography = "county",
+  variables = "P1_001N",
+  state = "NC",
+  sumfile = "dhc",
+  year = 2020
+)
+
+nc_population
+```
+
+## State and County
+
+Given the uniqueness of DC, we will focus on NC, specifically Mecklenburg County, NC.
+
+From Walker, a census block is analogous to an urban block and it may vary by geography.
+
+The block is the smallest geography that you can get in the decennial data.
+
+```{r, message=F, warning=F}
+nc_mecklenburg_blocks <- get_decennial(
+  geography = "block",
+  variables = "P1_001N",
+  state = "NC",
+  county = "Mecklenburg",
+  sumfile = "dhc",
+  year = 2020
+)
+
+nc_mecklenburg_blocks
+```
+
+# Variables
+
+Next, we will identify our variables of interest.
+
+```{r, message=F, warning=F}
+vars <- load_variables(2020, "dhc")
+
+View(vars) # view the variables, a new window will pop up
+```
+
+When the data frame loads in a new window, you can use the search function to identify variables.
+
+Please note the different variable concepts and lables:
+
+- P: person-level variables
+
+- H: housing-level variables
+
+- HCT: housing-level variables only available at census-tract level and up.
+
+- PCT: person-level variables only available at the census tract level and up.
+
+## Sumfiles
+
+Take note of the `sumfile` that is used to access the data based on the variable name and concept.
+
+`getdecennial()` defaults to `sumfile = pl` (Redistricting Data Summary file).
+
+You will need to change the `sumfile = dhc`.
+
+### Example: Black owner-occupied or renter-occupied housing
+
+Taking a look at counts of owners and renters by Black or African American alone.
+
+```{r, message=F, warning=F}
+nc_housing_black <- get_decennial(
+  geography = "county",
+  state = "NC",
+  variables = c(owner = "H10_004N",  # owner occupied
+                renter = "H10_012N"), # renter occupied
+  year = 2020,
+  sumfile = "dhc",
+  output = "wide"
+)
+
+nc_housing_black
+```
+
+From the example provided by Walker, I can look at the married and partnered by same sex.
+
+```{r, message=F, warning=F}
+nc_samesex <- get_decennial(
+  geography = "county",
+  state = "NC",
+  variables = c(married = "DP1_0116P",
+                partnered = "DP1_0118P"),
+  year = 2020,
+  sumfile = "dp",
+  output = "wide"
+)
+
+nc_samesex
+```
+
+## Summary variables
+
+We use the core-based statistical areas to take a look at summary variables.
+
+We follow Walker and use an example with race-ethnicity breakdowns.
+
+```{r, message=F, warning=F}
+race_vars <- c(
+  Hispanic = "P5_010N",
+  White = "P5_003N",
+  Black = "P5_004N",
+  Native = "P5_005N",
+  Asian = "P5_006N",
+  HIPI = "P5_007N"
+)
+
+# Core-Based Statistical Areas (CBSA)
+cbsa_race <- get_decennial(
+  geography = "cbsa",
+  variables = race_vars,
+  summary_var = "P5_001N", 
+  year = 2020,
+  sumfile = "dhc"
+)
+```
+
+
+The structure of the data determines whether we get a count or a proportion.
+
+For example, in the code above, one options provided counts and the other proportions.
+
+---
+
+We can then arrange data to view the largest populated areas by race.
+
+```{r, message=F, warning=F}
+arrange(cbsa_race, desc(value)) %>% 
+  head(n=15) # view the top ten areas
+```
+
+Now we need to view the data by proportions (percent) as to not use the raw data. 
+
+```{r, message=F, warning=F}
+cbsa_race_percent <- cbsa_race %>%
+  mutate(percent = 100 * (value / summary_value)) %>% 
+  select(NAME, variable, percent) 
+
+cbsa_race_percent
+```
+
+Notice that the areas have changed.
+
+---
+
+## Group-wise analysis
+
+We can view the largest proportions of groups by metro area.
+
+```{r, message=F, warning=F}
+largest_group <- cbsa_race_percent %>%
+  group_by(NAME) %>% 
+  filter(percent == max(percent))
+```
+
+We can analyze the largest proportion of Black communities across the country by metro.
+
+```{r, message=F, warning=F}
+largest_group %>% 
+  arrange(desc(percent)) %>% 
+  filter(variable == "Black")
+```
+
+
+```{r, message=F, warning=F}
+
+```
+
+
+```{r, message=F, warning=F}
+
+```
+
+
+```{r, message=F, warning=F}
+
+```
+
+
+```{r, message=F, warning=F}
+
+```
+
+
+```{r, message=F, warning=F}
+
+```
+
+
+```{r, message=F, warning=F}
+
+```
+
+
+```{r, message=F, warning=F}
+
+```
+
+
+
+```{r, message=F, warning=F}
+
+```
