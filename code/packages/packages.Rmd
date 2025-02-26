@@ -1,0 +1,41 @@
+---
+title: "R packages for additional analysis"
+author: 
+- "Nathan Alexander"
+- "Center for Applied Data Science and Analytics (CADSA)"
+- "Howard University"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true  # Enable floating TOC in the sidebar
+    number_sections: true
+    theme: cerulean
+    always_allow_html: true
+    self_contained: true
+editor_options:
+  markdown:
+    wrap: sentence
+---
+
+```{r setup}
+# Load necessary libraries
+library(tidycensus)
+library(dplyr)
+library(ggplot2)
+```
+
+
+R Packages
+rbefdata – Accesses socio-ecological datasets from the Biodiversity Exploratories project.
+📌 Useful for: Human-environment interactions
+📦 Install: devtools::install_github("forestgeo/rbefdata")
+
+rdhs – Extracts Demographic and Health Surveys (DHS) data from multiple countries.
+📌 Useful for: Human demographics & health impacts on ecology
+📦 Install: install.packages("rdhs")
+
+wbstats – Retrieves World Bank data, including land use, environmental statistics, and population.
+📌 Useful for: Country-wide ecological trends
+📦 Install: install.packages("wbstats")
