@@ -14,7 +14,7 @@
 <meta name="author" content="Howard University" />
 
 
-<title>Evaluating Social Vulnerability Through Census Community Resilience Estimates</title>
+<title>Evaluating Social Vulnerability in Census Community Resilience Estimates</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -1704,8 +1704,8 @@ border-radius: 0px;
 
 
 
-<h1 class="title toc-ignore">Evaluating Social Vulnerability Through
-Census Community Resilience Estimates</h1>
+<h1 class="title toc-ignore">Evaluating Social Vulnerability in Census
+Community Resilience Estimates</h1>
 <h4 class="author">Nathan Alexander, PhD</h4>
 <h4 class="author">Center for Applied Data Science and Analytics</h4>
 <h4 class="author">Howard University</h4>
@@ -1717,7 +1717,7 @@ Census Community Resilience Estimates</h1>
 <h1><span class="header-section-number">1</span> Abstract</h1>
 <p>We examine various correlates of community resilience estimates
 (CREs) to understand and assess their comparative performance across
-different quantitative models. The CRE datasets were developed by the
+different quantitative models. The CRE data sets were developed by the
 U.S. Census Bureau to assess the social vulnerability and resilience of
 neighborhoods across the United States in response to disasters, such as
 COVID-19, extreme weather events, and economic shocks. These estimates
@@ -1725,8 +1725,17 @@ measure the capacity of individuals and households within a community to
 absorb, endure, and recover from external stresses. The CREs combine
 granular data from the American Community Survey (ACS) and the
 Population Estimates Program (PEP) to identify social and economic
-vulnerabilities at a detailed geographic level.</p>
-<p><em>In this case analysis, we explore relationships in DC and
+vulnerabilities at a detailed geographic level. We argue, through the
+concept of the <em>proxy war</em> that estimates such as the CREs
+provide useful tools to help add substantive insights over the use of
+single indicators that are largely used to split individuals into a
+small set of discrete groupings. We model, however, the importance of
+maintaining the critical language and analyses that serve the historical
+linkages of ideas to their maturation in the research literature, such
+as would be found in qualitative studies. We assess a set of models of
+social vulnerability and examine their relationships to a series of
+single indicators.</p>
+<p><em>In this draft case analysis, we explore relationships in DC and
 NC.</em></p>
 <pre class="r"><code>knitr::opts_chunk$set(echo = TRUE)
 
@@ -1995,7 +2004,7 @@ and can be downloaded or viewed online.</p>
 </div>
 <div id="nc" class="section level4" number="2.1.2.2">
 <h4><span class="header-section-number">2.1.2.2</span> NC</h4>
-<p>In the case of NC, we will focus on Mecklenburg county.</p>
+<p>In the case of NC, we will focus on Mecklenburg County.</p>
 <pre class="r"><code># CRE data for Mecklenburg County, NC
 cre.2022.mecklenburg &lt;- df %&gt;%
   filter(STATE == &quot;37&quot; &amp; COUNTY == &quot;119&quot;) # FIPS code for NC and Mecklenburg County</code></pre>
@@ -2311,6 +2320,29 @@ ggplot(merged_nc_mecklenburg, aes(x = prop_black, y = PRED3_PE)) +
 </div>
 <div id="analysis" class="section level1" number="4">
 <h1><span class="header-section-number">4</span> Analysis</h1>
+<pre class="r"><code>ggplot(df, aes(x = median_incomeE)) +
+  geom_point(aes(y = PRED3_PE, color = &quot;CRE&quot;), alpha = 0.5) +
+  geom_point(aes(y = percent_black, color = &quot;Black&quot;), alpha = 0.5) +
+  geom_smooth(aes(y = PRED3_PE, color = &quot;CRE&quot;), method = &quot;lm&quot;, se = FALSE) +
+  geom_smooth(aes(y = percent_black, color = &quot;Black&quot;), method = &quot;lm&quot;, se = FALSE) +
+  scale_color_manual(values = c(&quot;CRE&quot; = &quot;red&quot;, &quot;Black&quot; = &quot;blue&quot;)) +
+  labs(title = &quot;Median Income vs. CRE and % Black Population in DC&quot;,
+       x = &quot;Median Income Estimate&quot;,
+       y = &quot;Percentage&quot;,
+       color = &quot;Variable&quot;) +
+  theme_minimal()</code></pre>
+<p>Non-linear relationship between the variables.</p>
+<pre class="r"><code>ggplot(df, aes(x = estimate)) +
+  geom_point(aes(y = PRED3_PE, color = &quot;CRE&quot;), alpha = 0.5) +
+  geom_point(aes(y = percent_black, color = &quot;Black&quot;), alpha = 0.5) +
+  geom_smooth(aes(y = PRED3_PE, color = &quot;CRE&quot;), method = &quot;loess&quot;, se = FALSE) +
+  geom_smooth(aes(y = percent_black, color = &quot;% Black&quot;), method = &quot;loess&quot;, se = FALSE) +
+  scale_color_manual(values = c(&quot;CRE&quot; = &quot;red&quot;, &quot;Black&quot; = &quot;blue&quot;)) +
+  labs(title = &quot;Median Rent vs. CRE and % Black Population in DC (Non-linear)&quot;,
+       x = &quot;Median Rent Estimate&quot;,
+       y = &quot;Percentage&quot;,
+       color = &quot;Variable&quot;) +
+  theme_minimal()</code></pre>
 <p>Forthcoming.</p>
 </div>
 

@@ -1,0 +1,265 @@
+---
+title: "Mapping and Spatial Analysis using `tidycensus()`"
+author: 
+- "Nathan Alexander"
+- "Center for Applied Data Science and Analytics (CADSA)"
+- "Howard University"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true  # Enable floating TOC in the sidebar
+    number_sections: true
+    theme: cerulean
+    always_allow_html: true
+    self_contained: true
+editor_options:
+  markdown:
+    wrap: sentence
+---
+
+This file will support R users with the basics of mapping and spatial analysis with the U.S. Census data using the `tidycensus()` package. The slides for this file are available [here](https://walker-data.com/umich-workshop-2025/mapping/#/title-slide).
+
+# Data
+
+For mapping tasks, we use the American Community Survey (ACS). This is an annual survey that covers topics not available in the decennial US Census data, such as income, education, etc. Estimates are available for both 1- and 5-year periods. The default for the `getacs()` function is the 5-year ACS estimates. 
+
+To change to the 1-year estimates add `survey = "acs1"` below the `geometry = T` input line. Walker recommends, however, that you stick with the 5-year ACS file to get spatial coherence and coherence.
+
+The data are delivered as *estimates* characterized by *margins of error*.
+
+## `tidycensus()`
+
+The `tidycensus()` package created by Walker "automatically downloads and merges Censsus geometries to data for mapping [and] includes a variety of analytic tools to support common Census workflows."
+
+The states and counties can be requested by name, so there is no need to look up FIPS codes^[Walker made a note about using FIPS codes based on a change made in 2022. It will be important to review the FIPS codes as some counties have been changed (names) and may be included twice, so be aware of your goals when using the FIPS codes.].
+
+## Mapping tools
+
+There are multiple packages that can be used for cartography. Some of the popular packages that can be used are `ggplot2`, `tmap`, and `mapsf`. Walker, however, built a new package called `mapgl`.
+
+### mapgl
+
+[mapgl](https://walker-data.com/mapgl/) is a new R package written by Walker for high-performance interactive mapping.
+
+---
+
+Start by installing/loading packages (as needed) and libraries:
+
+```{r setup, warning=F, message=F}
+# Install packages as needed
+# install.packages(c("tidycensus", "tidyverse", "mapview", "mapgl", "quarto"))
+
+# Load necessary libraries
+library(tidycensus)
+library(dplyr)
+library(ggplot2)
+library(sf)
+```
+
+---
+
+## Gathering data
+
+We'll start by gathering the data using the `get_acs()` function.
+
+### DC
+
+Given the size of DC, we will use `geography = "tract"`.
+
+```{r, message=F, warning=F}
+dc_income <- get_acs(
+  geography = "tract",
+  variables = "B19013_001",
+  state = "DC",
+  year = 2023
+)
+
+dc_income
+```
+
+### NC
+
+For NC, we'll use `geography = "county"`.
+
+```{r, message=F, warning=F}
+nc_income <- get_acs(
+  geography = "county",
+  variables = "B19013_001",
+  state = "NC",
+  year = 2023
+)
+
+nc_income
+```
+
+## Spatial data
+
+We'll now add the spatial data to our income data using the simple features `sf` conditions via `geometry = T`. Take note that we'll use the same code above but simply add a new last line of code.
+
+We'll use `geometry=T` and update the name of our `df`.
+
+## DC spatial data
+
+Gathering spatial data for DC at the tract level.
+
+```{r, message=F, warning=F, results=F}
+dc_income_sf <- get_acs(
+  geography = "tract",
+  variables = "B19013_001",
+  state = "DC",
+  year = 2023,
+  geometry = T
+)
+```
+
+```{r, message=F, warning=F}
+dc_income_sf
+```
+
+## NC spatial data
+
+Gathering spatial data for NC at the county level.
+
+```{r, message=F, warning=F, results=F}
+nc_income_sf <- get_acs(
+  geography = "county",
+  variables = "B19013_001",
+  state = "NC",
+  year = 2023,
+  geometry = T
+)
+```
+
+# Mapping
+
+We can use our spatial data frames to generate a plot using the `plot()` function.
+
+## DC
+
+We'll use the DC income data to plot. Recall that we neeed to use our `sf` df.
+
+```{r, message=F, warning=F}
+plot(dc_income_sf)
+```
+
+Note here that we get multiple maps, which is not likely what you want. Each of the maps contains information for the variables in our data set. We'll need to specify that we want the estimates.
+
+```{r, message=F, warning=F}
+plot(dc_income_sf['estimate'])
+```
+
+## NC
+
+We'll do the same for NC.
+
+```{r, message=F, warning=F}
+plot(nc_income_sf['estimate'])
+```
+
+At the state level, it is very clear what the purpose of our analysis would be. We'll likely want to follow a specific research question from this point.
+
+I will modify the code to look at a specific county in NC, Mecklenburg County.
+ 
+Take note of the new rows added:
+- geography = tract
+- state = NC
+- county = "Mecklenburg"
+
+```{r, message=F, warning=F, results=F}
+nc_mecklenburg_income_sf <- get_acs(
+  geography = "tract",
+  state = "NC",
+  county = "Mecklenburg",
+  variables = "B19013_001",
+  year = 2023,
+  geometry = T
+)
+```
+
+We then view the data.
+
+```{r, message=F, warning=F}
+nc_mecklenburg_income_sf
+```
+
+We then plot the data.
+
+```{r, message=F, warning=F}
+plot(nc_mecklenburg_income_sf['estimate'])
+```
+
+This graph is at a more focused geographic level, similar to the DC map.
+
+# Improving your map
+
+We can also modify more visually appealing maps.
+
+Let's add the `vidris` library to enhance the visualization.
+
+```{r, message=F, warning=F}
+library(viridis)
+```
+
+Then we'll produce the map using `ggplot2`.
+
+```{r, message=F, warning=F}
+ggplot(nc_mecklenburg_income_sf) +
+  geom_sf(aes(fill = estimate), color = "white", size = 0.1) +
+  scale_fill_viridis(option = "magma", name = "Median Household Income") +
+  labs(
+    title = "Median Household Income in Mecklenburg County, NC",
+    subtitle = "By Census Tract (2023)",
+    caption = "Data: American Community Survey 5-Year Estimates"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 12),
+    axis.title = element_blank(),
+    legend.position = "right"
+  )
+```
+
+# Interactive maps
+
+We can also make interactive maps with various specifications.
+
+We'll first need to load the `mapview` library to make an interactive map.
+
+```{r, message=F, warning=F}
+library(mapview)
+```
+
+Then we'll call both our data frame with the `sf` option and specify that we want the estimate.
+
+```{r, message=F, warning=F}
+mapview(
+  dc_income_sf, 
+  zcol = "estimate"
+)
+```
+
+We'll do the same for NC.
+
+```{r, message=F, warning=F}
+mapview(
+  nc_income_sf, 
+  zcol = "estimate"
+)
+```
+
+Then finally for Mecklenburg County, NC.
+
+```{r, message=F, warning=F}
+mapview(
+  nc_mecklenburg_income_sf, 
+  zcol = "estimate"
+)
+```
+
+Walker continues from here to explore various advanced options with mapping.
+
+This file may be updated in the future; else, please see the Walker files.
+
