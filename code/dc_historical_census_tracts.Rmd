@@ -1,0 +1,97 @@
+---
+title: "Historical Census Tracts from DC Open Data"
+author: 
+  - "Nathan Alexander, PhD"
+  - "Center for Applied Data Science and Analytics"
+  - "Howard University"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true  # Enable floating TOC in the sidebar
+    number_sections: true
+    theme: cerulean
+    always_allow_html: true
+    self_contained: true
+editor_options:
+  markdown:
+    wrap: sentence
+---
+
+```{r setup, include=T, warning=F, results=F, message=F}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+library(dplyr)
+library(here)
+here::i_am("dc_historical_census_tracts.Rmd")
+```
+
+# DATA
+
+Files on the Census tracts from various historical periods are uploaded from DC Open Data. Additional data files can be accessed from the DC Open Data webiste [here](https://opendata.dc.gov/) and include KML, GeoJSON, and shapefies.
+
+## Historical Census Tracts for DC
+
+We load the data for historical tracts for DC to utilize and combine with other data.
+
+### Year 1940
+
+```{r}
+dc.tracts.1940 <- read.csv("../data/dc_historical_tracts/Census_Tracts_in_1940.csv")
+head(dc.tracts.1940)
+```
+
+### Year 1950
+
+```{r}
+dc.tracts.1950 <- read.csv("../data/dc_historical_tracts/Census_Tracts_in_1950.csv")
+head(dc.tracts.1950)
+```
+
+### Year 1960
+
+```{r}
+dc.tracts.1960 <- read.csv("../data/dc_historical_tracts/Census_Tracts_in_1960.csv")
+head(dc.tracts.1960)
+```
+
+### Year 1970
+
+```{r}
+dc.tracts.1970 <- read.csv("../data/dc_historical_tracts/Census_Tracts_in_1970.csv")
+head(dc.tracts.1970)
+```
+
+### Year 1980
+
+```{r}
+dc.tracts.1980 <- read.csv("../data/dc_historical_tracts/Census_Tracts_in_1980.csv")
+head(dc.tracts.1980)
+```
+
+### Year 1990
+
+Data for the year 1990 was not available.
+
+### Year 2000
+
+```{r}
+dc.tracts.2000 <- read.csv("../data/dc_historical_tracts/Census_Tracts_in_2000.csv")
+head(dc.tracts.2000)
+```
+
+### Year 2010
+
+```{r}
+dc.tracts.2010 <- read.csv("../data/dc_historical_tracts/Census_Tracts_in_2010.csv")
+head(dc.tracts.2010)
+```
+
+### Year 2020
+
+```{r}
+dc.tracts.2020 <- read.csv("../data/dc_historical_tracts/Census_Tracts_in_2020.csv")
+head(dc.tracts.2020)
+```
+
