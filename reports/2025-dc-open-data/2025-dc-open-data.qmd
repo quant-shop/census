@@ -38,6 +38,7 @@ format:
   html:
     self-contained: true
     embed-resources: true
+  pdf: default
   revealjs:
     output-file: 2025-dc-open-data.html
     height: 900
