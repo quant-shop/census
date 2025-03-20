@@ -1,0 +1,85 @@
+---
+title: "Mapping Multidimensionality: Using Census Data to Understand Neighborhood Communities"
+subtitle: "Quantitative Histories Workshop"
+author:
+  - name: N. Alexander
+    affiliations:
+      - ref: hu
+  - name: B. Onabajo
+    affiliations:
+      - ref: hu
+  - name: J. Gupta
+    affiliations:
+      - ref: hu
+  - name: K. Nichols-Smith
+    affiliations:
+      - ref: mc
+  - name: H. Jang
+    affiliations:
+      - ref: mc
+affiliations:
+  - id: hu
+    name: Howard University
+    city: Washington
+    state: DC
+  - id: mc
+    name: Morehouse College
+    city: Atlanta
+    state: GA
+  - id: sc
+    name: Spelman College
+    city: Atlanta
+    state: GA
+  - id: cd
+    name: Center for Applied Data Science and Analytics
+    city: Washington
+    state: DC
+format:
+  html:
+    self-contained: true
+    embed-resources: true
+  revealjs:
+    output-file: 2025-dc-open-data.html
+    height: 900
+    width: 1600
+    smaller: false
+    scrollable: true
+    slide-number: c/t #< collapsted/total
+    footer: ""
+    toc: false
+    echo: true
+    incremental: false
+    self-contained: true
+    theme: default
+---
+
+# Abstract
+
+We explore how multidimensional measures of local communities, such as those provided by the Census Community Resilience Estimates (CREs), can be used to model dynamic changes in neighborhood communities through an intersectional lens, building on prior work inspired by research on the United States as a "Patchwork Nation." By analyzing CREs alongside other relevant measures, we uncover patterns of structural inequity and social isolation that are often overlooked in single-indicator models. Using a case study method, we then demonstrate how a multidimensional approach supports a mixed-methods understanding of compounded challenges to support insights that can help guide targeted interventions and inform policy adjustments. Our analysis underscores the critical importance of open data in advancing civic engagement, supporting a more comprehensive understanding of community changes, and addressing contemporary community needs.
+
+# A Patchwork Nation
+
+| "If you pay attention to the complexity of the USA, its diversity and differences you soon realize that the ways we try to understand it – red and blue, Northeast and Midwest – are too simplistic. They are inadequate and misleading." -Patchwork Nation Project
+
+![Community types in the Patchwork Nation framing](img/patchwork-profiles.jpg){fig-align="center"}
+
+---
+
+## Framework
+
+![Map of Patchwork Nation Community Types. Source: Chinni and Gimpel (2011)](img/map-of-patchwork-communitites.png){fig-align="center"}
+---
+
+## Issues
+
+- Multidimensional indices
+
+- Health
+
+- Race and ethnicity
+
+- Political behaviors
+
+- Social orientations
+
+---
