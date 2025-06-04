@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.57">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Nathan N. Alexander, PhD">
+<meta name="author" content="Assistant Professor">
+<meta name="author" content="Department of Curriculum and Instruction, School of Education">
+<meta name="author" content="Program in Data Science, Center for Applied Data Science and Analytics">
+
+<title>Mapping Multidimensionality</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="copy_files/libs/clipboard/clipboard.min.js"></script>
+<script src="copy_files/libs/quarto-html/quarto.js"></script>
+<script src="copy_files/libs/quarto-html/popper.min.js"></script>
+<script src="copy_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="copy_files/libs/quarto-html/anchor.min.js"></script>
+<link href="copy_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="copy_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="copy_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="copy_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="copy_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Mapping Multidimensionality</h1>
+<p class="subtitle lead">Using Census Data to Model Neighborhood Communities</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Authors</div>
+    <div class="quarto-title-meta-contents">
+             <p>Nathan N. Alexander, PhD </p>
+             <p>Assistant Professor </p>
+             <p>Department of Curriculum and Instruction, School of Education </p>
+             <p>Program in Data Science, Center for Applied Data Science and Analytics </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<hr>
+<p></p>
+<ul>
+<li><p>Racial segregation</p></li>
+<li><p>Economic segregation</p></li>
+<li><p>Dynamic features of isolation</p></li>
+</ul>
+<hr>
+<section id="a-history-of-dividing-walls" class="level1">
+<h1>A History of Dividing Walls</h1>
+<p>There are dynamic and complex historical structures that have segregated individuals based on a host of factors.</p>
+<ul>
+<li><p>Legacies of Jim Crow (e.g., highways)</p></li>
+<li><p>Redlining</p></li>
+<li><p>Gerrymandering</p></li>
+<li><p>Gentrification</p></li>
+</ul>
+<hr>
+<section id="single-dimension---income" class="level2">
+<h2 class="anchored" data-anchor-id="single-dimension---income">Single Dimension - Income</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/dc_income_plot.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:90.0%"></p>
+</figure>
+</div>
+<hr>
+</section>
+<section id="single-dimension---race" class="level2">
+<h2 class="anchored" data-anchor-id="single-dimension---race">Single Dimension - Race</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/dc_black_population.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:90.0%"></p>
+</figure>
+</div>
+<hr>
+</section>
+<section id="single-dimension---education" class="level2">
+<h2 class="anchored" data-anchor-id="single-dimension---education">Single Dimension - Education</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/education_attainment_map.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:85.0%"></p>
+</figure>
+</div>
+<hr>
+</section>
+</section>
+<section id="considering-multiple-dimensions" class="level1">
+<h1>Considering Multiple Dimensions</h1>
+<p>How might we analyze the while retaining critical insights from theorists that challenge monolithic narratives of any single group?</p>
+<hr>
+</section>
+<section id="theoretical-framework-a-patchwork-nation" class="level1">
+<h1>Theoretical framework: A Patchwork Nation</h1>
+<div class="line-block">“<em>If you pay attention to the complexity of the USA, its diversity and differences you soon realize that the ways we try to understand it – red and blue, Northeast and Midwest – are too simplistic. They are inadequate and misleading</em>.” -Patchwork Nation Project</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/patchwork-profiles.jpg" class="img-fluid figure-img" style="width:55.0%"></p>
+<figcaption><a href="https://jeffersoninst.org/projects/patchwork-nation" target="_blank">Community types in the Patchwork Nation</a></figcaption>
+</figure>
+</div>
+<hr>
+<section id="details-of-community-types-national-level" class="level3">
+<h3 class="anchored" data-anchor-id="details-of-community-types-national-level">Details of community types (national-level)</h3>
+<ul>
+<li><p><strong>Boom Towns</strong>: Rapidly “expanding” communities</p></li>
+<li><p><strong>Campus and Careers</strong>: Areas with a significant presence of higher education institutions</p></li>
+<li><p><strong>Immigration Nation</strong>: Areas with high concentrations of immigrant populations</p></li>
+<li><p><strong>Industrial Metropolis</strong>: Large urban areas with a strong industrial base</p></li>
+<li><p><strong>Emptying Nests</strong>: Communities with an aging population</p></li>
+<li><p><strong>Minority Central</strong>: Areas with large minority populations</p></li>
+<li><p><strong>Monied Burbs</strong>: Affluent suburban areas</p></li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="analytic-framework-theory-of-dividing-walls-city-level" class="level1">
+<h1>Analytic Framework: Theory of Dividing Walls (city-level)</h1>
+<p>Consider a neighborhood as an “island” containing towns — the green tribe in two of the towns and the blue tribe in the other two.</p>
+<section id="analytic-framework" class="level2">
+<h2 class="anchored" data-anchor-id="analytic-framework">Analytic framework</h2>
+<p>Using topology (mathematics) and topography (geology), we can formalize our analysis by attaching a few requirements:</p>
+<ul>
+<li><p>The wall must be continuous, it must not intersect itself, it must not split, it must not pass through a town, and each end of the wall must be at the coast.</p></li>
+<li><p>Let us call such a wall a dividing wall.</p></li>
+</ul>
+<hr>
+</section>
+<section id="dividing-walls-theorem" class="level2">
+<h2 class="anchored" data-anchor-id="dividing-walls-theorem">Dividing Walls Theorem</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/Picture2.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:25.0%"></p>
+</figure>
+</div>
+<div class="theorem">
+<p><strong>Theorem 1</strong>. Given any configuration of blue and green towns, there is a dividing wall that separates blue towns from green towns.</p>
+</div>
+<hr>
+</section>
+<section id="is-there-a-dividing-wall" class="level2">
+<h2 class="anchored" data-anchor-id="is-there-a-dividing-wall">Is there a dividing wall?</h2>
+<p><img src="img/figurec.png" class="img-fluid quarto-figure quarto-figure-center" style="width:55.0%"> ::::{.theorem}</p>
+<p><strong>Theorem 1</strong>. Given any configuration of blue and green towns, there is a dividing wall that separates blue towns from green towns.</p>
+<p>::::</p>
+<hr>
+</section>
+<section id="a-dividing-wall" class="level2">
+<h2 class="anchored" data-anchor-id="a-dividing-wall">A Dividing Wall</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/Picture1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+<div class="theorem">
+<p><strong>Theorem 1</strong>. Given any configuration of blue and green towns, there is a dividing wall that separates blue towns from green towns.</p>
+</div>
+<hr>
+</section>
+<section id="measurement-model-dissimilarity-index" class="level2">
+<h2 class="anchored" data-anchor-id="measurement-model-dissimilarity-index">Measurement Model: Dissimilarity Index</h2>
+<p><span class="math display">\[
+D = \sum_{i=1}^{n} \Big| \dfrac{b_i}{B} - \dfrac{w_i}{W} \Big|
+\]</span> Where:</p>
+<ul>
+<li><p><span class="math inline">\(b_i\)</span> = Black population in tract <span class="math inline">\(i\)</span></p></li>
+<li><p><span class="math inline">\(B\)</span> = Total Black population in city</p></li>
+<li><p><span class="math inline">\(w_i\)</span> = non-Black population in tract <span class="math inline">\(i\)</span></p></li>
+<li><p><span class="math inline">\(W\)</span> = non-Black population in city</p></li>
+</ul>
+<p>This census data model, however, only provides a single dimension of a neighborhood.</p>
+<hr>
+</section>
+<section id="community-resilience-estimates" class="level2">
+<h2 class="anchored" data-anchor-id="community-resilience-estimates">Community Resilience Estimates</h2>
+<ul>
+<li><p>The CRE are a <span style="color:blue;">measure of the capacity of individuals and households within a community</span> to absorb, endure, and recover from external stresses.</p></li>
+<li><p>The CRE data combine American Community Survey (ACS) and the Population Estimates Program (PEP) data to <span style="color:blue;">identify social and economic vulnerabilities by geography</span>.</p></li>
+<li><p>There is a nice <a href="https://mtgis-portal.geo.census.gov/arcgis/apps/experiencebuilder/experience/?id=54292fa3918e425a8717259f930274fb" target="_blank">CRE Interactive Tool</a> that allows for a quick overview of local contexts.</p></li>
+</ul>
+<hr>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>cre_correlates_dc <span class="ot">&lt;-</span> <span class="fu">get_acs</span>(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">geography =</span> <span class="st">"tract"</span>, <span class="at">state =</span> <span class="st">"DC"</span>, </span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">year =</span> <span class="dv">2023</span>, <span class="at">survey =</span> <span class="st">"acs5"</span>,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">variables =</span> <span class="fu">c</span>(</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">median_income =</span> <span class="st">"B19013_001"</span>, </span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">poverty_rate =</span> <span class="st">"B17001_002"</span>,  </span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">unemployment_rate =</span> <span class="st">"B23025_005"</span>, </span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">no_health_insurance =</span> <span class="st">"B27010_033"</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">educ_less_than_hs =</span> <span class="st">"B15003_002"</span>, </span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">median_age =</span> <span class="st">"B01002_001"</span>,          </span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">housing_cost_burden =</span> <span class="st">"B25070_010"</span>, </span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">no_vehicle =</span> <span class="st">"B08201_002"</span>,          </span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">black_population =</span> <span class="st">"B02001_003"</span>,   </span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">median_rent =</span> <span class="st">"B25058_001"</span>),      </span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">summary_var =</span> <span class="st">"B02001_001"</span>,       </span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">output =</span> <span class="st">"wide"</span>, <span class="at">geometry =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<hr>
+</section>
+<section id="spatial-model" class="level2">
+<h2 class="anchored" data-anchor-id="spatial-model">Spatial Model</h2>
+<p>– Base spatial model formulation: <span class="math display">\[ \mathbf{y} = \boldsymbol{X}\beta + \tau + \epsilon \]</span></p>
+<ul>
+<li><p><span class="math inline">\(\boldsymbol{y}\)</span> is a <span class="math inline">\(n\)</span> x <span class="math inline">\(1\)</span> response vector</p></li>
+<li><p><span class="math inline">\(\boldsymbol{X}\)</span> is a design matrix that contains explanatory variables</p></li>
+<li><p><span class="math inline">\(\beta\)</span> represents fixed effects coefficients</p></li>
+<li><p><span class="math inline">\(\tau\)</span> denotes spatially dependent random errors</p></li>
+<li><p><span class="math inline">\(\epsilon\)</span> represents independent random errors</p></li>
+</ul>
+<hr>
+</section>
+<section id="dimensionality-in-spatial-models" class="level2">
+<h2 class="anchored" data-anchor-id="dimensionality-in-spatial-models">Dimensionality in Spatial Models</h2>
+<p>Response vector structure (<span class="math inline">\(\mathbf{y}\)</span>):</p>
+<p><span class="math display">\[
+\begin{aligned}
+  \mathbf{y} &amp;= \begin{bmatrix}
+    y_1 \\
+    y_2 \\
+    \vdots \\
+    y_n
+  \end{bmatrix}
+\end{aligned}
+\]</span></p>
+<ul>
+<li><p>Each element, <span class="math inline">\(y_i\)</span>, represents the observed response at a neighborhood’s location <span class="math inline">\(i\)</span></p></li>
+<li><p>These are ordered by adjacency relationships to preserve the geographical context</p></li>
+<li><p>Review of distributions, spatial autocorrelation (i.e., <span class="math inline">\(Cov(y_i, y_j)\)</span>), and decomposition</p></li>
+</ul>
+<hr>
+</section>
+<section id="dimensionality-in-spatial-models-1" class="level2">
+<h2 class="anchored" data-anchor-id="dimensionality-in-spatial-models-1">Dimensionality in Spatial Models</h2>
+<p>Design matrix of explanatory variables structure (<span class="math inline">\(\boldsymbol{X}\)</span>):</p>
+<p><span class="math display">\[
+\boldsymbol{X} =
+\begin{bmatrix}
+1 &amp; x_{1, 1} &amp; \ldots &amp; x_{1, p} \\
+1 &amp; x_{2, 1} &amp; \ldots &amp; x_{2, p} \\
+\vdots &amp; \vdots &amp; \ddots &amp; \vdots \\
+1 &amp; x_{n, 1} &amp; \ldots &amp; x_{n, p} \\
+\end{bmatrix}
+\]</span></p>
+<ul>
+<li><p>First column is the intercept term</p></li>
+<li><p>Subsequent columns represent <span class="math inline">\(p\)</span> explanatory variables</p></li>
+<li><p>Each row corresponds to a specific neighborhood’s covariates</p></li>
+</ul>
+<hr>
+</section>
+<section id="dimensionality-in-spatial-models-2" class="level2">
+<h2 class="anchored" data-anchor-id="dimensionality-in-spatial-models-2">Dimensionality in Spatial Models</h2>
+<section id="sample-design-matrix-of-explanatory-variables" class="level3">
+<h3 class="anchored" data-anchor-id="sample-design-matrix-of-explanatory-variables"><span style="color:blue;">Sample design matrix of explanatory variables</span></h3>
+<p><span class="math display">\[
+\boldsymbol{X} =
+\begin{bmatrix}
+1 &amp; 65,000 &amp; 0.62 &amp; 3,200 \\
+1 &amp; 28,000 &amp; 0.32 &amp; 5,100 \\
+\vdots &amp; \vdots &amp; \vdots &amp; \vdots \\
+1 &amp; 127,000 &amp; 0.75 &amp; 6,840 \\
+\end{bmatrix}
+\]</span></p>
+<ul>
+<li><p>Column 1 is the <span class="math inline">\(E(\mathbf{y})\)</span> when all other predictors are zero</p></li>
+<li><p>Variable 1 (col 2) as median income</p></li>
+<li><p>Variable 2 (col 3) as proportion of residents with HS diploma</p></li>
+<li><p>Variable 3 (col 4) as population density (residents/sq. mi)</p></li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="next-steps-information-and-spatial-segregation" class="level2">
+<h2 class="anchored" data-anchor-id="next-steps-information-and-spatial-segregation">Next steps: Information and spatial segregation</h2>
+<p>There are multiple models for consideration:</p>
+<ul>
+<li><p>Spatial regression using intersectional interactions</p></li>
+<li><p>Structural Equation Modeling (SEM) with CRE components</p></li>
+<li><p>Multilevel Analysis of Individual Heterogeneity and Discriminatory Analysis (MAIHDA)</p>
+<ul>
+<li><p>Evans et al.&nbsp;(2024). A Tutorial for Conducting MAIHDA. <em>Population Health</em>, Vol. 26, 101664</p></li>
+<li><p>Combines intersectional stratification with neighborhood-level clustering</p></li>
+<li><p>Models individuals nested within: Intersectional strata (e.g., low-income Black men), community typologies from framework (e.g., Patchwork Nation) classifications</p></li>
+</ul></li>
+</ul>
+</section>
+</section>
+<section id="special-thanks" class="level1">
+<h1>Special Thanks</h1>
+<p><strong>Research assistants</strong>: Myles Ndiritu (Morehouse College), Zoe Williams (Howard University), Kade Davis (Morehouse College), Amari Gray (Morehouse College)</p>
+<p><strong>Lab manager</strong>: Lyrric Jackson (Spelman College)</p>
+<p><strong>Funding</strong>: Alfred P. Sloan Foundation, AUC Data Science Initiative, Data.org</p>
+<p><strong>Partners</strong>: The Carpentries</p>
+</section>
+<section id="references" class="level1">
+<h1>References</h1>
+<p>Chinni, D., &amp; Gimpel, J. (2010). Our Patchwork Nation: The Surprising Truth about the “Real” America. Gotham Books.</p>
+<p>Evans, C. R., Leckie, G., Subramanian, S. V., Bell, A., &amp; Merlo, J. (2024). A tutorial for conducting intersectional multilevel analysis of individual heterogeneity and discriminatory accuracy (MAIHDA). SSM - Population Health, 26, Article 101664. https://doi.org/10.1016/j.ssmph.2024.101664.</p>
+<p>U.S. Census Bureau. (2024). Community Resilience Estimates. Retrieved March 26, 2025, from https://www.census.gov/programs-surveys/community-resilience-estimates/about.html.</p>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

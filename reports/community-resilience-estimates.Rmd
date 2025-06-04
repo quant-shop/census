@@ -46,12 +46,12 @@ Information on the community resilience esitmates datasets can be found online [
 Pulling in 2022 CRE data directly from GitHub.
 
 ```{r, include=F, warning=F, results=F, message=F}
-# cre.2022.tract <- read.csv("https://www2.census.gov/programs-surveys/demo/datasets/community-resilience/2022/CRE_22_Tract.csv")
+#cre.2022.tract <- read.csv("https://www2.census.gov/programs-surveys/demo/datasets/community-resilience/2022/CRE_22_Tract.csv")
 # str(cre.2022.tract)
 # df <- cre.2022.tract
 
 # Save cre.2022.tract as a csv
-# write.csv(cre.2022.tract, file = "../data/cre.2022.tract.csv", row.names = FALSE)
+#write.csv(cre.2022.tract, file = "../data/cre.2022.tract.csv", row.names = FALSE)
 ```
 
 ```{r, include=T, warning=F, results=T, message=F}
