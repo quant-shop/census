@@ -1,0 +1,869 @@
+---
+title: "Socioeconomic Determinants of Health in Washington D.C.: A Multifactorial Analysis Using Census Data with Hypertension Prevalence"
+author: "Bayowa"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Abstract
+
+This study investigates the relationship between socioeconomic factors and hypertension prevalence across census tracts in Washington, D.C. Utilizing cross-sectional data from the U.S. Census Bureau and CDC public health datasets, the study employs correlation analysis and regression models to assess how age, poverty, and insurance coverage are associated with hypertension rates. Results indicate that neighborhoods with high poverty levels, age, and higher rates of uninsurance exhibit significantly higher hypertension prevalence. These findings support calls for policy interventions that integrate public health, economic equity, and targeted planning.Future research will incorporate longitudinal data and real-time patient survey data from local healthcare providers to capture individual-level risk factors, enhance this study and strengthen policy relevance.
+
+
+
+# Introduction
+
+Hypertension is a critical public health concern, disproportionately affecting communities and does not arise in a vacuum. Its prevalence is shaped by a constellation of structural factors—economic, social, and environmental—that vary significantly across urban geographies. In Washington, D.C., where structural inequalities shape neighborhood health, understanding hypertension within a socioeconomic framework is essential. This study aims to examine the socioeconomic determinants of hypertension in Washington, D.C. at the census tract level. Using publicly available datasets in this current phase of research, we integrate statistical modeling to analyze hypertension prevalence and its relationship with socioeconomic factors, including poverty rate, lack of health insurance, and age distribution. Additionally, we explore the relationship between medication adherence and both determinants and hypertension prevalence.The next phase will include the collection and analysis of real-time patient survey data from clinics and hospitals in D.C. to deepen our understanding and address ecological limitations.Our goal is to contribute to the growing literature on health inequality by providing a localized, data-driven analysis to inform targeted interventions, while also addressing the central research question: To what extent do socioeconomic factors influence hypertension prevalence, and how might individual-level data enhance our understanding of these associations?
+
+
+# Literature Review 
+
+"Hypertension is a complex chronic condition with significant public health implications, and its prevalence is deeply intertwined with social factors. Existing literature has extensively documented the critical role of social determinants of health (SDOH) in shaping health outcomes. The World Health Organization (WHO, 2025) defines SDOH as 'the non-medical factors that influence health outcomes,' and these factors have been consistently shown to be powerful predictors of various health conditions, including hypertension.
+Low income correlates with elevated risk of hypertension due to chronic stress, food insecurity, and reduced healthcare access (Braveman et al., 2011). Education is protective through its association with health literacy, occupational stability, and preventive behavior (Cutler & Lleras-Muney, 2006).
+A robust body of research demonstrates that lower socioeconomic status (SES) is associated with a higher risk of chronic diseases, including hypertension. Stringhini et al. (2017), in a large-scale study using data from six countries, found a strong inverse association between SES indicators (such as income and education) and hypertension prevalence. This relationship is often mediated by factors like increased stress, limited access to healthy food, and reduced access to healthcare (Diez Roux & Mair, 2010).
+In urban settings, these socioeconomic disparities are frequently exacerbated. Residential segregation can concentrate poverty and limit access to resources, creating 'neighborhood effects' that negatively impact health (Sampson et al., 2002). Food deserts, characterized by a lack of access to affordable and nutritious food, are common in low-income urban areas and contribute to poor dietary patterns, a major risk factor for hypertension (Walker et al., 2010). While, urban environments can present unique stressors, such as crime, noise pollution, and lack of safe spaces for physical activity, all of which can elevate blood pressure (Glaeser & Sacerdote, 2000). Furthermore, overcrowded or substandard housing is associated with physical and psychological stressors that contribute to hypertension (Evans & Kantrowitz, 2002). Similarly, lack of insurance limits access to routine care and early intervention.
+Moreover, the burden of hypertension is not evenly distributed across populations; significant racial and ethnic health inequities persist. Williams (2018) argues that structural racism, defined as the systems and policies that perpetuate racial disadvantage, is a fundamental driver of these disparities. African Americans, in particular, experience higher rates of hypertension compared to other racial groups in the United States, even after controlling for other socioeconomic factors (Institute of Medicine U.S, 2012). This disparity is likely due to a complex interplay of genetic predisposition, unequal access to quality healthcare, and social stressors.
+While many studies use aggregate data to explore SDOH, fewer combine these findings with real-time clinical insights. By integrating ward-level socioeconomic data with survey responses from D.C. residents, this research aims to fill that gap and offer actionable insights for health policy.
+
+### Rationale for Present Study
+Various research clearly documents the role of social determinants—particularly income, education, race, and environment—in shaping chronic health outcomes, including hypertension. However, some of this research is either national in scale or focused on isolated variables. Our study builds upon this foundation by providing a localized, multifactorial analysis using Washington D.C. census data to observe how these determinants interact statistically within a metropolitan context.
+
+We extend prior studies by incorporating both structural indicators (e.g., poverty rate, insurance coverage) and potential behavioral mediators (e.g., medication adherence), to understand not just who is vulnerable, but why and how that vulnerability manifests in hypertension rates. Our model thus moves beyond bivariate associations, toward a more holistic understanding consistent with complex social theories of health.
+
+
+### Theoretical Framework
+This study is grounded in the theoretical perspective that explains the social distribution of health: the Fundamental Cause Theory.
+Fundamental Cause Theory: Although initially proposed by Link and Phelan (1995), FCT continues to be refined and applied in contemporary research. Phelan et al. (2010) have expanded on FCT to highlight the role of power and social circumstances in shaping health disparities. FCT is crucial for understanding why socioeconomic inequalities in hypertension persist even as specific risk factors change.This study prioritizes a contemporary SDOH perspective, drawing on FCT to analyze how socioeconomic factors influence hypertension.
+Our current analysis is ecological, as all variables are measured at the census tract level. While this allows for identification of spatial and structural patterns, it does not infer causality at the individual level. Future integration of survey or clinical data will permit a more multilevel analysis, capturing how neighborhood context and individual behavior jointly influence hypertension morbidity prevalence.
+
+# Data and Methodology
+
+### Data Definitions
+##### CDC PLACES and BRFSS (2019):
+These datasets provides hypertension prevalence variables and hypertension medication adherence variables.
+
+##### American Community Survey5(2019):
+Provides socioeconomic Indicators poverty rate, lack of health insurance, age distribution etc.
+
+##### Future iterations of this study:
+Patient Surveys distributed through D.C.-based health providers, patients and clinics.
+
+### Variables and Data Handling
+Dependent Variable: Hypertension prevalence, measured as the percentage of adults diagnosed with hypertension within each census tract.
+Independent Variables: Median age, percentage without high school diploma, unemployment rate, percentage of uninsured residents, and poverty rate.
+Most predictor variables were normalized to percentages except median age to ensure comparability across census tracts and no additional standardization was applied.
+Medication Adherence: Though not currently included as a predictor in the regression due to data limitations, we performed exploratory analysis using ward-level averages of antihypertensive medication adherence rates. Future integration of individual-level patient survey data will allow us to formally test adherence as a mediating variable within the regression framework.
+
+### Analytical Approach
+Descriptive statistics done with calculation of means, standard deviations, and ranges for all variables to summarize their distribution.
+Correlation analysis done with pearson’s correlation to assess strength and linear relationships between socioeconomic variables and hypertension prevalence.
+Regression modelling done with multiple linear regression to determine the strongest predictors of hypertension, controlling for covariation.
+Visualizations done with heat maps showing correlations and linear and non-linear regression graphs for predictors.
+
+All analyses were performed using R studio
+
+### Model Justification
+
+The independent variables included in our model were selected based on their grounding in both theory and empirical precedent. Education, income, and insurance coverage are consistently cited in public health literature as core structural influencers of chronic disease which is consistent with Social Determinants of Health. Race and ethnicity were incorporated not as biological determinants but as social constructs reflecting lived experiences of structural racism, aligning with our theoretical framework.
+
+While our regression produced statistically significant predictors, future iterations of this model will incorporate key diagnostics such as multicollinearity tests to identify redundancies, and robustness checks including stepwise regression to validate model stability. The above processes will enhance the model’s explanatory power and ensure statistical validity.
+
+
+
+
+```{r}
+library(tidyverse)
+library(tidycensus)
+library(sf)
+library(tidyverse)
+library(ggplot2)
+library(weights)
+library(dplyr)
+library(stringr)
+library(httr)
+library(jsonlite)
+
+
+# API key
+#census_api_key
+api_key <- Sys.getenv("CENSUS_API_KEY")
+
+# Set your Census API key
+census_api_key(api_key, overwrite = TRUE)
+
+# draft list of correlates
+sec_correlates_dc <- get_acs(
+  geography = "zcta",
+  year = 2019,
+  survey = "acs5",
+  variables = c(
+    median_income = "B19013_001",     # Median household income in the past 12 months
+    poverty_rate = "B17001_002",      # Number of people below poverty level
+    unemployment_rate = "B23025_005", # Number of civilians (16 years and over) unemployed
+    no_health_insurance = "B27010_033", # Number of people with no health insurance coverage
+    disability_status = "B18101_001", # Total civilian non-institutionalized population for whom disability status is determined
+    education_less_than_hs = "B15003_002", # Population 25 years and over with less than 9th grade education
+    median_age = "B01002_001",        # Median age
+    housing_cost_burden = "B25070_010", # Housing units spending 50% or more of income on rent
+    no_vehicle = "B08201_002",        # Households with no vehicle available
+    black_population = "B02001_003",  # Black or African American alone population
+    white_population = "B02001_002", 
+    american_indian_alaska_native_alone = "B02001_004", 
+    asian_alone = "B02001_005",
+    native_hawaiian_other_pacific_islander_alone = "B02001_006",
+    median_rent = "B25058_001"        # Median contract rent
+  ),
+  summary_var = "B02001_001", # Total population (for calculating proportions)
+  output = "wide",
+  geometry = FALSE
+)
+
+```
+
+
+```{r}
+# Calculate proportions
+sec_correlates_dc <- sec_correlates_dc  %>%
+  mutate(prop_black = black_populationE / summary_est,
+         prop_white = white_populationE / summary_est,
+         prop_american_indian_alaska = american_indian_alaska_native_aloneE / summary_est,
+         prop_asian_alone = asian_aloneE / summary_est,
+         prop_native_hawaiian_other_pacific = native_hawaiian_other_pacific_islander_aloneE / summary_est,
+         poverty_rate_calc = poverty_rateE / summary_est,  # Calculate poverty rate
+        no_health_insurance_rate = no_health_insuranceE / summary_est, # Calculate no health insurance rate
+        unemployment_rate_calc = unemployment_rateE / summary_est # Calculate unemployment rate
+  )
+
+# Print first few rows
+sec_correlates_dc 
+```
+
+
+
+```{r}
+
+# Rename the NAME column to zcta5 and clean 
+sec_correlates_dc_clean <- sec_correlates_dc  %>% 
+  rename(zcta5 = NAME) %>%               
+  mutate(zcta5 = str_remove(zcta5, "ZCTA5 "))  
+
+# View the cleaned data
+head(sec_correlates_dc_clean)
+```
+
+
+```{r}
+library(dplyr)
+sec_correlates_dc_clean <- sec_correlates_dc_clean %>%
+  mutate(
+    zcta5 = as.numeric(zcta5),
+    no_health_insuranceE = as.numeric(no_health_insuranceE),
+    poverty_rateE = as.numeric(poverty_rateE),
+    poverty_rate_calc = as.numeric(poverty_rate_calc),
+    no_health_insurance_rate = as.numeric(no_health_insurance_rate),
+    unemployment_rate_calc = as.numeric(unemployment_rate_calc),
+    median_ageE = as.numeric(median_ageE)
+  )
+sec_correlates_dc_clean
+```
+
+
+
+```{r}
+
+
+# Load required libraries
+library(httr)
+library(jsonlite)
+library(dplyr)
+
+# Define the API URL
+url <- "https://data.cdc.gov/resource/c76y-7pzg.json?$query=SELECT%20zcta5%2C%20totalpopulation%2C%20access2_crudeprev%2C%20access2_crude95ci%2C%20arthritis_crudeprev%2C%20arthritis_crude95ci%2C%20binge_crudeprev%2C%20binge_crude95ci%2C%20bphigh_crudeprev%2C%20bphigh_crude95ci%2C%20bpmed_crudeprev%2C%20bpmed_crude95ci%2C%20cancer_crudeprev%2C%20cancer_crude95ci%2C%20casthma_crudeprev%2C%20casthma_crude95ci%2C%20cervical_crudeprev%2C%20cervical_crude95ci%2C%20chd_crudeprev%2C%20chd_crude95ci%2C%20checkup_crudeprev%2C%20checkup_crude95ci%2C%20cholscreen_crudeprev%2C%20cholscreen_crude95ci%2C%20colon_screen_crudeprev%2C%20colon_screen_crude95ci%2C%20copd_crudeprev%2C%20copd_crude95ci%2C%20corem_crudeprev%2C%20corem_crude95ci%2C%20corew_crudeprev%2C%20corew_crude95ci%2C%20csmoking_crudeprev%2C%20csmoking_crude95ci%2C%20dental_crudeprev%2C%20dental_crude95ci%2C%20depression_crudeprev%2C%20depression_crude95ci%2C%20diabetes_crudeprev%2C%20diabetes_crude95ci%2C%20ghlth_crudeprev%2C%20ghlth_crude95ci%2C%20highchol_crudeprev%2C%20highchol_crude95ci%2C%20kidney_crudeprev%2C%20kidney_crude95ci%2C%20lpa_crudeprev%2C%20lpa_crude95ci%2C%20mammouse_crudeprev%2C%20mammouse_crude95ci%2C%20mhlth_crudeprev%2C%20mhlth_crude95ci%2C%20obesity_crudeprev%2C%20obesity_crude95ci%2C%20phlth_crudeprev%2C%20phlth_crude95ci%2C%20sleep_crudeprev%2C%20sleep_crude95ci%2C%20stroke_crudeprev%2C%20stroke_crude95ci%2C%20teethlost_crudeprev%2C%20teethlost_crude95ci%2C%20geolocation%20WHERE%20((upper(%60zcta5%60)%20LIKE%20'%2520%25')%20AND%20%60zcta5%60%20IN%20('20001'%2C%20'20002'%2C%20'20003'%2C%20'20004'%2C%20'20005'%2C%20'20006'%2C%20'20007'%2C%20'20008'%2C%20'20009'%2C%20'20010'%2C%20'20011'%2C%20'20012'%2C%20'20015'%2C%20'20016'%2C%20'20017'%2C%20'20018'%2C%20'20019'%2C%20'20020'%2C%20'20024'%2C%20'20032'%2C%20'20036'%2C%20'20037'%2C%20'20052'%2C%20'20057'%2C%20'20064'%2C%20'20317'%2C%20'20319'%2C%20'20373'%2C%20'20390'))"
+
+# Fetch the data from the API
+response <- GET(url)
+
+# Check request
+if (status_code(response) == 200) {
+  data <- fromJSON(content(response, "text"))
+} 
+
+# Convert the data to a data frame
+df <- as.data.frame(data)
+
+# View 
+df
+
+
+```
+
+# bphigh_crudeprev: statistical estimate of how common high blood pressure was among all adults in 2019.
+# bpmed_crudeprev: statistical estimate of how common it was in 2019 for adults with high blood pressure to be taking medication to control it.
+
+```{r}
+df_numeric <- df %>%
+  mutate(
+    bphigh_crudeprev = as.numeric(bphigh_crudeprev),
+    bpmed_crudeprev = as.numeric(bpmed_crudeprev)
+  )%>%
+  select(
+    bphigh_crudeprev,
+    bphigh_crude95ci,
+    bpmed_crudeprev,
+    bpmed_crude95ci,
+    zcta5,
+    totalpopulation,
+    geolocation
+    )
+
+df_numeric
+```
+
+
+```{r}
+
+
+```
+
+
+
+```{r}
+library(dplyr)
+df_numeric <- df_numeric %>%
+  mutate(
+    zcta5 = as.numeric(zcta5),
+    totalpopulation = as.numeric(totalpopulation),
+    bphigh_crudeprev = as.numeric(bphigh_crudeprev),
+    bpmed_crudeprev = as.numeric(bpmed_crudeprev)
+  )
+df_numeric
+```
+
+
+
+```{r}
+# Merge the two data frames 
+merged_seccorrelates_htndata <- sec_correlates_dc_clean %>%
+  left_join(df_numeric, by = "zcta5")
+
+# Print
+merged_seccorrelates_htndata
+```
+
+
+```{r}
+# Drop columns by name
+clean_merged_seccorrelates_htndata<- merged_seccorrelates_htndata %>%
+  select(-median_incomeE, 
+         -median_incomeM, 
+         -median_rentE, 
+         -median_rentM)
+
+# Verify
+names(clean_merged_seccorrelates_htndata)
+```
+
+
+
+```{r}
+# Alternative: Remove rows with missing values in SPECIFIC columns
+cleaned_merged_seccorrelates_htndata <- clean_merged_seccorrelates_htndata %>%
+   drop_na(bphigh_crudeprev)
+
+
+# Check dimensions before/after
+cat("\nOriginal dimensions:", dim(clean_merged_seccorrelates_htndata))
+cat("\nCleaned dimensions:", dim(cleaned_merged_seccorrelates_htndata))
+```
+
+
+```{r}
+cleaned_merged_seccorrelates_htndata
+```
+
+
+```{r}
+# View percentage of missing values per column
+missing_percent <- cleaned_merged_seccorrelates_htndata %>%
+  summarise_all(~ mean(is.na(.)) * 100)
+
+
+
+# Print results
+print(missing_percent)
+
+
+```
+
+
+# Descriptive statistics
+```{r}
+
+summary_bp <- cleaned_merged_seccorrelates_htndata %>%
+  summarise(
+    mean_bphigh = mean(bphigh_crudeprev, na.rm = TRUE),
+    median_bphigh = median(bphigh_crudeprev, na.rm = TRUE),
+    sd_bphigh = sd(bphigh_crudeprev, na.rm = TRUE),
+    min_bphigh = min(bphigh_crudeprev, na.rm = TRUE),
+    max_bphigh = max(bphigh_crudeprev, na.rm = TRUE)
+  )
+
+
+print(summary_bp)
+
+```
+
+
+
+```{r}
+summary_statistics <- cleaned_merged_seccorrelates_htndata %>%
+  summarise( mean_bpmed = mean(bpmed_crudeprev, na.rm = TRUE),
+    median_bpmed = median(bpmed_crudeprev, na.rm = TRUE),
+    sd_bpmed = sd(bpmed_crudeprev, na.rm = TRUE),
+    min_bpmed = min(bpmed_crudeprev, na.rm = TRUE),
+    max_bpmed = max(bpmed_crudeprev, na.rm = TRUE),
+    
+    mean_poverty = mean(poverty_rate_calc, na.rm = TRUE),
+    median_poverty = median(poverty_rate_calc, na.rm = TRUE),
+    sd_poverty = sd(poverty_rate_calc, na.rm = TRUE),
+    
+    mean_age = mean(median_ageE, na.rm = TRUE),
+    median_age = median(median_ageE, na.rm = TRUE),
+    sd_age = sd(median_ageE, na.rm = TRUE),
+    
+    mean_education_less_than_hsE = mean(education_less_than_hsE, na.rm = TRUE),
+    median_education_less_than_hsE = median(education_less_than_hsE, na.rm = TRUE),
+    sd_education_less_than_hsE = sd(education_less_than_hsE, na.rm = TRUE)
+  )
+print(summary_statistics)
+```
+
+
+
+# Correlation analysis 
+```{r}
+# Select columns
+cor_data <- cleaned_merged_seccorrelates_htndata %>%
+  select(bphigh_crudeprev, bpmed_crudeprev,bpmed_crudeprev, poverty_rate_calc, no_health_insurance_rate, median_ageE,education_less_than_hsE, unemployment_rate_calc)
+
+# Compute correlation matrix
+cor_matrix <- cor(cor_data, use = "complete.obs")
+
+# Print correlation matrix
+print(cor_matrix)
+
+```
+
+
+```{r}
+# Visualize correlation heatmap
+library(ggcorrplot)
+ggcorrplot(cor_matrix, lab = TRUE, title = "Hypertension prevalence vs Social Determinants")
+```
+
+
+```{r}
+
+# Select columns
+cor_data2 <- cleaned_merged_seccorrelates_htndata %>%
+  select(bphigh_crudeprev, bpmed_crudeprev,prop_black, prop_white, prop_american_indian_alaska, prop_asian_alone, prop_native_hawaiian_other_pacific)
+
+# Compute correlation matrix
+cor_matrix2 <- cor(cor_data2, use = "complete.obs")
+
+# Print correlation matrix
+print(cor_matrix2)
+
+```
+
+
+```{r}
+ggcorrplot(cor_matrix2, 
+           lab = TRUE,                 # Show correlation values
+           hc.order = TRUE,            
+           type = "lower",            
+           outline.color = "white",    
+           colors = c("#6D9EC1", "white", "#E46726"), 
+           lab_size = 3,                
+           title = " Hypertension vs Racial factors")
+```
+
+
+#### Regression models
+```{r}
+# Poverty Rate
+lm_poverty <- lm(bphigh_crudeprev ~ poverty_rate_calc, data = cleaned_merged_seccorrelates_htndata)
+summary(lm_poverty)
+
+# No Health Insurance Rate
+lm_insurance <- lm(bphigh_crudeprev ~ no_health_insurance_rate, data = cleaned_merged_seccorrelates_htndata)
+summary(lm_insurance)
+
+# Median Age
+lm_age <- lm(bphigh_crudeprev ~ median_ageE, data = cleaned_merged_seccorrelates_htndata)
+summary(lm_age)
+
+# Unemployment Rate
+lm_unemployment <- lm(bphigh_crudeprev ~ unemployment_rate_calc, data = cleaned_merged_seccorrelates_htndata)
+summary(lm_unemployment)
+
+# Education Less Than High School
+lm_edu_lths <- lm(bphigh_crudeprev ~ education_less_than_hsE, data = cleaned_merged_seccorrelates_htndata)
+summary(lm_edu_lths)
+
+# Proportion Black
+lm_black <- lm(bphigh_crudeprev ~ prop_black, data = cleaned_merged_seccorrelates_htndata)
+summary(lm_black)
+
+# Proportion White
+lm_white <- lm(bphigh_crudeprev ~ prop_white, data = cleaned_merged_seccorrelates_htndata)
+summary(lm_white)
+
+# Proportion American Indian or Alaska Native
+lm_ai_an <- lm(bphigh_crudeprev ~ prop_american_indian_alaska, data = cleaned_merged_seccorrelates_htndata)
+summary(lm_ai_an)
+
+# Proportion Asian Alone
+lm_asian <- lm(bphigh_crudeprev ~ prop_asian_alone, data = cleaned_merged_seccorrelates_htndata)
+summary(lm_asian)
+
+# Proportion Native Hawaiian or Other Pacific Islander
+lm_pacific <- lm(bphigh_crudeprev ~ prop_native_hawaiian_other_pacific, data = cleaned_merged_seccorrelates_htndata)
+summary(lm_pacific)
+
+```
+
+
+
+```{r}
+regressionmodel1 <- lm(bphigh_crudeprev ~ poverty_rate_calc + no_health_insurance_rate + median_ageE + unemployment_rate_calc+ education_less_than_hsE+ prop_black + prop_white + prop_american_indian_alaska + prop_asian_alone + prop_native_hawaiian_other_pacific, data = cleaned_merged_seccorrelates_htndata)
+summary(regressionmodel1)
+```
+
+
+```{r}
+regressionmodel2 <- lm(bpmed_crudeprev ~ poverty_rate_calc + no_health_insurance_rate + median_ageE + unemployment_rate_calc+ education_less_than_hsE+ prop_black + prop_white + prop_american_indian_alaska + prop_asian_alone + prop_native_hawaiian_other_pacific, data = cleaned_merged_seccorrelates_htndata)
+summary(regressionmodel2)
+```
+
+
+```{r}
+ggplot(cleaned_merged_seccorrelates_htndata, aes(x = poverty_rate_calc, y = bphigh_crudeprev)) +
+  geom_point(color = "blue", alpha = 0.6) +  
+  geom_smooth(method = "lm", color = "green") +  
+  labs(title = "Linear Regression: Hypertension and Poverty Rate",
+       x = "Poverty Rate (%)",
+       y = "Hypertension Prevalence (%)") +
+  theme_minimal()
+
+```
+
+
+```{r}
+ggplot(cleaned_merged_seccorrelates_htndata, aes(x = median_ageE, y = bphigh_crudeprev)) +
+  geom_point(color = "blue", alpha = 0.6) +  
+  geom_smooth(method = "lm", color = "green") +  
+  labs(title = "Linear Regression: Hypertension and Median Age",
+       x = "Median Age",
+       y = "Hypertension Prevalence (%)") +
+  theme_minimal()
+
+```
+
+
+```{r}
+ggplot(cleaned_merged_seccorrelates_htndata, aes(x = no_health_insurance_rate, y = bphigh_crudeprev)) +
+  geom_point(color = "blue", alpha = 0.6) +  
+  geom_smooth(method = "lm", color = "green") +  
+  labs(title = "Linear Regression: Hypertension and Health Insurance Unavailability",
+       x = "Lack of Health Insurance(%)",
+       y = "Hypertension Prevalence (%)") +
+  theme_minimal()
+```
+
+
+
+```{r}
+ggplot(cleaned_merged_seccorrelates_htndata, aes(x = poverty_rate_calc, y = bphigh_crudeprev)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", aes(color = "Linear"), se = FALSE) +
+  geom_smooth(method = "loess", aes(color = "Non-linear"), se = FALSE) +
+  labs(title = "DC: Hypertension P revalence and Poverty Rate",
+       x = "Poverty Rate",
+       y = "Hypertension Prevalence (%)",
+       color = "Fit Type") +
+  scale_color_manual(values = c("Linear" = "green", "Non-linear" = "blue")) +
+  theme_minimal()
+
+```
+
+
+```{r}
+ggplot(cleaned_merged_seccorrelates_htndata, aes(x =median_ageE, y = bphigh_crudeprev)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", aes(color = "Linear"), se = FALSE) +
+  geom_smooth(method = "loess", aes(color = "Non-linear"), se = FALSE) +
+  labs(title = "DC: Hypertension vs Median Age",
+       x = "Median Age",
+       y = "Hypertension Prevalence (%)",
+       color = "Fit Type") +
+  scale_color_manual(values = c("Linear" = "green", "Non-linear" = "blue")) +
+  theme_minimal()
+
+```
+
+
+```{r}
+ggplot(cleaned_merged_seccorrelates_htndata, aes(x =no_health_insurance_rate, y = bphigh_crudeprev)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", aes(color = "Linear"), se = FALSE) +
+  geom_smooth(method = "loess", aes(color = "Non-linear"), se = FALSE) +
+  labs(title = "DC: Hypertension Prevalence vs Lack of Health Insurance",
+       x = "Lack of Health Insurance",
+       y = "Hypertension Prevalence",
+       color = "Fit Type") +
+  scale_color_manual(values = c("Linear" = "green", "Non-linear" = "blue")) +
+  theme_minimal()
+```
+
+
+
+```{r}
+ggplot(cleaned_merged_seccorrelates_htndata, aes(x =median_ageE, y = bpmed_crudeprev)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", aes(color = "Linear"), se = FALSE) +
+  geom_smooth(method = "loess", aes(color = "Non-linear"), se = FALSE) +
+  labs(title = "DC: Hypertension Medication Adherence vs Median Age",
+       x = "Median Age",
+       y = "Hypertension Medication Adherence",
+       color = "Fit Type") +
+  scale_color_manual(values = c("Linear" = "green", "Non-linear" = "blue")) +
+  theme_minimal()
+```
+
+
+```{r}
+
+ggplot(cleaned_merged_seccorrelates_htndata, aes(x =no_health_insurance_rate, y = bpmed_crudeprev)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", aes(color = "Linear"), se = FALSE) +
+  geom_smooth(method = "loess", aes(color = "Non-linear"), se = FALSE) +
+  labs(title = "DC: Hypertension Medication Adherence vs Lack of Health Insurance",
+       x = "Lack of Health Insurance",
+       y = "Hypertension Medication Adherence",
+       color = "Fit Type") +
+  scale_color_manual(values = c("Linear" = "green", "Non-linear" = "blue")) +
+  theme_minimal()
+```
+
+
+
+```{r}
+ggplot(cleaned_merged_seccorrelates_htndata, aes(x = bpmed_crudeprev, y = bphigh_crudeprev)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", aes(color = "Linear"), se = FALSE) +
+  geom_smooth(method = "loess", aes(color = "Non-linear"), se = FALSE) +
+  labs(title = "DC: Hypertension vs Medication Adherence",
+       x = "Medication Adherence",
+       y = "Hypertension Prevalence (%)",
+       color = "Fit Type") +
+  scale_color_manual(values = c("Linear" = "green", "Non-linear" = "blue")) +
+  theme_minimal()
+
+```
+
+
+
+
+```{r}
+library(ggplot2)
+library(sf)
+library(dplyr)
+
+# Load shapefile (TRACTS, not ZIP codes)
+dc_tracts <- st_read("/Users/bayowaonabajo/Downloads/tl_2020_us_zcta520/tl_2020_us_zcta520.shp") 
+#View(dc_tracts)
+
+```
+
+
+```{r}
+library(ggplot2)
+library(sf)
+library(dplyr) 
+
+cleaned_merged_seccorrelates_htndata <- cleaned_merged_seccorrelates_htndata %>%
+    mutate(GEOID = as.character(GEOID))
+dc_tracts<- dc_tracts %>%
+    mutate(GEOID20 = as.character(GEOID20))
+
+
+dc_tracts<- dc_tracts %>%
+    rename(GEOID = GEOID20)  
+
+print("--- Before merge ---")
+print("class(dc_tracts) (before merge):")
+print(class(dc_tracts))
+print("st_geometry_type(dc_tracts) (before merge):")
+print(st_geometry_type(dc_tracts, by_geometry = FALSE))
+print("class(cleaned_merged_seccorrelates_htndata) (before merge):")
+print(class(cleaned_merged_seccorrelates_htndata))
+
+dc_tracts_filtered <- dc_tracts %>%
+    filter(GEOID %in% cleaned_merged_seccorrelates_htndata$GEOID)
+
+geometry_dc_tracts_filtered <- st_geometry(dc_tracts_filtered)
+dc_tracts_no_geom_filtered <- st_drop_geometry(dc_tracts_filtered)
+
+# Perform the merge on the non-spatial data
+merged_data_no_geom <- cleaned_merged_seccorrelates_htndata %>%
+    left_join(dc_tracts_no_geom_filtered, by = "GEOID")
+
+# Re-attach the geometry
+merged_seccorrelates_htn_shapefile_data <- st_sf(merged_data_no_geom, geometry = geometry_dc_tracts_filtered)
+
+
+print("--- After merge ---")
+print("class(merged_seccorrelates_htn_shapefile_data):")
+print(class(merged_seccorrelates_htn_shapefile_data))
+print("st_geometry_type(merged_seccorrelates_htn_shapefile_data):")
+print(st_geometry_type(merged_seccorrelates_htn_shapefile_data, by_geometry = FALSE))
+
+
+str(merged_seccorrelates_htn_shapefile_data)
+merged_seccorrelates_htn_shapefile_data
+
+```
+
+### Hypertension Prevalence by ZIP Code
+```{r}
+ggplot(merged_seccorrelates_htn_shapefile_data, aes(x = reorder(zcta5,-bphigh_crudeprev), y = bphigh_crudeprev)) +
+  geom_bar(stat = "identity", fill = "#2c7fb8") +
+  labs(title = "Hypertension Prevalence by ZIP Code",
+       x = "ZIP Code (ZCTA)",
+       y = "Hypertension Prevalence (%)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+
+
+```
+
+#### Boxplot of Hypertension Prevalence by Poverty Quartile
+```{r}
+merged_seccorrelates_htn_shapefile_data <- merged_seccorrelates_htn_shapefile_data %>%
+  mutate(poverty_quartile = ntile(poverty_rate_calc, 4))
+
+ggplot(merged_seccorrelates_htn_shapefile_data, aes(x = factor(poverty_quartile), y = bphigh_crudeprev)) +
+  geom_boxplot(fill = "#2c7fb8") +
+  labs(title = "Hypertension Prevalence by Poverty Quartile",
+       x = "Poverty Rate Quartile (1 = lowest, 4 = highest)",
+       y = "Hypertension Prevalence (%)") +
+  theme_minimal()
+
+
+```
+
+#### Boxplot of Hypertension Prevalence by Median Age Quartile
+```{r}
+merged_seccorrelates_htn_shapefile_data <- merged_seccorrelates_htn_shapefile_data %>%
+  mutate(lackofhealthinsurance_quartile = ntile(no_health_insurance_rate, 4))
+
+ggplot(merged_seccorrelates_htn_shapefile_data, aes(x = factor(lackofhealthinsurance_quartile), y = bphigh_crudeprev)) +
+  geom_boxplot(fill = "#2c7fb8") +
+  labs(title = "Hypertension Prevalence by Health Insurance Unavailability Quartile",
+       x = "Lack of Health Insurance Quartile (1 = lowest, 4 = highest)",
+       y = "Hypertension Prevalence (%)") +
+  theme_minimal()
+```
+
+#### Boxplot of Hypertension Prevalence by Median Age Quartile
+```{r}
+merged_seccorrelates_htn_shapefile_data <- merged_seccorrelates_htn_shapefile_data %>%
+  mutate(age_quartile = ntile(median_ageE, 4))
+
+ggplot(merged_seccorrelates_htn_shapefile_data, 
+       aes(x = factor(age_quartile), y = bphigh_crudeprev)) +
+  geom_boxplot(fill = "#bcbddc") +
+  labs(title = "Hypertension Prevalence by Median Age Quartile",
+       x = "Median Age Quartile (1 = Areas with Younger age groups)",
+       y = "Hypertension Prevalence (%)") +
+  theme_minimal()
+
+```
+
+
+#### Spatial Maps
+```{r}
+library(ggplot2)
+library(sf)
+library(dplyr)
+library(gridExtra) 
+
+# Filter 
+dc_zctas <- merged_seccorrelates_htn_shapefile_data %>%
+  filter(substr(GEOID, 1, 2) == "20") # filter
+
+# Map for Hypertension Prevalence
+map_prevalence <- ggplot(dc_zctas) +
+  geom_sf(aes(fill = bphigh_crudeprev), color = "black", linewidth = 0.1) +
+  scale_fill_viridis_c(name = "Prevalence (%)") +
+  labs(title = "Hypertension Prevalence") +
+  theme_minimal()
+
+# Map for Hypertension Medication Adherence
+map_adherence <- ggplot(dc_zctas) +
+  geom_sf(aes(fill = bpmed_crudeprev), color = "black", linewidth = 0.1) +
+  scale_fill_viridis_c(name = "Adherence (%)") +
+  labs(title = "Hypertension Medication Adherence") +
+  theme_minimal()
+
+# Arrange side-by-side
+grid.arrange(map_prevalence, map_adherence, ncol = 2)
+```
+
+
+
+```{r}
+library(ggplot2)
+library(sf)
+library(dplyr)
+library(gridExtra) 
+
+# Filter 
+dc_zctas <- merged_seccorrelates_htn_shapefile_data %>%
+  filter(substr(GEOID, 1, 2) == "20") #filter 
+
+# Map for Hypertension Prevalence
+map_prevalence <- ggplot(dc_zctas) +
+  geom_sf(aes(fill = bphigh_crudeprev), color = "black", linewidth = 0.1) +
+  scale_fill_viridis_c(name = "Prevalence (%)") +
+  labs(title = "Hypertension Prevalence") +
+  theme_minimal()
+
+# Map for 
+median_age <- ggplot(dc_zctas) +
+  geom_sf(aes(fill = median_ageE), color = "black", linewidth = 0.1) +
+  scale_fill_viridis_c(name = "Median age") +
+  labs(title = "Median age") +
+  theme_minimal()
+
+# Arrange side-by-side
+grid.arrange(map_prevalence, median_age, ncol = 2)
+```
+
+
+```{r}
+library(ggplot2)
+library(sf)
+library(dplyr)
+library(gridExtra) 
+
+# Filter 
+dc_zctas <- merged_seccorrelates_htn_shapefile_data %>%
+  filter(substr(GEOID, 1, 2) == "20") #filter 
+
+# Map for Hypertension Prevalence
+map_prevalence <- ggplot(dc_zctas) +
+  geom_sf(aes(fill = bphigh_crudeprev), color = "black", linewidth = 0.1) +
+  scale_fill_viridis_c(name = "Prevalence (%)") +
+  labs(title = "Hypertension Prevalence") +
+  theme_minimal()
+
+# Map for 
+nohealthinsurance_rate <- ggplot(dc_zctas) +
+  geom_sf(aes(fill = no_health_insurance_rate), color = "black", linewidth = 0.1) +
+  scale_fill_viridis_c(name = "Health Insurance Unavailability Rate") +
+  labs(title = "Health Insurance Unavailability Rate") +
+  theme_minimal()
+
+# Arrange side-by-side
+grid.arrange(map_prevalence, nohealthinsurance_rate, ncol = 2)
+```
+
+
+
+```{r}
+library(ggplot2)
+library(sf)
+library(dplyr)
+library(gridExtra) 
+
+# Filter 
+dc_zctas <- merged_seccorrelates_htn_shapefile_data %>%
+  filter(substr(GEOID, 1, 2) == "20") #filter 
+
+# Map for Hypertension Prevalence
+map_prevalence <- ggplot(dc_zctas) +
+  geom_sf(aes(fill = bphigh_crudeprev), color = "black", linewidth = 0.1) +
+  scale_fill_viridis_c(name = "Prevalence (%)") +
+  labs(title = "Hypertension Prevalence") +
+  theme_minimal()
+
+# Map for 
+poverty_rate <- ggplot(dc_zctas) +
+  geom_sf(aes(fill = poverty_rate_calc), color = "black", linewidth = 0.1) +
+  scale_fill_viridis_c(name = "Poverty rate") +
+  labs(title = "Poverty rate") +
+  theme_minimal()
+
+# Arrange side-by-side
+grid.arrange(map_prevalence, poverty_rate, ncol = 2)
+```
+
+
+
+# Results
+The statistical analysis aimed to understand how key sociodemographic factors—poverty, lack of health insurance, educational attainment, and age—influence the prevalence of high blood pressure and the use of blood pressure medication across census tracts in Washington, D.C. Several important findings emerged from this analysis.
+
+Descriptive statistics for hypertension prevalence revealed a mean of 24.4% and a median of 22.1%, with values ranging from 5.9% to 61.7%, indicating substantial variation across neighborhoods. 
+Pearson’s correlation analysis demonstrated strong associations between hypertension prevalence and several socioeconomic indicators. Census tracts with higher poverty rates, older median ages, and higher proportions of uninsured individuals were more likely to report elevated rates of hypertension. Interestingly, the analysis also revealed that areas with higher hypertension prevalence tended to have higher rates of medication adherence. This pattern may reflect improved healthcare system responsiveness in those areas.
+Multivariable regression analysis incorporating all predictors resulted in a well-fitting model (adjusted R-squared = 0.9752), indicating that the combined influence of the included socioeconomic variables explained a substantial proportion of variance in hypertension prevalence. However, many predictors were not statistically significant when modeled together, likely due to multicollinearity—that is, overlapping explanatory power among highly correlated variables.
+To better understand each variable’s independent influence, a series of bivariate linear regressions were conducted. Poverty rate emerged as a very significant and strong predictor of hypertension prevalence (p < 0.001, R squared = 0.64), suggesting that areas with greater economic hardship experience markedly higher rates of hypertension. Median age was also a significant predictor (p < 0.001, R squared = 0.60), suggesting that older populations are more susceptible to hypertension due to physiological and other related factors. In contrast, the uninsurance rate, while conceptually important, was not a statistically significant predictor in the individual model (p = 0.44, R squared = 0.02), possibly due to its correlation with poverty and education or limited variability across ZIP codes.
+Despite the lack of statistical significance for some predictors in multivariate modeling, their individual effects suggest meaningful contributions to the broader landscape of health disparities. Spatial analysis using choropleth mapping provided a visual demonstration of these disparities. Areas with the highest hypertension prevalence were predominantly located in the eastern,southeastern and central parts of Washington, D.C.—regions that also face higher poverty and lower educational attainment. These spatial patterns reinforce the critical role that place-based socioeconomic disadvantage plays in shaping cardiovascular health outcomes.
+
+Findings show that hypertension in Washington, D.C. is a multifactorial condition strongly influenced by socioeconomic determinants—particularly poverty and age. While lack of health insurance showed weaker statistical effects on its own, its interplay with other factors suggests a need for integrated public health strategies that consider both structural and demographic conditions. These insights highlight opportunities for more equitable resource allocation and targeted interventions at the community level.
+
+
+
+#Limitations
+Self-reported data represented by BRFSS are subject to biases and aggregated data may mask individual variability.
+The study captures a snapshot in time, limiting causal interpretation of observed associations.
+With only 29 zones analyzed, statistical power is limited, particularly when including many predictors. This likely explains the large standard errors and lack of significance for otherwise strong associations.
+Many independent variables were strongly intercorrelated (e.g., poverty and unemployment), which can distort coefficient estimates.
+Important covariates such as physical activity, diet, smoking, stress, or healthcare access quality—were not available or incorporated.
+
+
+#Future work
+While this research analysis provides a useful overview, it does not capture the nuances of individual behavior, or perceptions. The next phase of this research involves gathering real-time survey data from hypertension patients across D.C.
+Include indicators such as dietary habits, stress levels, and physical activity to build a more robust explanatory model.
+
+# Discussion
+The findings align with broader public health research which posit hypertension is not evenly distributed but rather patterned along socioeconomic lines and underscores the enduring impact of structural and social determinants on human health. The strong role of poverty and unemployment in the correlation matrices also supports well-documented links between socioeconomic hardship and poor cardiovascular outcomes, though these variables did not emerge as significant in the regression—likely due to multicollinearity and sample size limitations. The strong effect of median age is consistent with known clinical patterns but also serves as a reminder of the increasing healthcare needs of aging populations, especially in underserved wards.
+The correlation between race and hypertension prevalence—while not necessarily causal in itself—points toward race as a social construct that indexes historical exposure to systemic disadvantage. Without deeper theoretical grounding (e.g., Fundamental Cause Theory), interpretations of these findings may remain shallow.In addition, the disparities by race/ethnicity, particularly the positive correlation between proportion of black americans and both blood pressure outcomes, align with broader health disparities in hypertension management. However, the absence of statistical significance in regression indicates caution in interpretation, potentially due to overlapping effects with other demographic variables.
+While the significant drop in R squared between both models suggests that blood pressure prevalence is more predictable from structural factors than is medication use—possibly reflecting variability in access to care, individual compliance, or healthcare infrastructure not captured in our dataset.
+However, understanding the lived experience of individuals within the above statistics is essential and future data collection will aim to capture these layers through patient-reported outcomes and contextual information. This broad approach can offer richer insights for policy-makers and community health leaders.
+
+#Conclusion
+This research provides an early exploration of how socioeconomic disparities drive hypertension prevalence in Washington D.C. It affirms that median age is a dominant factor in predicting both hypertension prevalence and medication adherence. While socioeconomic and racial factors are correlated with Hypertension outcomes, their direct effects are harder to isolate in multivariate models due to multicollinearity and limited statistical power. Nonetheless, these findings underscore the need for targeted interventions in aging and socioeconomically disadvantaged communities to reduce the burden of hypertension. A fuller understanding will emerge with the integration of real-time patient-level data. Ultimately, this study aims to inform community-based strategies that go beyond individual behavior and target the social roots of chronic disease.
+
+
+# References
+Braveman, P., Egerter, S., & Williams, D. R. (2011). The social determinants of health: Coming of age. Annual Review of Public Health, 32, 381-398.
+Legal Forum, 1989(1), Article 8.https://chicagounbound.uchicago.edu/uclf/vol1989/iss1/8
+Cutler, D. M., & Lleras-Muney, A. (2006). Education and health: Evaluating theories and evidence. NBER Working Paper No. 12352.https://www.nber.org/papers/w12352
+Diez Roux, A. V., & Mair, C. (2010). Neighborhoods and health. Annals of the New York Academy of Sciences, 1186(1), 125–145.
+Evans, G. W., & Kantrowitz, E. (2002). Socioeconomic status and health: The potential role of environmental risk exposure. Annual Review of Public Health, 23(1), 303–331.
+Glaeser, E. L., & Sacerdote, B. (2000). The social costs of urban poverty. Economic inquiry, 38(4), 602–626.
+Institute of Medicine. (2003). Unequal Treatment: Confronting Racial and Ethnic Disparities in Health Care. National Academies Press.(Reprinted 2012)
+Link, B. G., & Phelan, J. (1995). Social conditions as fundamental causes of disease. Journal of Health and Social Behavior, 35(1), 80–94.
+Sampson, R. J., Morenoff, J. D., & Gannon-Rowley, T. (2002). Assessing “neighborhood effects”: Social processes and new directions in research. Annual review of sociology, 28(1), 443–478. 
+Stringhini, S., Sabia, S., Shipley, M., Marmot, M. G., Kumari, M., Brunner, E. J., & Ferrie, J. E. (2010). Association of socioeconomic position with health conditions and mortality in the Whitehall II study. Jama, 317(11), 1117–1126.
+Phelan, J. C., Link, B. G., & Tehranifar, P. (2010). Social conditions as fundamental causes of health inequalities: Theory, evidence, and implications. Journal of Health and Social Behavior, 51(1_suppl), S28–S40.
+Walker, R. E., Keane, C. R., & Burke, J. G. (2010). Disparities and access to healthy food in the United States: A review of food deserts literature. Health & place, 16(5), 876–884. 
+Williams, D. R. (2018). Stress and the mental health of populations of color: Advancing our understanding of systemic racism and its influence. American Psychologist, 73(5), 555–567.
+World Health Organization. (n.d.). Social determinants of health. Retrieved [March 20,2025], from
+https://www.who.int/health-topics/social-determinants-of-health#tab=tab_1
