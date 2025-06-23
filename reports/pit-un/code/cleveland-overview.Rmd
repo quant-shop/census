@@ -16,22 +16,17 @@ editor_options:
 ---
 
 ```{r setup}
-knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(echo=F, results=F, warning = FALSE, message = FALSE)
 # Load necessary libraries
 library(tidycensus)
 library(dplyr)
 library(ggplot2)
+# options(tigris_use_cache = TRUE)
 ```
 
 Tag the variables to be used for analysis.
 
-```{r, output=F}
-# libraries
-library(tidycensus)
-library(dplyr)
-library(ggplot2)
-# options(tigris_use_cache = TRUE)
-
+```{r, results=F, warning = FALSE, message = FALSE}
 # variables
 vars <- c(
   total_population = "B01001_001",         # Total Population
@@ -65,7 +60,7 @@ get_census_data <- function(year) {
 
 Create data frames for each year.
 
-```{r, output=F}
+```{r, results=F, warning = FALSE, message = FALSE}
 get_census_data <- function(year) {
   census_data <- get_acs(
     geography = "tract",
@@ -100,7 +95,7 @@ for (year in years) {
 
 - What is the total population across all census tracts in the sample?
 
-```{r}
+```{r, warning = FALSE, message = FALSE}
 total_pop <- sum(df22$total_populationE)
 cat("The total population across all census tracts is", total_pop)
 
@@ -112,7 +107,7 @@ cat("The total population across all census tracts is:", total_pop,
 
 - How does the racial composition vary across census tracts?
 
-```{r}
+```{r, warning = FALSE, message = FALSE}
 df22 %>%
   summarise(
     white_pct = mean(white_populationE / total_populationE * 100),
@@ -134,7 +129,7 @@ df22 %>%
 
 - What is the average median household income across all tracts?
 
-```{r}
+```{r, warning = FALSE, message = FALSE}
 avg_median_income <- mean(df22$median_household_incomeE, na.rm=T)
 cat("The average median household income is $", round(avg_median_income, 2))
 
@@ -147,7 +142,7 @@ cat("The average median household income is: $", round(avg_median_income, 2),
 
 - How does the proportion of the population with a bachelor's degree or higher vary across tracts?
 
-```{r}
+```{r, warning = FALSE, message = FALSE}
 ggplot(df22, aes(x = bachelorE / total_populationE * 100)) +
   geom_histogram(bins = 20) +
   labs(x = "Percentage with Bachelor's degree", y = "Count")
@@ -164,7 +159,7 @@ df22 %>%
 
 - What is the average unemployment rate across the sampled tracts?
 
-```{r}
+```{r, warning = FALSE, message = FALSE}
 avg_unemployment_rate <- mean(df22$unemployedE / (df22$employedE + df22$unemployedE) * 100)
 cat("The average unemployment rate is", round(avg_unemployment_rate, 2), "%")
 
