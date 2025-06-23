@@ -381,8 +381,11 @@ as well as information regarding the racial and ethnic composition of
 neighborhoods.</p>
 <p>This information will be used to inform work regarding integrated
 data systems.</p>
-<div id="data" class="section level2">
-<h2>Data</h2>
+</div>
+<div id="data" class="section level1">
+<h1>Data</h1>
+<div id="census-variables" class="section level2">
+<h2>Census variables</h2>
 <p>Tag census variables to be used for analysis.</p>
 <pre class="r"><code># variables
 vars &lt;- c(
@@ -412,6 +415,9 @@ vars &lt;- c(
   unemployed = &quot;B23025_003&quot;,               # Unemployed population (age 16+)
   children_under_18 = &quot;B09001_001&quot;         # Total number of own children under 18 years
   )</code></pre>
+</div>
+<div id="database-by-year" class="section level2">
+<h2>Database by year</h2>
 <p>Create data frames for each year.</p>
 <pre class="r"><code>get_census_data &lt;- function(year) {
   census_data &lt;- get_acs(
