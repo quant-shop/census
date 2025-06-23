@@ -15,7 +15,7 @@
 
 <meta name="date" content="2025-06-22" />
 
-<title>Census research report - CADSA RDC Fellowship</title>
+<title>Census research report - DC</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -364,8 +364,7 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">Census research report - CADSA RDC
-Fellowship</h1>
+<h1 class="title toc-ignore">Census research report - DC</h1>
 <h4 class="author">Nathan Alexander</h4>
 <h4 class="author">Center for Applied Data Science and Analytics
 (CADSA)</h4>
@@ -389,70 +388,6 @@ library(tidycensus)</code></pre>
 ## 
 ##     intersect, setdiff, setequal, union</code></pre>
 <pre class="r"><code>library(ggplot2)</code></pre>
-<pre class="r"><code># libraries
-library(tidycensus)
-library(dplyr)
-library(ggplot2)
-# options(tigris_use_cache = TRUE)
-
-# variables
-vars &lt;- c(
-  total_population = &quot;B01001_001&quot;,         # Total Population
-  black_population = &quot;B03002_004&quot;,         # Black or African American Population
-  lower_income = &quot;B19001_002&quot;,             # Households with income less than $10,000
-  median_home_value = &quot;B25077_001&quot;,        # Median Home Value
-  public_housing = &quot;B25003_002&quot;,           # Occupied housing units that are renter-occupied and subsidized
-  public_assistance = &quot;B19058_001&quot;,        # Households Receiving Public Assistance
-  median_household_income = &quot;B19013_001&quot;,  # Median Household Income
-  bachelor = &quot;B15003_017&quot;,                 # Population over 25 with a Bachelor&#39;s degree or higher
-  white_population = &quot;B03002_003&quot;,         # White Population
-  hispanic_population = &quot;B03002_012&quot;,      # Hispanic or Latino Population
-  male_population = &quot;B01001_002&quot;,          # Male Population
-  female_population = &quot;B01001_026&quot;,        # Female Population
-  median_age = &quot;B01002_001&quot;,               # Median Age
-  employed = &quot;B23025_002&quot;,                 # Employed population (age 16+)
-  unemployed = &quot;B23025_003&quot;,               # Unemployed population (age 16+)
-  children_under_18 = &quot;B09001_001&quot;         # Total number of own children under 18 years
-  )
-
-get_census_data &lt;- function(year) {
-  census_data &lt;- get_acs(
-    geography = &quot;tract&quot;,
-    variables = vars,
-    year = year,
-    state = &quot;DC&quot;,
-    output = &quot;wide&quot;
-  )
-}  </code></pre>
-<pre class="r"><code>library(tidycensus)
-
-get_census_data &lt;- function(year) {
-  census_data &lt;- get_acs(
-    geography = &quot;tract&quot;,
-    variables = vars,
-    year = year,
-    state = &quot;DC&quot;,
-    output = &quot;wide&quot;
-  )
-  return(census_data)
-}
-
-# Create a list of years from 2012 to 2022
-years &lt;- 2012:2022
-
-# Use lapply to create a list of data frames
-df_list &lt;- lapply(years, get_census_data)
-
-# Assign each data frame to a variable named df10, df11, ..., df22
-for (i in seq_along(years)) {
-  assign(paste0(&quot;df&quot;, substr(years[i], 3, 4)), df_list[[i]])
-}
-
-# Print the first few rows of each data frame to verify
-for (year in years) {
-  cat(&quot;\nData for&quot;, year, &quot;:\n&quot;)
-  print(head(get(paste0(&quot;df&quot;, substr(year, 3, 4)))))
-}</code></pre>
 <pre><code>## 
 ## Data for 2012 :
 ## # A tibble: 6 × 34
