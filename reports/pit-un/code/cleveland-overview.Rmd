@@ -1,14 +1,19 @@
 ---
-title: "Census research report -- Hough, Cleveland, OH"
+title: "Neighborhood Data View: Hough, Cleveland, OH"
+subtitle: "Initial data reporting for the PIT UN Project"
 author: 
-- "Nathan Alexander, PhD"
-- "Center for Applied Data Science and Analytics (CADSA)"
-- "Howard University"
+- "Quantitative Histories Workshop"
+- "Nathan Alexander, Bayow Onabajo, Lyrric Jackson"
 output: 
   html_document:
     theme: journal
-  toc: true
-  toc_float: true
+    toc: true
+    toc_float: true
+    mathjax: default
+    self_contained: true
+  revealjs::revealjs_presentation:
+    self_contained: true
+    mathjax: default
 editor_options: 
   markdown: 
     wrap: sentence
@@ -19,29 +24,29 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 ```
 
 ```{r, include=F, echo=F, warning = FALSE, message = FALSE}
+# options(tigris_use_cache = TRUE)
 # Load necessary libraries
 library(tidycensus)
 library(dplyr)
 library(ggplot2)
-# options(tigris_use_cache = TRUE)
+library(kableExtra)
 library(here)
 here::i_am("cleveland-overview.Rmd")
 ```
 
 # Overview
 
-This preliminary report was prepared for consultation with the PIT-UN project team. Information includes state- and city-level data on Ohio, as well as information regarding the racial and ethnic composition of neighborhoods. 
-
-This information will be used to inform work regarding integrated data systems.
+We provide a preliminary analysis of factors related to race and ethnicity and the Hough neighborhood in Cleveland, Ohio. We use data from the U.S. Census Bureau and local data collected from Cleveland Open Data ^[https://data.clevelandohio.gov/]. This information will be used to inform work regarding integrated data systems.
 
 # Data
 
 ## Cleveland Open Data
 
-Local data collected from Cleveland Open Data at https://data.clevelandohio.gov/.
 
 ```{r, results=T, warning = FALSE, message = FALSE}
-neighborhoods <- read.csv("../data/cleveland_neighborhoods.csv")
+# neighborhoods in Cleveland from open data site
+neighborhoods <- 
+  read.csv("../data/cleveland_neighborhoods.csv")
 neighborhoods %>% 
   select(SPA, SPANM, SQ_MILES)
 ```
@@ -51,43 +56,45 @@ neighborhoods %>%
 Tag census variables to be used for analysis.
 
 ```{r, results=F, warning = FALSE, message = FALSE}
-# variables
+# gathering relevant variables
 vars <- c(
-  total_population = "B03002_001", # Total population (universe for race/ethnicity)
+  total_population = 
+    "B03002_001", # Total population (universe for race/ethnicity)
   
   # race-ethnicity vars
   white_alone = "B03002_003", # White alone
   black_alone = "B03002_004", # Black or African American alone
-  american_indian_alone = "B03002_005", # American Indian and Alaska Native alone
+  native_alone = "B03002_005", # American Indian and Alaska Native alone
   asian_alone = "B03002_006", # Asian alone
-  native_hawaiian_pacific_islander_alone = "B03002_007", # Native Hawaiian and Other Pacific Islander alone
-  some_other_race_alone = "B03002_008", # Some other race alone
-  two_or_more_races = "B03002_009", # Two or more races
-  hispanic_or_latino = "B03002_012", # Hispanic or Latino (of any race)
+  nhpi_alone = "B03002_007", # Native Hawaiian, Pacific Islander alone
+  other_alone = "B03002_008", # Some other race alone
+  two_or_more = "B03002_009", # Two or more races
+  hila_any = "B03002_012", # Hispanic or Latino (of any race)
   
   # housing and income vars
-  lower_income = "B19001_002",             # Households with income less than $10,000
-  median_home_value = "B25077_001",        # Median Home Value
-  public_housing = "B25003_002",           # Occupied housing units that are renter-occupied and subsidized
-  public_assistance = "B19058_001",        # Households Receiving Public Assistance
-  median_household_income = "B19013_001",  # Median Household Income
-  bachelor = "B15003_017",                 # Population over 25 with a Bachelor's degree or higher
+  lower_income = "B19001_002", # Households with income less than $10,000
+  median_home_value = "B25077_001", # Median Home Value
+  public_housing = "B25003_002", # Occupied housing units that are renter-occupied and subsidized
+  public_assistance = "B19058_001", # Households Receiving Public Assistance
+  median_household_income = "B19013_001", # Median Household Income
+  bachelor = "B15003_017", # Population over 25 with a Bachelor's degree or higher
   
   # demographic vars
   male_population = "B01001_002", # Male Population
   female_population = "B01001_026", # Female Population
-  median_age = "B01002_001",               # Median Age
-  employed = "B23025_002",                 # Employed population (age 16+)
-  unemployed = "B23025_003",               # Unemployed population (age 16+)
-  children_under_18 = "B09001_001"         # Total number of own children under 18 years
+  median_age = "B01002_001", # Median Age
+  employed = "B23025_002", # Employed population (age 16+)
+  unemployed = "B23025_003", # Unemployed population (age 16+)
+  children_under_18 = "B09001_001" # Total number of children under 18 years
   )
 ```
 
-## Census database by year (2012-2022)
+## Census database by year
 
-Create data frames for each year.
+Create data frames for each year from 2012 to 2022.
 
 ```{r, results=F, warning = FALSE, message = FALSE}
+# creating a function to gather census data based on var list
 get_census_data <- function(year) {
   census_data <- get_acs(
     geography = "tract",
@@ -103,22 +110,24 @@ get_census_data <- function(year) {
 ```
 
 ```{r, results=F, warning = FALSE, message = FALSE}
-
-# Create a list of years from 2012 to 2022
+# creating a list of years from 2012 to 2022
 years <- 2012:2022
 
-# Use lapply to create a list of data frames
+# using the lapply function to create a list of data frames
 df_list <- lapply(years, get_census_data)
 
-# Assign each data frame to a variable named df10, df11, ..., df22
+# assigning each data frame to a variable named df10, df11, ..., df22
 for (i in seq_along(years)) {
   assign(paste0("df", substr(years[i], 3, 4)), df_list[[i]])
 }
 
-# Print the first few rows of each data frame to verify
+# printing the first few rows of each data frame to verify
 for (year in years) {
   cat("\nData for", year, ":\n")
   print(head(get(paste0("df", substr(year, 3, 4)))))
 }
-
 ```
+
+
+
+
