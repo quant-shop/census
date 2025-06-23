@@ -27,6 +27,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 # options(tigris_use_cache = TRUE)
 # Load necessary libraries
 library(tidycensus)
+library(tidyverse)
 library(dplyr)
 library(ggplot2)
 library(kableExtra)
@@ -38,10 +39,17 @@ here::i_am("cleveland-overview.Rmd")
 
 We provide a preliminary analysis of factors related to race and ethnicity and the Hough neighborhood in Cleveland, Ohio. We use data from the U.S. Census Bureau and local data collected from Cleveland Open Data ^[https://data.clevelandohio.gov/]. This information will be used to inform work regarding integrated data systems.
 
-# Data
+# Demography
 
 ## Cleveland Open Data
 
+County and neighborhood information.
+
+- SPA: Statistical Planning Areas
+
+- SPANM: Name of the Statistical Planning Area
+
+- SQ_MILES: The area of the Statistical Planning Area in square miles
 
 ```{r, results=T, warning = FALSE, message = FALSE}
 # neighborhoods in Cleveland from open data site
@@ -51,9 +59,9 @@ neighborhoods %>%
   select(SPA, SPANM, SQ_MILES)
 ```
 
-## Census variables
+## Census data
 
-Tag census variables to be used for analysis.
+Variable list of acs 5-year estimates for initial analysis.
 
 ```{r, results=F, warning = FALSE, message = FALSE}
 # gathering relevant variables
@@ -72,24 +80,24 @@ vars <- c(
   hila_any = "B03002_012", # Hispanic or Latino (of any race)
   
   # housing and income vars
-  lower_income = "B19001_002", # Households with income less than $10,000
-  median_home_value = "B25077_001", # Median Home Value
-  public_housing = "B25003_002", # Occupied housing units that are renter-occupied and subsidized
-  public_assistance = "B19058_001", # Households Receiving Public Assistance
-  median_household_income = "B19013_001", # Median Household Income
-  bachelor = "B15003_017", # Population over 25 with a Bachelor's degree or higher
+  below_10k = "B19001_002", # households with income less than $10K
+  median_home_value = "B25077_001", # median
+  public_housing = "B25003_002", # subsidized rental units
+  public_assistance = "B19058_001", # households receiving public assistance
+  median_household_income = "B19013_001", # median household income
+  bachelor = "B15003_017", # population over 25 with a Bachelor's degree or higher
   
   # demographic vars
-  male_population = "B01001_002", # Male Population
-  female_population = "B01001_026", # Female Population
-  median_age = "B01002_001", # Median Age
-  employed = "B23025_002", # Employed population (age 16+)
-  unemployed = "B23025_003", # Unemployed population (age 16+)
-  children_under_18 = "B09001_001" # Total number of children under 18 years
+  male_population = "B01001_002", # male population
+  female_population = "B01001_026", # female population
+  median_age = "B01002_001", # median age
+  employed = "B23025_002", # employed population (age 16+)
+  unemployed = "B23025_003", # unemployed population (age 16+)
+  children_under_18 = "B09001_001" # total number of children under 18 years
   )
 ```
 
-## Census database by year
+### Census database for Cuyahoga County by year
 
 Create data frames for each year from 2012 to 2022.
 
@@ -101,12 +109,13 @@ get_census_data <- function(year) {
     variables = vars,
     year = year,
     state = "OH",
-    county = "Cuyahoga",    # Cuyahoga covers Cleveland area
+    county = "Cuyahoga", # Cuyahoga covers Cleveland area
     output = "wide",
-    geometry = TRUE         # spatial data for mapping
+    geometry = TRUE,      # spatial data for mapping
+    survey = "acs5"       # explicitly use 5-year ACS estimates
   )
   return(census_data)
-} 
+}
 ```
 
 ```{r, results=F, warning = FALSE, message = FALSE}
@@ -114,11 +123,13 @@ get_census_data <- function(year) {
 years <- 2012:2022
 
 # using the lapply function to create a list of data frames
-df_list <- lapply(years, get_census_data)
+df_list <- 
+  lapply(years, get_census_data)
 
 # assigning each data frame to a variable named df10, df11, ..., df22
 for (i in seq_along(years)) {
-  assign(paste0("df", substr(years[i], 3, 4)), df_list[[i]])
+  assign(paste0("df", substr(years[i], 3, 4)), 
+         df_list[[i]])
 }
 
 # printing the first few rows of each data frame to verify
@@ -128,6 +139,128 @@ for (year in years) {
 }
 ```
 
+### Single Indicator Views
+
+```{r}
+ggplot(df22) +
+  geom_sf(aes(fill = black_aloneE)) +
+  scale_fill_viridis_c() +
+  labs(title = "Black Population by Tract, 2022")
+```
+
+```{r}
+ggplot(df22) +
+  geom_sf(aes(fill = white_aloneE)) +
+  scale_fill_viridis_c() +
+  labs(title = "White Population by Tract, 2022")
+```
+
+### Binary Indicators
+
+| Indicator  | ACS Variable   | Description                                    |
+|:-----------|:--------------|:-----------------------------------------------|
+| white_10k  | B19001A_002   | White alone household, income < $10,000^[https://pearson.socialexplorer.com/data/ACS2019_5yr/metadata/?ds=ACS19_5yr&var=B19001A002]        |
+| black_10k  | B19001B_002   | Black alone household, income < $10,000^[https://pearson.socialexplorer.com/data/ACS2019_5yr/metadata/?ds=ACS19_5yr&var=B19001B002]        |
+
+```{r}
+
+df22 <- df22 %>%
+  filter(!is.na(white_10kE), !is.na(white_aloneE), white_aloneE > 0,
+         !is.na(black_10kE), !is.na(black_aloneE), black_aloneE > 0) %>%
+  mutate(
+    prop_white_10k = white_10kE / white_aloneE,
+    prop_black_10k = black_10kE / black_aloneE
+  )
+
+df22 <- df22 %>%
+  mutate(
+    white_10kE = as.numeric(white_10kE),
+    black_10kE = as.numeric(black_10kE),
+    white_aloneE = as.numeric(white_aloneE),
+    black_aloneE = as.numeric(black_aloneE)
+  ) %>%
+  mutate(
+    prop_white_10k = white_10kE / white_aloneE,
+    prop_black_10k = black_10kE / black_aloneE
+  )
+
+```
+
+
+```{r}
+ggplot(df22, aes(x = prop_white_10k)) +
+  geom_histogram(bins = 30, fill = "blue", alpha = 0.6, na.rm = TRUE) +
+  labs(title = "Proportion of White Households Earning < $10k", x = "Proportion", y = "Number of Tracts") +
+  theme_minimal()
+
+ggplot(df22, aes(x = prop_black_10k)) +
+  geom_histogram(bins = 30, fill = "red", alpha = 0.6, na.rm = TRUE) +
+  labs(title = "Proportion of Black Households Earning < $10k", x = "Proportion", y = "Number of Tracts") +
+  theme_minimal()
+
+
+```
+
+
+# State Violence
+
+Examining fatal police shooting data for Cuyahoga County, which covers the Cleveland area.
+
+```{r}
+fatal <- read.csv("https://raw.githubusercontent.com/washingtonpost/data-police-shootings/master/v2/fatal-police-shootings-data.csv") %>% 
+  as_tibble()
+head(fatal, n=3)
+```
+
+## Data for Cuyahoga County, Ohio
+
+```{r}
+fatal_cuyahoga <- fatal %>% 
+  filter(county == "Cuyahoga") %>% 
+  select(name,
+         date,
+         age, 
+         gender, 
+         race, 
+         body_camera, 
+         threat_type, 
+         armed_with,
+         flee_status,
+         state,
+         city,
+         county,
+         id)
+
+# change vars to appropriate formats
+fatal_cuyahoga$date <- as.Date(fatal_cuyahoga$date) # check/change to date format
+fatal_cuyahoga$age <- as.numeric(fatal_cuyahoga$age)
+fatal_cuyahoga$body_camera <- as.logical(fatal_cuyahoga$body_camera)
+
+fatal_cuyahoga_year <- format(fatal_cuyahoga$date, format="20%y") 
+fatal_cuyahoga$year <- fatal_cuyahoga_year # add a year column to the df
+fatal_cuyahoga <- fatal_cuyahoga %>% 
+  relocate(county, city, name, date)
+fatal_cuyahoga
+```
+
+```{r}
+fatal_cuyahoga %>%
+  count(year) %>%
+  ggplot(aes(x = factor(year), y = n)) +
+  geom_col(fill = "steelblue") +
+  labs(
+    title = "Fatal police interactions with police officers by year - Cuyahoga",
+    x = "Year",
+    y = "Count"
+  ) +
+  theme_minimal()
+```
+
+
+```{r}
+
+
+```
 
 
 
