@@ -23,7 +23,7 @@ library(dplyr)
 library(ggplot2)
 ```
 
-```{r}
+```{r, echo=F}
 # libraries
 library(tidycensus)
 library(dplyr)
@@ -61,7 +61,7 @@ get_census_data <- function(year) {
 }  
 ```
 
-```{r}
+```{r, echo=F}
 library(tidycensus)
 
 get_census_data <- function(year) {
