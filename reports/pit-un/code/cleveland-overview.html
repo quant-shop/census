@@ -384,12 +384,55 @@ data systems.</p>
 </div>
 <div id="data" class="section level1">
 <h1>Data</h1>
+<div id="cleveland-open-data" class="section level2">
+<h2>Cleveland Open Data</h2>
+<p>Local data collected from Cleveland Open Data at <a href="https://data.clevelandohio.gov/" class="uri">https://data.clevelandohio.gov/</a>.</p>
+<pre class="r"><code>neighborhoods &lt;- read.csv(&quot;../data/cleveland_neighborhoods.csv&quot;)
+neighborhoods %&gt;% 
+  select(SPA, SPANM, SQ_MILES)</code></pre>
+<pre><code>##    SPA                   SPANM SQ_MILES
+## 1   34  North Shore Collinwood  3.02479
+## 2   35   Collinwood-Nottingham  2.51642
+## 3   36            Euclid-Green  1.13335
+## 4   32               Glenville  2.50649
+## 5   27       St.Clair-Superior  1.41578
+## 6   18    Goodrich-Kirtland Pk  1.56857
+## 7   15                Downtown  2.92977
+## 8   28                   Hough  2.05164
+## 9   30              University  1.56578
+## 10  19                 Central  2.34206
+## 11  29                 Fairfax  1.39162
+## 12  14                 Tremont  2.69954
+## 13  16         Cuyahoga Valley  1.32733
+## 14  31   Buckeye-Shaker Square  1.17023
+## 15  23        Buckeye-Woodhill  1.20344
+## 16  21                 Kinsman  1.75835
+## 17  20 Broadway-Slavic Village  1.63380
+## 18  11              Stockyards  1.00438
+## 19   7          West Boulevard  1.49964
+## 20  12         Brooklyn Centre  1.38156
+## 21  26             Lee-Harvard  2.92665
+## 22   4        Bellaire-Puritas  3.56120
+## 23   1                  Kamm&#39;s  4.72498
+## 24   2               Jefferson  3.93639
+## 25  12            Old Brooklyn  1.38156
+## 26   1                 Hopkins  4.72498
+## 27  26             Lee-Seville  2.92665
+## 28  25          Mount Pleasant  1.47696
+## 29  10        Detroit Shoreway  1.86830
+## 30  NA             Union-Miles  0.00000
+## 31   6                  Cudell  1.32745
+## 32  11            Clark-Fulton  1.00438
+## 33   6               Edgewater  1.32745
+## 34  10               Ohio City  1.86830</code></pre>
+</div>
 <div id="census-variables" class="section level2">
 <h2>Census variables</h2>
 <p>Tag census variables to be used for analysis.</p>
 <pre class="r"><code># variables
 vars &lt;- c(
   total_population = &quot;B03002_001&quot;, # Total population (universe for race/ethnicity)
+  
   # race-ethnicity vars
   white_alone = &quot;B03002_003&quot;, # White alone
   black_alone = &quot;B03002_004&quot;, # Black or African American alone
@@ -399,9 +442,7 @@ vars &lt;- c(
   some_other_race_alone = &quot;B03002_008&quot;, # Some other race alone
   two_or_more_races = &quot;B03002_009&quot;, # Two or more races
   hispanic_or_latino = &quot;B03002_012&quot;, # Hispanic or Latino (of any race)
-  # sex vars
-  male_population = &quot;B01001_002&quot;, # Male Population
-  female_population = &quot;B01001_026&quot;, # Female Population
+  
   # housing and income vars
   lower_income = &quot;B19001_002&quot;,             # Households with income less than $10,000
   median_home_value = &quot;B25077_001&quot;,        # Median Home Value
@@ -409,15 +450,18 @@ vars &lt;- c(
   public_assistance = &quot;B19058_001&quot;,        # Households Receiving Public Assistance
   median_household_income = &quot;B19013_001&quot;,  # Median Household Income
   bachelor = &quot;B15003_017&quot;,                 # Population over 25 with a Bachelor&#39;s degree or higher
+  
   # demographic vars
+  male_population = &quot;B01001_002&quot;, # Male Population
+  female_population = &quot;B01001_026&quot;, # Female Population
   median_age = &quot;B01002_001&quot;,               # Median Age
   employed = &quot;B23025_002&quot;,                 # Employed population (age 16+)
   unemployed = &quot;B23025_003&quot;,               # Unemployed population (age 16+)
   children_under_18 = &quot;B09001_001&quot;         # Total number of own children under 18 years
   )</code></pre>
 </div>
-<div id="database-by-year" class="section level2">
-<h2>Database by year</h2>
+<div id="census-database-by-year-2012-2022" class="section level2">
+<h2>Census database by year (2012-2022)</h2>
 <p>Create data frames for each year.</p>
 <pre class="r"><code>get_census_data &lt;- function(year) {
   census_data &lt;- get_acs(
