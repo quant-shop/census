@@ -25,7 +25,7 @@ library(ggplot2)
 
 Tag the variables to be used for analysis.
 
-```{r}
+```{r, output=F}
 # libraries
 library(tidycensus)
 library(dplyr)
@@ -65,7 +65,7 @@ get_census_data <- function(year) {
 
 Create data frames for each year.
 
-```{r}
+```{r, output=F}
 get_census_data <- function(year) {
   census_data <- get_acs(
     geography = "tract",
