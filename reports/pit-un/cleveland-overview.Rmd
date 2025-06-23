@@ -1,0 +1,179 @@
+---
+title: "Census research report -- Hough, Cleveland, OH"
+author: 
+- "Nathan Alexander"
+- "Center for Applied Data Science and Analytics (CADSA)"
+- "Howard University"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme: journal
+  toc: true
+  toc_float: true
+editor_options: 
+  markdown: 
+    wrap: sentence
+---
+
+```{r setup}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+# Load necessary libraries
+library(tidycensus)
+library(dplyr)
+library(ggplot2)
+```
+
+Tag the variables to be used for analysis.
+
+```{r}
+# libraries
+library(tidycensus)
+library(dplyr)
+library(ggplot2)
+# options(tigris_use_cache = TRUE)
+
+# variables
+vars <- c(
+  total_population = "B01001_001",         # Total Population
+  black_population = "B03002_004",         # Black or African American Population
+  lower_income = "B19001_002",             # Households with income less than $10,000
+  median_home_value = "B25077_001",        # Median Home Value
+  public_housing = "B25003_002",           # Occupied housing units that are renter-occupied and subsidized
+  public_assistance = "B19058_001",        # Households Receiving Public Assistance
+  median_household_income = "B19013_001",  # Median Household Income
+  bachelor = "B15003_017",                 # Population over 25 with a Bachelor's degree or higher
+  white_population = "B03002_003",         # White Population
+  hispanic_population = "B03002_012",      # Hispanic or Latino Population
+  male_population = "B01001_002",          # Male Population
+  female_population = "B01001_026",        # Female Population
+  median_age = "B01002_001",               # Median Age
+  employed = "B23025_002",                 # Employed population (age 16+)
+  unemployed = "B23025_003",               # Unemployed population (age 16+)
+  children_under_18 = "B09001_001"         # Total number of own children under 18 years
+  )
+
+get_census_data <- function(year) {
+  census_data <- get_acs(
+    geography = "tract",
+    variables = vars,
+    year = year,
+    state = "OH",
+    output = "wide"
+  )
+}  
+```
+
+Create data frames for each year.
+
+```{r}
+get_census_data <- function(year) {
+  census_data <- get_acs(
+    geography = "tract",
+    variables = vars,
+    year = year,
+    state = "OH",
+    county = "Cuyahoga",    # Cuyahoga covers Cleveland area
+    output = "wide",
+    geometry = TRUE         # spatial data for mapping
+  )
+  return(census_data)
+}
+
+# Create a list of years from 2012 to 2022
+years <- 2012:2022
+
+# Use lapply to create a list of data frames
+df_list <- lapply(years, get_census_data)
+
+# Assign each data frame to a variable named df10, df11, ..., df22
+for (i in seq_along(years)) {
+  assign(paste0("df", substr(years[i], 3, 4)), df_list[[i]])
+}
+
+# Print the first few rows of each data frame to verify
+for (year in years) {
+  cat("\nData for", year, ":\n")
+  print(head(get(paste0("df", substr(year, 3, 4)))))
+}
+
+```
+
+- What is the total population across all census tracts in the sample?
+
+```{r}
+total_pop <- sum(df22$total_populationE)
+cat("The total population across all census tracts is", total_pop)
+
+total_pop <- sum(df22$total_populationE, na.rm = TRUE)
+total_pop_moe <- sqrt(sum(df22$total_populationM^2, na.rm = TRUE))
+cat("The total population across all census tracts is:", total_pop, 
+    "±", round(total_pop_moe, 2), "(margin of error)")
+```
+
+- How does the racial composition vary across census tracts?
+
+```{r}
+df22 %>%
+  summarise(
+    white_pct = mean(white_populationE / total_populationE * 100),
+    black_pct = mean(black_populationE / total_populationE * 100),
+    hispanic_pct = mean(hispanic_populationE / total_populationE * 100)
+  )
+
+df22 %>%
+  summarise(
+    white_pct = mean(white_populationE / total_populationE * 100, na.rm = TRUE),
+    white_pct_moe = sqrt(mean((white_populationM / total_populationE * 100)^2, na.rm = TRUE)),
+    black_pct = mean(black_populationE / total_populationE * 100, na.rm = TRUE),
+    black_pct_moe = sqrt(mean((black_populationM / total_populationE * 100)^2, na.rm = TRUE)),
+    hispanic_pct = mean(hispanic_populationE / total_populationE * 100, na.rm = TRUE),
+    hispanic_pct_moe = sqrt(mean((hispanic_populationM / total_populationE * 100)^2, na.rm = TRUE))
+  )
+
+```
+
+- What is the average median household income across all tracts?
+
+```{r}
+avg_median_income <- mean(df22$median_household_incomeE, na.rm=T)
+cat("The average median household income is $", round(avg_median_income, 2))
+
+avg_median_income <- mean(df22$median_household_incomeE, na.rm = TRUE)
+avg_median_income_moe <- sqrt(mean(df22$median_household_incomeM^2, na.rm = TRUE))
+cat("The average median household income is: $", round(avg_median_income, 2),
+    "±", round(avg_median_income_moe, 2), "(margin of error)")
+
+```
+
+- How does the proportion of the population with a bachelor's degree or higher vary across tracts?
+
+```{r}
+ggplot(df22, aes(x = bachelorE / total_populationE * 100)) +
+  geom_histogram(bins = 20) +
+  labs(x = "Percentage with Bachelor's degree", y = "Count")
+
+df22 %>%
+  mutate(bachelor_pct = bachelorE / total_populationE * 100,
+         bachelor_pct_moe = sqrt((bachelorM / total_populationE * 100)^2 + 
+                                 (bachelorE * total_populationM / total_populationE^2 * 100)^2)) %>%
+  ggplot(aes(x = bachelor_pct)) +
+  geom_histogram(bins = 20) +
+  labs(x = "Percentage with Bachelor's degree", y = "Count")
+
+```
+
+- What is the average unemployment rate across the sampled tracts?
+
+```{r}
+avg_unemployment_rate <- mean(df22$unemployedE / (df22$employedE + df22$unemployedE) * 100)
+cat("The average unemployment rate is", round(avg_unemployment_rate, 2), "%")
+
+df22 %>%
+  mutate(unemployment_rate = unemployedE / (employedE + unemployedE) * 100,
+         unemployment_rate_moe = sqrt((unemployedM / (employedE + unemployedE) * 100)^2 +
+                                      (unemployedE * employedM / (employedE + unemployedE)^2 * 100)^2)) %>%
+  summarise(avg_unemployment_rate = mean(unemployment_rate, na.rm = TRUE),
+            avg_unemployment_rate_moe = sqrt(mean(unemployment_rate_moe^2, na.rm = TRUE))) %>%
+  print()
+
+```
