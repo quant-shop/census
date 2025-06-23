@@ -1,10 +1,9 @@
 ---
 title: "Census research report -- Hough, Cleveland, OH"
 author: 
-- "Nathan Alexander"
+- "Nathan Alexander, PhD"
 - "Center for Applied Data Science and Analytics (CADSA)"
 - "Howard University"
-date: "`r Sys.Date()`"
 output: 
   html_document:
     theme: journal
@@ -15,8 +14,11 @@ editor_options:
     wrap: sentence
 ---
 
-```{r setup}
-knitr::opts_chunk$set(echo=F, results=F, warning = FALSE, message = FALSE)
+```{r setup, include=F}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+```{r, include=F, echo=F, warning = FALSE, message = FALSE}
 # Load necessary libraries
 library(tidycensus)
 library(dplyr)
@@ -24,39 +26,50 @@ library(ggplot2)
 # options(tigris_use_cache = TRUE)
 ```
 
-Tag the variables to be used for analysis.
+# Overview
+
+This preliminary report was prepared for consultation with the PIT-UN project team. Information includes state- and city-level data on Ohio, as well as information regarding the racial and ethnic composition of neighborhoods. 
+
+This information will be used to inform work regarding integrated data systems.
+
+# Data
+
+## Census variables
+
+Tag census variables to be used for analysis.
 
 ```{r, results=F, warning = FALSE, message = FALSE}
 # variables
 vars <- c(
-  total_population = "B01001_001",         # Total Population
-  black_population = "B03002_004",         # Black or African American Population
+  total_population = "B03002_001", # Total population (universe for race/ethnicity)
+  # race-ethnicity vars
+  white_alone = "B03002_003", # White alone
+  black_alone = "B03002_004", # Black or African American alone
+  american_indian_alone = "B03002_005", # American Indian and Alaska Native alone
+  asian_alone = "B03002_006", # Asian alone
+  native_hawaiian_pacific_islander_alone = "B03002_007", # Native Hawaiian and Other Pacific Islander alone
+  some_other_race_alone = "B03002_008", # Some other race alone
+  two_or_more_races = "B03002_009", # Two or more races
+  hispanic_or_latino = "B03002_012", # Hispanic or Latino (of any race)
+  # sex vars
+  male_population = "B01001_002", # Male Population
+  female_population = "B01001_026", # Female Population
+  # housing and income vars
   lower_income = "B19001_002",             # Households with income less than $10,000
   median_home_value = "B25077_001",        # Median Home Value
   public_housing = "B25003_002",           # Occupied housing units that are renter-occupied and subsidized
   public_assistance = "B19058_001",        # Households Receiving Public Assistance
   median_household_income = "B19013_001",  # Median Household Income
   bachelor = "B15003_017",                 # Population over 25 with a Bachelor's degree or higher
-  white_population = "B03002_003",         # White Population
-  hispanic_population = "B03002_012",      # Hispanic or Latino Population
-  male_population = "B01001_002",          # Male Population
-  female_population = "B01001_026",        # Female Population
+  # demographic vars
   median_age = "B01002_001",               # Median Age
   employed = "B23025_002",                 # Employed population (age 16+)
   unemployed = "B23025_003",               # Unemployed population (age 16+)
   children_under_18 = "B09001_001"         # Total number of own children under 18 years
   )
-
-get_census_data <- function(year) {
-  census_data <- get_acs(
-    geography = "tract",
-    variables = vars,
-    year = year,
-    state = "OH",
-    output = "wide"
-  )
-}  
 ```
+
+## Database by year
 
 Create data frames for each year.
 
@@ -72,7 +85,10 @@ get_census_data <- function(year) {
     geometry = TRUE         # spatial data for mapping
   )
   return(census_data)
-}
+} 
+```
+
+```{r, results=F, warning = FALSE, message = FALSE}
 
 # Create a list of years from 2012 to 2022
 years <- 2012:2022
@@ -90,85 +106,5 @@ for (year in years) {
   cat("\nData for", year, ":\n")
   print(head(get(paste0("df", substr(year, 3, 4)))))
 }
-
-```
-
-- What is the total population across all census tracts in the sample?
-
-```{r, warning = FALSE, message = FALSE}
-total_pop <- sum(df22$total_populationE)
-cat("The total population across all census tracts is", total_pop)
-
-total_pop <- sum(df22$total_populationE, na.rm = TRUE)
-total_pop_moe <- sqrt(sum(df22$total_populationM^2, na.rm = TRUE))
-cat("The total population across all census tracts is:", total_pop, 
-    "±", round(total_pop_moe, 2), "(margin of error)")
-```
-
-- How does the racial composition vary across census tracts?
-
-```{r, warning = FALSE, message = FALSE}
-df22 %>%
-  summarise(
-    white_pct = mean(white_populationE / total_populationE * 100),
-    black_pct = mean(black_populationE / total_populationE * 100),
-    hispanic_pct = mean(hispanic_populationE / total_populationE * 100)
-  )
-
-df22 %>%
-  summarise(
-    white_pct = mean(white_populationE / total_populationE * 100, na.rm = TRUE),
-    white_pct_moe = sqrt(mean((white_populationM / total_populationE * 100)^2, na.rm = TRUE)),
-    black_pct = mean(black_populationE / total_populationE * 100, na.rm = TRUE),
-    black_pct_moe = sqrt(mean((black_populationM / total_populationE * 100)^2, na.rm = TRUE)),
-    hispanic_pct = mean(hispanic_populationE / total_populationE * 100, na.rm = TRUE),
-    hispanic_pct_moe = sqrt(mean((hispanic_populationM / total_populationE * 100)^2, na.rm = TRUE))
-  )
-
-```
-
-- What is the average median household income across all tracts?
-
-```{r, warning = FALSE, message = FALSE}
-avg_median_income <- mean(df22$median_household_incomeE, na.rm=T)
-cat("The average median household income is $", round(avg_median_income, 2))
-
-avg_median_income <- mean(df22$median_household_incomeE, na.rm = TRUE)
-avg_median_income_moe <- sqrt(mean(df22$median_household_incomeM^2, na.rm = TRUE))
-cat("The average median household income is: $", round(avg_median_income, 2),
-    "±", round(avg_median_income_moe, 2), "(margin of error)")
-
-```
-
-- How does the proportion of the population with a bachelor's degree or higher vary across tracts?
-
-```{r, warning = FALSE, message = FALSE}
-ggplot(df22, aes(x = bachelorE / total_populationE * 100)) +
-  geom_histogram(bins = 20) +
-  labs(x = "Percentage with Bachelor's degree", y = "Count")
-
-df22 %>%
-  mutate(bachelor_pct = bachelorE / total_populationE * 100,
-         bachelor_pct_moe = sqrt((bachelorM / total_populationE * 100)^2 + 
-                                 (bachelorE * total_populationM / total_populationE^2 * 100)^2)) %>%
-  ggplot(aes(x = bachelor_pct)) +
-  geom_histogram(bins = 20) +
-  labs(x = "Percentage with Bachelor's degree", y = "Count")
-
-```
-
-- What is the average unemployment rate across the sampled tracts?
-
-```{r, warning = FALSE, message = FALSE}
-avg_unemployment_rate <- mean(df22$unemployedE / (df22$employedE + df22$unemployedE) * 100)
-cat("The average unemployment rate is", round(avg_unemployment_rate, 2), "%")
-
-df22 %>%
-  mutate(unemployment_rate = unemployedE / (employedE + unemployedE) * 100,
-         unemployment_rate_moe = sqrt((unemployedM / (employedE + unemployedE) * 100)^2 +
-                                      (unemployedE * employedM / (employedE + unemployedE)^2 * 100)^2)) %>%
-  summarise(avg_unemployment_rate = mean(unemployment_rate, na.rm = TRUE),
-            avg_unemployment_rate_moe = sqrt(mean(unemployment_rate_moe^2, na.rm = TRUE))) %>%
-  print()
 
 ```
