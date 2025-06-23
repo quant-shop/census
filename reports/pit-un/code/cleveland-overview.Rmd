@@ -3,7 +3,7 @@ title: "Neighborhood Data View: Hough, Cleveland, OH"
 subtitle: "Initial data reporting for the PIT UN Project"
 author: 
 - "Quantitative Histories Workshop"
-- "Nathan Alexander, Bayow Onabajo, Lyrric Jackson"
+- "Nathan Alexander, Bayowa Onabajo, Lyrric Jackson"
 output: 
   html_document:
     theme: journal
