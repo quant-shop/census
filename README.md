@@ -1,4 +1,4 @@
-The **CENSUS HISTORY PROJECT** focuses on the exploration, extraction, and analysis of U.S. Census data for further research purposes. Our users group takes on a critical historical approach to understanding population-level data on the United States, the methods used to gather the data, and the measures applied to explore, extract, and analyze the data.
+The **CENSUS HISTORY PROJECT** focuses on the exploration, extraction, and analysis of US Census data for further research purposes. Our user group takes on a critical historical approach to understanding population-level data on the United States, the methods used to gather the data, and the measures applied to explore, extract, and analyze the data.
 
 <img src="img/1890-map-population-distribution.jpg" width="500">
 
