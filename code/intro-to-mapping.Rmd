@@ -1,0 +1,84 @@
+---
+title: "Intro to mapping"
+author: 
+  - "Nathan Alexander"
+  - "nathan.alexander@howard.edu"
+output: html_document
+date: "2025-08-21"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#CENSUS_API_KEY='your_api_key'
+```
+
+I'm about to make my first map of my hometown Charlotte, NC.
+
+```{r, message=F, warning=F}
+# install packages
+#install.packages("tidycensus")
+#install.packages("tidyverse")
+#install.packages("mapview")
+#install.packages("mapgl")
+library(tidycensus)
+library(dplyr)
+library(ggplot2)
+library(sf)
+```
+
+Gather spatial data for North Carolina.
+
+```{r, message=F, warning=F}
+
+nc_income_sf <- get_acs(
+  geography = "county",
+  variables = "B19013_001", # income variable
+  state = "NC",
+  year = 2023,
+  geometry = T
+)
+
+```
+
+
+
+```{r, message=F, warning=F}
+plot(nc_income_sf['estimate'])
+
+```
+
+
+
+```{r, message=F, warning=F}
+
+
+```
+
+
+
+```{r, message=F, warning=F}
+
+
+```
+
+
+
+```{r, message=F, warning=F}
+
+
+```
+
+
+
+```{r, message=F, warning=F}
+
+
+```
+
+
+
+
+
+
+
+
