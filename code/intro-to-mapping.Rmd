@@ -45,7 +45,7 @@ nc_income_sf <- get_acs(
 ```{r, message=F, warning=F}
 plot(nc_income_sf['estimate'])
 
-```
+``` 
 
 
 
