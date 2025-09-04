@@ -69,6 +69,26 @@ plot(nc_income_sf['estimate'])
 ```
 
 
+```{r, message=F, warning=F}
+
+
+```
+
+
+
+```{r, message=F, warning=F}
+
+
+```
+
+
+
+```{r, message=F, warning=F}
+
+
+```
+
+
 
 ```{r, message=F, warning=F}
 
