@@ -38,19 +38,23 @@ nc_income_sf <- get_acs(
   geometry = T
 )
 
+library(tigris)
+la_parishes <- counties(state = "LA")
+la_parishes
 ```
 
 
 
 ```{r, message=F, warning=F}
 plot(nc_income_sf['estimate'])
-
 ``` 
 
 
 
 ```{r, message=F, warning=F}
-
+library(mapview)
+mapview(nc_income_sf,
+        zcol="estimate")
 
 ```
 
