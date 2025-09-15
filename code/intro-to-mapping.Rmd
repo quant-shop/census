@@ -61,7 +61,12 @@ mapview(nc_income_sf,
 
 
 ```{r, message=F, warning=F}
-
+black_fulton_ga <- get_acs(geography = "tract", 
+                           state = "GA", 
+                           county = "Fulton", 
+                           variable = "B02001_003", # Black or AA alone or in combination with one or more races
+                           geometry = TRUE)
+plot(black_fulton_ga)
 
 ```
 
