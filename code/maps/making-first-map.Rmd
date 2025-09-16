@@ -1,0 +1,188 @@
+---
+title: "Making my first map in R"
+author: 
+  - "Nathan Alexander"
+  - "Howard University"
+date: "2025-09-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+CENSUS_API_KEY='YOUR_API_KEY'
+```
+
+# Load our packages and libraries
+
+```{r, message=F, warning=F}
+# install pacakges
+#install.packages(c("tidycensus",
+#                   "tidyverse",
+#                   "mapview",
+#                   "mapgl"))
+
+# load libraries
+library(tidycensus)
+library(dplyr)
+library(ggplot2)
+library(sf)
+```
+
+# Gather data
+
+I am going to start and gather data for DC and NC.
+
+## Gather data for DC
+
+Given the size of DC, we will use the `geography = "tract"`.
+
+```{r, message=F, warning=F}
+# get income data for DC
+dc_income <- get_acs(
+  geography = "tract",
+  variables = "B19013_001",
+  state = "DC",
+  year = 2023
+)
+```
+
+## Gather data for NC
+
+```{r, message=F, warning=F}
+# get income data for NC
+nc_income <- get_acs(
+  geography = "county",
+  variables = "B19013_001",
+  state = "NC",
+  year = 2023
+)
+```
+
+### Get spatial data for DC
+
+When I get the spatial data, I need to add `geometry=T` to my code.
+
+```{r, message=F, warning=F}
+# get income data for DC
+dc_income_sf <- get_acs( # adding the 'sf' for simple features
+  geography = "tract",
+  variables = "B19013_001",
+  state = "DC",
+  year = 2023,
+  geometry = T
+)
+```
+
+### Get spatial data for NC
+
+```{r, message=F, warning=F}
+# get income data for NC
+nc_income_sf <- get_acs(
+  geography = "county",
+  variables = "B19013_001",
+  state = "NC",
+  year = 2023,
+  geometry = T
+)
+```
+
+# Maps
+
+## Plotting the map for DC
+
+```{r, message=F, warning=F}
+plot(dc_income_sf)
+```
+
+```{r, message=F, warning=F}
+# plot the estimate for income for DC
+plot(dc_income_sf['estimate'])
+
+```
+
+## Plotting the map for NC
+
+```{r, message=F, warning=F}
+plot(nc_income_sf['estimate'])
+
+```
+
+```{r, message=F, warning=F}
+# creating a map at the county level
+nc_mecklenburg_income_sf <- get_acs(
+  geography = "tract",
+  state = "NC",
+  county = "Mecklenburg",
+  variables = "B19013_001",
+  year = 2023,
+  geometry = T
+)
+
+```
+# Improving my maps
+
+```{r, message=F, warning=F}
+library(viridis)
+
+ggplot(nc_income_sf) +
+  geom_sf(aes(fill = estimate), color = "white", size = 0.1) +
+  scale_fill_viridis(option = "magma", name = "Median Household Income") +
+  labs(
+    title = "Median Household Income in NC",
+    subtitle = "By Census Tract (2023)",
+    caption = "Data: American Community Survey 5-Year Estimates"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 12),
+    axis.title = element_blank(),
+    legend.position = "right"
+  )
+```
+
+```{r, message=F, warning=F}
+ggplot(nc_mecklenburg_income_sf) +
+  geom_sf(aes(fill = estimate), color = "white", size = 0.1) +
+  scale_fill_viridis(option = "magma", name = "Median Household Income") +
+  labs(
+    title = "Median Household Income in Mecklenburg County, NC",
+    subtitle = "By Census Tract (2023)",
+    caption = "Data: American Community Survey 5-Year Estimates"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 12),
+    axis.title = element_blank(),
+    legend.position = "right"
+  )
+
+```
+
+
+
+# Interactive map
+
+```{r, message=F, warning=F}
+library(mapview)
+
+mapview(
+  dc_income_sf,
+  zcol = "estimate"
+)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
