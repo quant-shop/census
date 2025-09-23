@@ -1,75 +1,182 @@
 ---
-title: "Critical Computational Geographies (Part I): Mapping and Spatial Analysis"
+title: "Critical Computational Geographies -- Measures of Segregation: Dissimilarity"
+subtitle: "Technical Appendix"
 author:
-  - name: Nathan Alexander, PhD
+  - name: "Nathan Alexander, PhD"
     affiliations: 
-      - Center for Applied Data Science and Analytics
-      - Howard University
+      - "Quantitative Histories Workshop"
+      - "Department of Curriculum & Instruction"
+      - "Center for Applied Data Science & Analytics"
+      - "Howard University"
+    email: "nathan.alexander@howard.edu"
 format:
   html:
+    theme: cerulean        # Same theme as old .Rmd
+    toc: true
+    toc-depth: 3
+    toc-location: left
+    toc-floating: true
+    number-sections: true
     self-contained: true
-    embed-resources: true
-  pdf: default
-  revealjs:
-    output-file: 2025-dc-open-data.html
-    height: 900
-    width: 1600
-    smaller: false
-    scrollable: true
-    slide-number: c/t #< collapsted/total
-    footer: ""
-    toc: false
-    echo: true
-    incremental: false
-    self-contained: true
-    theme: default
+    code-fold: false        # folding for code blocks
+    footnotes: true
+  pdf:
+    keep-tex: true   # keep intermediate .tex file for debugging
+execute:
+  echo: true
+editor_options:
+  markdown:
+    wrap: sentence
 ---
 
 ```{r setup, include=F, warning=F, message=F}
-library(here)
 knitr::opts_chunk$set(echo = TRUE)
-
+library(here)
 here::i_am("crit-comp-geo-pt1.qmd")
 ```
 
-This workshop series will support new and experienced R users with the basics of mapping and spatial analysis. We will use U.S. Census data and the `tidycensus()` package.
+# Introduction
 
----
-
-Why is spatial data a useful form of information for *critical* analysis?
-
-![](img/map1.jpg)
+I outline the technical documentation for the Fall 2025 [Quantitative Histories Workshop](https://quant-shop.github.io){target="_blank"} series on [*Critical Computational Geographies*](https://quant-shop.github.io/events.html#fall){target="_blank"}. In this particular section, we focus on questions about indicators used to quantify segregation. This section is part of a long-term project of the Quantitative Histories Workshop focused on exploring the dynamic features of context in probability and high-dimensional data.
 
 
-# Data
+## Conceptual Model
 
-For mapping tasks, we use census data. The core functions for this data come from the Decennial census (`get_decennial()`) and the American Community Survey (ACS) (`get_acs()`). 
+High-dimensional data are characterized by the relationship between the data's dimensions (the number of features) and the data sample (number of observations). In an ideal interdisciplinary model that is informed by the various fields of human development, there is a potential to understand how the number of data features relate to the sample, and what methodological selections are used to characterize the set of indicators used in a mathematical model (Sørensen, 1978). 
 
-Today, we will use the `get_acs()` function for ACS data. This is an annual survey that covers topics not available in the decennial US Census data, such as income, education, etc. Estimates are available for both 1- and 5-year periods. The default for the `getacs()` function is the 5-year ACS estimates. 
+We will use U.S. census data to consider a measure of dissimilarity and spatial maps to: (1) observe land and coverings of different variables that quantify race, and (2) engage in assessing the various spatial conditions that inform racial isolation, or a series of dividing walls that separate one group from another group ([Short, 2011](https://plus.maths.org/content/dividing-walls-topology-and-topography-i){target="_blank"}).
 
-The data are delivered as *estimates* (est) characterized by *margins of error* (moe).
 
----
+### Example: A Theory of Dividing Walls
 
-## `tidycensus()`
+![A sample dividing wall separating one group from another group](img/figureb.png)
 
-The `tidycensus()` package created by Kyle Walker "automatically downloads and merges Census geometries to data for mapping [and] includes a variety of analytic tools to support common Census workflows."
+Short's (2011) *Dividing Wall's Theorem* presents a simplified topological equivalence to consider the conditions of segregation and isolation when a population of individuals are split into two groups. In the current instance, we will examine dissimilarity in a measure of Black and non-Black populations over some geographical area, $G$.
 
-The states and counties can be requested by name, so there is no need to look up FIPS codes^[Walker made a note about using FIPS codes based on a change made in 2022. It will be important to review the FIPS codes as some counties have been changed (names) and may be included twice, so be aware of your goals when using the FIPS codes.].
+![Is there a dividing wall?](img/figurec.png)
 
----
+> *Theorem 1.* Given any configuration of blue and green towns, there is a dividing wall that separates blue towns from green towns.
 
-## Mapping tools
+![Visual proof of Short's (2001) Dividing Wall's Theorem](img/figured.png)
 
-There are multiple packages that can be used for cartography. Some of the popular packages that can be used are `ggplot2`, `tmap`, and `mapsf`. Walker, however, built a new package called `mapgl`.
+In the conceptual analysis above, there were only two tracts present and they completely segregated the two groups by the dividing wall. This conceptual model is a base example: two groups, two tracks, complete segregation.
 
-### mapgl
+## Computational Model
 
-[mapgl](https://walker-data.com/mapgl/) is a new R package written by Walker for high-performance interactive mapping.
+The index of dissimilarity will be used to quantify the evenness with which Black residents are distributed relative to other non-Black racial groups across census tracts. Our current analysis builds on the perspectives that these base measures may be foundational in understanding and quantifying the dimensions of antiblackness in high-dimensional data sources. 
 
----
+The index of dissimilarity, $D$, is a demographic measure of the evenness with which two groups are distributed across geographic units within a larger geographical area. The measure quantifies the percentage of one group that would need to relocate to achieve an even distribution across all units in the geographical area. A value of $D = 0$ corresponds to complete integration, while $D = 1$ indicates complete segregation.
 
-Start by installing/loading packages (as needed) and libraries:
+
+$$
+D = \frac{1}{2} \sum_{i=1}^N \left| \dfrac{a_i}{A} - \dfrac{b_i}{B} \right|
+$$
+
+where
+
+- $N$ is the number of geographic units (e.g., census tracts),
+- $a_i$ is the population of group A (e.g., Black residents) in unit $i$,
+- $A$ is the total population of group A,
+- $b_i$ is the population of group B (e.g., non-Black residents) in unit $i$,
+- $B$ is the total population of group B.
+
+$D$ measures the unevenness or lack of even distribution between Black and non-Black residents across the geographical units of a region $G$. The index $D$ takes on values from $0$ (complete integration) to $1$ (complete segregation) and represents the fraction of a group's population that would need to relocate to achieve an even spatial distribution. For example, if $D = 0.60$, 60% of one group would need to move to different areas to achieve integration.
+
+### Example: Hypothetical City Census Tracts
+
+We can build on the hypothetical example provided by [Dr. Rodney Green (n.d.)](https://coascenters.howard.edu/dissimilarity-index-tutorial){target="_blank"} where he offers a tutorial of the dissimilarity index. In the example, Green (n.d.) models five tracts containing between 10 and 200 residents. I recreate Green's example below:
+
+Consider the following hypothetical city with five census tracts.
+
+*Table 1: Hypothetical distribution of Black ($B$) and White ($W$) households across five census tracts with intermediate calculations toward the Index of Dissimilarity.*
+
+| Tract | $b_i$ | $w_i$ | $\dfrac{b_i}{B = 300}$ | $\dfrac{w_i}{W = 500}$ | absolute difference |
+|-------|-----------|-----------|-------------|-------------|-------------------------|
+| 1     | $b_1 = 50$                         | $w_1 = 10$      | 0.1667      | 0.0200      | 0.1467                  |
+| 2     | $b_2 = 200$                        | $w_2 = 40$      | 0.6667      | 0.0800      | 0.5867                  |
+| 3     | $b_3 = 10$                         | $w_3 = 100$     | 0.0333      | 0.2000      | 0.1667                  |
+| 4     | $b_4 = 30$                         | $w_4 = 200$     | 0.1000      | 0.4000      | 0.3000                  |
+| 5     | $b_5 = 10$                         | $w_5 = 150$     | 0.0333      | 0.3000      | 0.2667                  |
+|      |                         |      |       |       | $\sum =$ 1.47                |
+
+
+
+where,
+
+- $B = \sum b_i = 300$ is the total number of Black households,
+- $W = \sum w_i = 500$ is the total number of White households.
+
+In Green's example, the index of dissimilarity $D$ is computed as follows:
+
+$$
+D = \frac{1}{2} \sum_{i=1}^{\textcolor{red}{N}}  \left| \frac{b_i}{B} - \frac{w_i}{W} \right|
+$$
+
+
+with $N=5$ we update our index:
+
+$$
+D = \frac{1}{2} \sum_{i=1}^{\textcolor{red}{5}} \left| \frac{b_i}{B} - \frac{w_i}{W} \right|
+$$
+
+we then update our population, where $B = \sum b_i = 300$ and $W = \sum w_i = 500$.
+
+$$
+D = \frac{1}{2} \sum_{i=1}^{5} \left| \frac{b_i}{\textcolor{blue}{B = 300}} - \frac{w_i}{\textcolor{blue}{W = 500}} \right|
+$$
+
+So we now have:
+
+$$
+D = \frac{1}{2} \sum_{i=1}^5 \left| \frac{b_i}{300} - \frac{w_i}{500} \right| 
+$$
+
+We then subsitute our values in the expansion, starting with total populations:
+
+$$
+D = \frac{1}{2} \left( 
+\left| \frac{b_1}{300} - \frac{w_1}{500} \right| +
+\left| \frac{b_2}{300} - \frac{w_2}{500} \right| +
+\left| \frac{b_3}{300} - \frac{w_3}{500} \right| +
+\left| \frac{b_4}{300} - \frac{w_4}{500} \right| +
+\left| \frac{b_5}{300} - \frac{w_5}{500} \right|
+\right )
+$$
+
+and then values from each neighborhood in the numerators:
+
+$$
+D = \frac{1}{2} \left(
+\left| \frac{50}{300} - \frac{10}{500} \right| +
+\left| \frac{200}{300} - \frac{40}{500} \right| +
+\left| \frac{10}{300} - \frac{100}{500} \right| +
+\left| \frac{30}{300} - \frac{200}{500} \right| +
+\left| \frac{10}{300} - \frac{150}{500} \right|
+\right)
+$$
+
+
+
+or, more succinctly:
+
+$$
+D = \frac{1}{2} \sum_{i=1}^5 \left| \frac{b_i}{B} - \frac{w_i}{W} \right| = \frac{1}{2} (0.1467 + 0.5867 + 0.1667 + 0.3000 + 0.2667) = 0.7334
+$$
+
+
+Green notes that 73.3 percent of either Black households would need to relocate to another tract to achieve an even distribution. In his discussion, Green first holds the White population constant in each tract and points to [Title VII of the Civil Rights Acts](https://www.eeoc.gov/statutes/title-vii-civil-rights-act-1964){target="_blank"} when "White neighborhoods became available to Black households that previously had been constrained, by law and extra-legal practices, to live in densely populated inner cities" (Green, n.d.). He then presents the example when there is a swap to achieve racial parity across the census tracts. We modify the model and diverge from Green's example toward another end, based on our theoretical framework centered on segregation as one measure of antiblackness (Hudson & McKittrick, 2014; King, Navarro, Smith, 2020).
+
+# Research Question
+
+How segregated are Black residents from other racial groups across census tracts, as quantified by the index of dissimilarity, $D$? 
+
+# Data and Methods
+
+For this analysis, we will use data from the U.S. Census Bureau, which includes information from the [decennial census](https://www.census.gov/programs-surveys/decennial-census.html){target="_blank"} and the [American Community Survey (ACS)](https://www.census.gov/programs-surveys/acs.html){target="_blank"} 5-year estimates from the `tidycensus()` package (Walker, 2023). Additional insights are gathere from Lu et al. (2014).
+
+There are some essential items needed to generate our maps and begin our investigations. First, please make sure you have requested and stored your [Census API key](https://api.census.gov/data/key_signup.html) for easy access. Next, you will need to get set up in R and the [R and the RStudio IDE](https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://posit.co/products/open-source/rstudio/&ved=2ahUKEwjHgNqLouWPAxX8FlkFHS1VCBoQFnoECBkQAQ&usg=AOvVaw2_EHeeDq6zN5gnktCVwGMF){target="_blank"} (or [Posit Cloud](https://posit.cloud/){target="_blank"}) and load the necessary packages and libraries. 
+
+Finally, you will need to select a geographical area that you would like to explore.
 
 ```{r, warning=F, message=F}
 # Install packages as needed
@@ -77,213 +184,538 @@ Start by installing/loading packages (as needed) and libraries:
 
 # Load your Census
 #CENSUS_API_KEY='your_api_key'
-#census_api_key("YOUR KEY GOES HERE", install = TRUE)
 
 # Load necessary libraries
 library(tidycensus)
 library(dplyr)
 library(ggplot2)
 library(sf)
+library(viridis)
+library(scales)
 ```
 
----
+## Model Assumptions
 
-## Gathering data
+We will suppose that a geographical area, $G$, consists of $N$ tracts such that $$G = \{g_1, g_2, g_3, ...g_N\} = \{tract_1, tract_2, tract_3, ..., tract_N\}$$
 
-We'll start by gathering the data using the `get_acs()` function.
+where,
 
-### DC
+- $G$ is the set of census tracts that fully cover a geographical area,
+- $g_i$ is the $i$-th tract such that $g_1 =$ tract 1, $g_2 =$ tract 2, $g_3 =$ tract 3, ..., 
+- $N$ is the number of geographic units (e.g., census tracts)
 
-Given the size of DC, we will use `geography = "tract"`.
+We assume that $G$ can be modeled by discrete data over a minimum population of $n$ individuals, where there is at least one individual in each unit, i.e., $n \ge N$ (so that no unit in $G$ is empty, i.e., all geographical units contain at least one individual).
 
-```{r, message=F, warning=F}
-dc_income <- get_acs(
-  geography = "tract",
-  variables = "B19013_001",
-  state = "DC",
-  year = 2023
-)
+We also modify the group meanings in the model to attend to the theoretical framework centered on measures of segregation that support our continued understanding of antiblackness. Specifically, we have:
 
-dc_income
-```
 
-### NC
+$$
+\hat{D} = \frac{1}{2} \sum_{i=1}^N \left| \dfrac{b_i}{B} - \dfrac{o_i}{O} \right|
+$$
 
-For NC, we'll use `geography = "county"`.
+where
 
-```{r, message=F, warning=F}
-nc_income <- get_acs(
-  geography = "county",
-  variables = "B19013_001",
-  state = "NC",
-  year = 2023
-)
+- $N$ is the number of geographic units (e.g., census tracts),
+- $b_i$ is the population of Black residents in unit $i$,
+- $B$ is the total population of Black residents,
+- $o_i$ is the population of non-Black (other) residents in unit $i$,
+- $O$ is the total population of non-Black (other) residents.
 
-nc_income
-```
-
-## Spatial data
-
-We'll now add the spatial data to our income data using the simple features `sf` conditions via `geometry = T`. Take note that we'll use the same code above but simply add a new last line of code.
-
-We'll use `geometry=T` and update the name of our `df`.
-
-## DC spatial data
-
-Gathering spatial data for DC at the tract level.
-
-```{r, message=F, warning=F, results=F}
-dc_income_sf <- get_acs(
-  geography = "tract",
-  variables = "B19013_001",
-  state = "DC",
-  year = 2023,
-  geometry = T
-)
-```
-
-```{r, message=F, warning=F}
-dc_income_sf
-```
-
-## NC spatial data
-
-Gathering spatial data for NC at the county level.
-
-```{r, message=F, warning=F, results=F}
-nc_income_sf <- get_acs(
-  geography = "county",
-  variables = "B19013_001",
-  state = "NC",
-  year = 2023,
-  geometry = T
-)
-```
-
-# Mapping
-
-We can use our spatial data frames to generate a plot using the `plot()` function.
+# Findings
 
 ## DC
 
-We'll use the DC income data to plot. Recall that we neeed to use our `sf` df.
+Given the structure of DC, we begin with `geography = "tract"`.
 
-```{r, message=F, warning=F}
-plot(dc_income_sf)
+```{r, output=F, message=F, warning=F}
+dc_tracts <- get_acs(
+  geography = "tract",
+  variables = c(black = "B02001_003", # Black/African American population alone
+                total = "B01001_001" # Total population
+  ),
+  state = "DC",
+  year = 2023,
+  geometry = T,
+  output = "wide"
+)
+
+dc_tracts %>% 
+  head()
 ```
 
-Note here that we get multiple maps, which is not likely what you want. Each of the maps contains information for the variables in our data set. We'll need to specify that we want the estimates.
+### Black population
+
+We then plot our data to get an initial visual of Black population.
 
 ```{r, message=F, warning=F}
-plot(dc_income_sf['estimate'])
+ggplot(dc_tracts) +
+  geom_sf(aes(fill = blackE)) +
+  scale_fill_viridis_c(option = "magma", 
+                       na.value = "grey50",
+                       labels = comma) + # this is where we apply the scales lib
+  labs(title = "Estimated Black Population by Census Tract in DC (2023)",
+       fill = "Population") +
+  theme_minimal()
+```
+
+### Non-Black population
+
+We then create a non-black estimate.
+
+```{r, message=F, warning=F}
+dc_tracts <- dc_tracts %>% 
+  mutate(nonblackE = totalE - blackE) %>% # non-black = total pop - black pop
+  select(GEOID, blackE, nonblackE, totalE)
+
+#View(dc_tracts)
+```
+
+And the data for non-Black individuals.
+
+```{r, message=F, warning=F}
+ggplot(dc_tracts) +
+  geom_sf(aes(fill = nonblackE)) +
+  scale_fill_viridis_c(option = "magma", 
+                       na.value = "grey50",
+                       labels = comma) +
+  labs(title = "Estimated Non-Black Population by Census Tract in DC (2023)",
+       fill = "Population") +
+  theme_minimal()
+```
+
+
+---
+
+Now that we know our maps feature is working, we begin our investigation.
+
+
+### Index of Dissimilarity
+
+We first make a `dc_black_pop` data frame.
+
+```{r, output=F, message=F, warning=F}
+# Get Black population by tract in DC
+dc_black_pop <- get_acs(
+  geography = "tract",
+  variables = "B02001_003",  # Black alone
+  state = "DC",
+  year = 2023,
+  geometry = T
+) %>%
+  mutate(estimate_black = estimate)
+```
+
+We then grab the total population by tract in DC, we will call it `dc_total_pop`.
+
+```{r, output=F, message=F, warning=F}
+# Get total population by tract in DC
+dc_total_pop <- get_acs(
+  geography = "tract",
+  variables = "B01003_001",  # total population
+  state = "DC",
+  year = 2023,
+  geometry = F # note that we have geometry turned off here
+) %>%
+  mutate(estimate_total = estimate)
+```
+
+We then combine the black population with the total population.
+
+```{r, message=F, warning=F}
+dc_combined <- left_join(dc_black_pop, dc_total_pop, by = "GEOID") %>%
+  mutate(estimate_nonblack = estimate_total - estimate_black) %>%
+  st_as_sf()
+```
+
+We then check our combined data with the other estimates.
+
+```{r, message=F, warning=F}
+dc_combined %>% 
+  relocate(GEOID, estimate_total) %>% 
+  arrange(desc(estimate_black)) %>% 
+  head()
+```
+
+We then calculate the proportion of Black people in all DC tracts.
+
+```{r, message=F, warning=F}
+total_black <- sum(dc_combined$estimate_black, na.rm = TRUE) # this is represented by big B 
+total_nonblack <- sum(dc_combined$estimate_nonblack, na.rm = TRUE) # this is represented by big O
+
+dc_combined <- dc_combined %>% 
+  mutate(proportion_black = estimate_black / estimate_total)
+```
+
+Now we can view the top 10 tracts with the highest proportion of Black individuals.
+
+```{r, message=F, warning=F}
+dc_combined %>%
+  mutate(proportion_non_black = 1 - proportion_black) %>% 
+  arrange(desc(proportion_black)) %>% 
+  select(GEOID, proportion_black, proportion_non_black) %>% 
+  head(n = 10)
+```
+
+
+We can also calculate the proportion of tracts that are above a certain threshold of Black only individuals. Here we set the threshold at tracts with 75 percent or more Black residents.
+
+```{r, message=F, warning=F}
+dc_combined %>%
+  # Count how many tracts have proportion_black >= 0.75
+  summarise(
+    total_tracts = n(),
+    tracts_above_threshold = sum(proportion_black >= 0.75),
+    proportion_above_threshold = mean(proportion_black >= 0.75)
+  )
+```
+
+We see that one-fourth of all DC tracts have a population of more than 75 percent Black.
+
+Finally, we calculate $D$.
+
+```{r, message=F, warning=F}
+dissimilarity_dc = 0.5 * sum(abs(
+  (dc_combined$estimate_black / total_black) -
+  (dc_combined$estimate_nonblack / total_nonblack)
+), na.rm = TRUE)
+```
+
+We print our result.
+
+```{r, message=F, warning=F}
+dissimilarity_dc
+```
+
+
+Values between roughly 0.3 to 0.6 indicate moderate segregation; above 0.6 is high segregation. In this instance, the model result suggests significant residential segregation by race in DC. We close by visualizing our result and the potential [dividing wall](#conceptual-model).
+
+```{r, message=F, warning=F}
+# we need to manually convert our combined data frame to include simnple features
+dc_combined <- st_as_sf(dc_combined)
+
+ggplot(dc_combined) +
+  geom_sf(aes(fill = proportion_black), color = "white") +
+  scale_fill_viridis_c(option = "plasma", direction = -1) +
+  labs(title = "Proportion of Black Residents by Census Tract in DC",
+       fill = "Proportion Black") +
+  theme_minimal()
+```
+
+### Is there a dividing wall?
+
+Given that our model result indicate a significant measure of segregation, we proceed with identifying the dividing wall. The maps we have viewed up to this point give us a clear view of where that wall may be.
+
+```{r, message=F, warning=F}
+dc_combined <- dc_combined %>%
+  mutate(majority_black = proportion_black > 0.5)
+```
+
+We'll join geometries by group.
+
+```{r, message=F, warning=F}
+# Union geometries by group
+union_black <- dc_combined %>%
+  filter(majority_black) %>%
+  summarise(geometry = st_union(geometry))
+
+union_nonblack <- dc_combined %>%
+  filter(!majority_black) %>%
+  summarise(geometry = st_union(geometry))
+```
+
+We then calculate boundary (difference) between groups (shared border).
+
+```{r, message=F, warning=F}
+boundary_line = 
+  st_intersection(st_boundary(union_black), st_boundary(union_nonblack))
+```
+
+We then plot the base polygons for the dividing wall.
+
+```{r, message=F, warning=F}
+ggplot() +
+  geom_sf(data = dc_combined, aes(fill = majority_black), 
+          color = "grey40", 
+          alpha = 0.5) +
+  geom_sf(data = boundary_line, 
+          color = "red", 
+          size = 1) +
+  labs(title = "Dividing Wall Between Majority Black and Non-Black Areas") +
+  theme_minimal()
 ```
 
 ## NC
 
-We'll do the same for NC.
+DC is a special case since it is a city-state.
 
-```{r, message=F, warning=F}
-plot(nc_income_sf['estimate'])
+For NC, we'll use `geography = "county"` and then make our way down to `tracts`.
+
+---
+
+### County-level data
+
+```{r, output=F, message=F, warning=F}
+nc_counties <- get_acs(
+  geography = "county",
+  variables = c(black = "B02001_003", # Black/African American population alone
+                total = "B01001_001" # Total population
+  ),
+  state = "NC",
+  year = 2023,
+  geometry = T,
+  output = "wide"
+)
+
+# Add county FIPS code by extracting first 5 digits of GEOID
+nc_counties <- nc_counties %>%
+  mutate(county_fips = substr(GEOID, 1, 5)) %>% 
+  relocate(GEOID, county_fips)
+
+#View(nc_counties)
 ```
 
-At the state level, it is very clear what the purpose of our analysis would be. We'll likely want to follow a specific research question from this point.
+We can take a `glimpse` of our data.
 
-I will modify the code to look at a specific county in NC, Mecklenburg County.
- 
-Take note of the new rows added:
-- geography = tract
-- state = NC
-- county = "Mecklenburg"
+```{r, message=F, warning=F}
+head(nc_counties) %>% 
+  select(GEOID, county_fips, NAME, blackE, totalE)
+```
 
-```{r, message=F, warning=F, results=F}
-nc_mecklenburg_income_sf <- get_acs(
+#### What counties have the highest and lowest proportions of Black people?
+
+We first view the data for counties with the largest Black populations.
+
+```{r, message=F, warning=F}
+nc_counties %>% 
+  arrange(desc(blackE)) %>%  # desc is descending order
+  head(n=10)
+```
+
+Alternatively, we can view counties with large proportions of Black residents.
+
+```{r, message=F, warning=F}
+nc_counties %>% 
+  mutate(prop_black = blackE / totalE) %>% 
+  relocate(GEOID, prop_black) %>% 
+  arrange(desc(prop_black))
+```
+
+We see that Bertie County, NC has the highest proportion of Black people in the state, but only by a small margin. Alternatively, in the code below, we see that Yancey, Graham, Mitchell, and Haywood counties have the lowest proportion of Black people in the state.
+
+```{r, message=F, warning=F}
+nc_counties %>% 
+  mutate(prop_black = blackE / totalE) %>% 
+  relocate(GEOID, prop_black) %>% 
+  arrange(-desc(prop_black))
+```
+
+These maps will vary by state, and there are many directions to go to from this point. For example we could do some of the following:
+
+- Examine counties with the highest proprtion of Black residents and gather a measure of residential segregation,
+- Examine counties with the lowest proportion of Black residents and gather a measure of residential segregation,
+- Look specifically at those counties with high numbers of white individuals as a proxy for other to assess the relationship to counties with low or high proportion of Black individuals as a basic model of segregation
+
+Here is where theory meets our computational practice.
+
+### Mecklenburg County, NC
+
+I will select my home county: Mecklenburg County, NC for further investigation.
+
+```{r, output=F, message=F, warning=F}
+meck_tracts <- get_acs(
   geography = "tract",
+  variables = c(
+    black = "B02001_003",      # Black or African American alone
+    total = "B01001_001"       # Total population
+  ),
   state = "NC",
   county = "Mecklenburg",
-  variables = "B19013_001",
   year = 2023,
-  geometry = T
+  geometry = TRUE,
+  output = "wide"
 )
+
+meck_tracts %>% 
+  head()
 ```
 
-We then view the data.
+#### Black population
+
+We then plot our data to get an initial visual of Black population.
 
 ```{r, message=F, warning=F}
-nc_mecklenburg_income_sf
+ggplot(meck_tracts) +
+  geom_sf(aes(fill = blackE), color = NA) +
+  scale_fill_viridis_c(option = "magma", na.value = "grey50", labels = comma) +
+  labs(title = "Estimated Black Population by Census Tract in Mecklenburg County, NC (2023)",
+       fill = "Population") +
+  theme_minimal()
 ```
 
-We then plot the data.
+#### Non-Black population
+
+We then create a non-black estimate.
 
 ```{r, message=F, warning=F}
-plot(nc_mecklenburg_income_sf['estimate'])
+meck_tracts <- meck_tracts %>% 
+  mutate(nonblackE = totalE - blackE) %>% 
+  select(GEOID, blackE, nonblackE, totalE)
 ```
 
-This graph is at a more focused geographic level, similar to the DC map.
-
-# Improving your map
-
-We can also modify more visually appealing maps.
-
-Let's add the `vidris` library to enhance the visualization.
+And the data for non-Black individuals.
 
 ```{r, message=F, warning=F}
-library(viridis)
+ggplot(meck_tracts) +
+  geom_sf(aes(fill = nonblackE)) +
+  scale_fill_viridis_c(option = "magma", 
+                       na.value = "grey50",
+                       labels = comma) +
+  labs(title = "Estimated Non-Black Population by Census Tract in DC (2023)",
+       fill = "Population") +
+  theme_minimal()
 ```
 
-Then we'll produce the map using `ggplot2`.
+---
+
+### Index of Dissimilarity
+
+We can calculate the proportion of Black people in all Mecklenburg tracts.
 
 ```{r, message=F, warning=F}
-ggplot(nc_mecklenburg_income_sf) +
-  geom_sf(aes(fill = estimate), color = "white", size = 0.1) +
-  scale_fill_viridis(option = "magma", name = "Median Household Income") +
-  labs(
-    title = "Median Household Income in Mecklenburg County, NC",
-    subtitle = "By Census Tract (2023)",
-    caption = "Data: American Community Survey 5-Year Estimates"
-  ) +
-  theme_minimal() +
-  theme(
-    plot.title = element_text(face = "bold", size = 16),
-    plot.subtitle = element_text(size = 12),
-    axis.title = element_blank(),
-    legend.position = "right"
+meck_tracts <- meck_tracts %>% 
+  mutate(proportion_black = blackE / totalE) %>%
+  mutate(proportion_non_black = 1 - proportion_black)
+```
+
+Now we can view the top 10 tracts with the highest proportion of Black individuals.
+
+```{r, message=F, warning=F}
+meck_tracts %>%
+  arrange(desc(proportion_black)) %>% 
+  select(GEOID, proportion_black, proportion_non_black) %>% 
+  head(n = 10)
+```
+
+As we did before, we can also calculate the proportion of tracts that are above a certain threshold of Black only individuals. Here we set the threshold at tracts with 60 percent or more Black residents given the size of the state.
+
+Note that we need to remove the geometry feature before summarizing.
+
+```{r, message=F, warning=F}
+meck_tracts %>%
+  st_set_geometry(NULL) %>%   # Remove geometry to treat as normal data.frame
+  summarise(
+    total_tracts = n(),
+    tracts_above_threshold = sum(proportion_black >= 0.60, na.rm = TRUE),
+    proportion_above_threshold = mean(proportion_black >= 0.60, na.rm = TRUE)
   )
 ```
 
-# Interactive maps
+Approximately 10 percent of tracts have a Black population greater than or equal to 60 percent in NC.
 
-We can also make interactive maps with various specifications.
-
-We'll first need to load the `mapview` library to make an interactive map.
+Finally, we calculate $D$ for the county.
 
 ```{r, message=F, warning=F}
-library(mapview)
+meck_total_black <- sum(meck_tracts$blackE, na.rm = TRUE)
+meck_total_nonblack <- sum(meck_tracts$nonblackE, na.rm = TRUE)
+
+dissimilarity_meck <- 0.5 * sum(abs(
+  (meck_tracts$blackE / total_black) - 
+  (meck_tracts$nonblackE / total_nonblack)
+), na.rm = TRUE)
 ```
 
-Then we'll call both our data frame with the `sf` option and specify that we want the estimate.
+We print our result.
 
 ```{r, message=F, warning=F}
-mapview(
-  dc_income_sf, 
-  zcol = "estimate"
-)
+dissimilarity_meck
 ```
 
-We'll do the same for NC.
+Values between roughly 0.3 to 0.6 indicate moderate segregation; above 0.6 is high segregation. In this instance, the model result suggests significant residential segregation by race in Mecklenburg County. We close by visualizing our result and the potential dividing wall.
 
 ```{r, message=F, warning=F}
-mapview(
-  nc_income_sf, 
-  zcol = "estimate"
-)
+ggplot(meck_tracts) +
+  geom_sf(aes(fill = proportion_black), color = "white") +
+  scale_fill_viridis_c(option = "plasma", direction = -1) +
+  labs(title = "Proportion of Black Residents by Census Tract in DC",
+       fill = "Proportion Black") +
+  theme_minimal()
 ```
 
-Then finally for Mecklenburg County, NC.
+### Is there a dividing wall?
+
+Given that our model result indicate a significant measure of segregation, we proceed with identifying the dividing wall. The maps we have viewed up to this point give us a clear view of where that wall may be.
 
 ```{r, message=F, warning=F}
-mapview(
-  nc_mecklenburg_income_sf, 
-  zcol = "estimate"
-)
+meck_tracts <- meck_tracts %>%
+  mutate(majority_black = proportion_black > 0.5)
 ```
+
+We’ll join geometries by group.
+
+```{r, message=F, warning=F}
+# Union geometries by group
+meck_union_black <- meck_tracts %>%
+  filter(majority_black) %>%
+  summarise(geometry = st_union(geometry))
+
+meck_union_nonblack <- meck_tracts %>%
+  filter(!majority_black) %>%
+  summarise(geometry = st_union(geometry))
+```
+
+We then calculate boundary (difference) between groups (shared border).
+
+```{r, message=F, warning=F}
+meck_boundary_line = 
+  st_intersection(st_boundary(meck_union_black), st_boundary(meck_union_nonblack))
+```
+
+We then plot the base polygons for the dividing wall.
+
+```{r, message=F, warning=F}
+ggplot() +
+  geom_sf(data = meck_tracts, aes(fill = majority_black), 
+          color = "grey40", 
+          alpha = 0.5) +
+  geom_sf(data = meck_boundary_line, 
+          color = "red", 
+          size = 1) +
+  labs(title = "Dividing Walls Between Majority Black and Non-Black Areas in Mecklenburg County, NC") +
+  theme_minimal()
+```
+
+From an analysis of history regarding the region, and contextual knowledge about the urban make-up of Charlotte, NC, which is the major proportion of the area, there is clear evidence of white flight given the shape of the dividing wall.
+
+Where might you go from here?
+
+\newpage
+
+# References
+
+Hudson, P. J., & McKittrick, K. (2014). The geographies of blackness and anti-blackness. [*The CLR James Journal, 20*(1/2), 233–240.](){target="_blank"}
+
+King, T. L., Navarro, J., & Smith, A. (2020). *Otherwise worlds: Against settler colonialism and anti-blackness*. [Duke University Press.](https://dukeupress.edu/otherwise-worlds){target="_blank"}
+
+Lu, B., Harris, P., Charlton, M., & Brunsdon, C. (2014). The GWmodel R package: Further topics for exploring spatial heterogeneity using geographically weighted models. [*Geo-Spatial Information Science, 17*(2), 85–101.](https://www.tandfonline.com/doi/full/10.1080/10095020.2014.928460){target="_blank"}
+
+Sørensen, A. B. (1978). Mathematical models in sociology. [*Annual Review of Sociology, 4*, 345–371.](https://www.annualreviews.org/doi/10.1146/annurev.so.04.080178.002021){target="_blank"}
+
+Walker, K. (2023). *Analyzing US census data: Methods, maps, and models in R*. [Chapman.](https://walker-data.com/census-r/){target="_blank"}
+
+\newpage
+
+# Coda
+
+While the index of dissimilarity offers a clear and interpretable measure of segregation, it is only one facet of complex social dynamics. Future work could extend this analysis by incorporating:
+
+- Isolation and clustering indices to capture different aspects of segregation.
+- Temporal dynamics to assess how patterns shift over time.
+- Qualitative data integration to contextualize spatial patterns with lived experiences.
+- Policy evaluation assessing impacts of urban planning and housing initiatives.
+
+This technical file lays the foundation for quantitative historical geography research by demonstrating reproducible workflows with open Census data and modern R tools. The methodologies presented can be readily adapted to other metropolitan areas and demographic groups for comparative analyses.
+
+Continued interdisciplinary collaboration will deepen our understanding of spatial inequality and support informed efforts to foster equitable communities.
+
+Document ID: 20250922-na
 
