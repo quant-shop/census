@@ -287,7 +287,7 @@ ggplot(dc_tracts) +
 ---
 
 Now that we know our maps feature is working, we begin our investigation.
-
+ 
 
 ### Index of Dissimilarity
 
