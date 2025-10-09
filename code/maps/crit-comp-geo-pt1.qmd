@@ -546,7 +546,9 @@ We then plot our data to get an initial visual of Black population.
 ```{r, message=F, warning=F}
 ggplot(meck_tracts) +
   geom_sf(aes(fill = blackE), color = NA) +
-  scale_fill_viridis_c(option = "magma", na.value = "grey50", labels = comma) +
+  scale_fill_viridis_c(option = "magma", 
+                       na.value = "grey50", 
+                       labels = comma) +
   labs(title = "Estimated Black Population by Census Tract in Mecklenburg County, NC (2023)",
        fill = "Population") +
   theme_minimal()
