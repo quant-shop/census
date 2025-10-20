@@ -1,0 +1,801 @@
+---
+title: "Practice 1st Map"
+output: html_document
+date: "2025-08-21"
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+CENSUS_API_KEY='26159516795d09459366510a84d651766146464a'
+
+```
+
+```{r}
+install.packages("tidycensus")
+install.packages("tidyverse")
+install.packages("mapview")
+install.packages("mapgl")
+install.packages("sf")
+                   
+
+```
+
+```{r}
+library(tidycensus)
+library(dplyr)
+library(ggplot2)
+library(sf)
+```
+
+```{r}
+nc_income_sf = get_acs(
+  geography = "county",
+  variables = "B19013_001",
+  state = "NC",
+  year = 2023,
+  geometry = T
+)
+
+
+```
+
+```{r}
+
+plot(nc_income_sf['estimate'])
+```
+```{r}
+install.packages("mapview")
+library(mapview)
+
+```
+```{r}
+mapview(
+  nc_income_sf, 
+  zcol = "estimate"
+)
+```
+
+```{r}
+nc_data <- get_acs(
+  geography = "county",
+  variables = c(
+    median_income = "B19013_001",
+    per_capita_income = "B19301_001",
+    poverty = "B17001_002",
+    total_population = "B01003_001",
+    median_home_value = "B25077_001"
+  ),
+  state = "NC",
+  year = 2023,
+  geometry = TRUE
+)
+
+
+```
+
+```{r}
+print(nc_income_sf)
+
+```
+
+```{r}
+library(tidycensus)
+library(dplyr)
+library(mapview)
+
+vars <- c(
+  median_income   = "B19013_001",  # median household income
+  percap_income   = "B19301_001",  # per capita income
+  poverty_count   = "B17001_002",  # persons below poverty
+  total_pop       = "B01003_001",   # total population
+  male_pop      = "B01001_002",    # male population
+  female_pop    = "B01001_026"     # female population
+)
+
+nc_long <- get_acs(
+  geography = "county",
+  variables = vars,
+  state = "NC",
+  year = 2023,
+  geometry = TRUE
+)
+
+```
+
+```{r}
+# Pick a different variable to map by changing zcol
+mapview(nc_long |> filter(variable == "percap_income"),
+        zcol = "estimate")
+
+```
+
+```{r}
+mapview(nc_long |> filter(variable == "median_income"),
+        zcol = "estimate")
+
+```
+
+```{r}
+mapview(nc_long |> filter(variable == "total_pop"),
+        zcol = "estimate")
+
+```
+
+```{r}
+mapview(nc_long |> filter(variable == "poverty_count"),
+        zcol = "estimate")
+
+
+```
+
+```{r}
+
+vars <- c(
+  median_income = "B19013_001",
+  male_pop      = "B01001_002",
+  female_pop    = "B01001_026"
+)
+
+mapview(nc_long |> filter(variable == "male_pop"),
+        zcol = "estimate")
+
+```
+
+```{r}
+mapview(nc_long |> filter(variable == "female_pop"),
+        zcol = "estimate")
+
+
+```
+
+
+
+
+```{r}
+library(tidycensus)
+library(dplyr)
+library(ggplot2)
+library(sf)
+
+```
+```{r}
+library(tidycensus)
+library(dplyr)
+library(ggplot2)
+library(sf)
+
+```
+
+```{r}
+nc_income_sf <- get_acs(
+  geography = "county",
+  variables = "B19013_001",
+  state = "NC",
+  year = 2023,
+  geometry = T
+)
+```
+
+```{r}
+plot(nc_income_sf['estimate'])
+
+```
+
+```{r}
+nc_mecklenburg_income_sf <- get_acs(
+  geography = "tract",
+  state = "NC",
+  county = "Mecklenburg",
+  variables = "B19013_001",
+  year = 2023,
+  geometry = T
+)
+
+```
+
+```{r}
+nc_mecklenburg_income_sf
+
+
+
+```
+
+```{r}
+
+plot(nc_mecklenburg_income_sf['estimate'])
+```
+
+```{r}
+
+library(viridis)
+ggplot(nc_mecklenburg_income_sf) +
+  geom_sf(aes(fill = estimate), color = "white", size = 0.1) +
+  scale_fill_viridis(option = "magma", name = "Median Household Income") +
+  labs(
+    title = "Median Household Income in Mecklenburg County, NC",
+    subtitle = "By Census Tract (2023)",
+    caption = "Data: American Community Survey 5-Year Estimates"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 12),
+    axis.title = element_blank(),
+    legend.position = "right"
+  )
+
+```
+
+```{r}
+mapview(
+  nc_mecklenburg_income_sf, 
+  zcol = "estimate"
+)
+
+```
+`
+```{r}
+mapview( nc_mecklenburg_income_sf |> filter(variable == "male_pop"),
+        zcol = "estimate")
+
+"alpha.regions = .5 changes the transparency of the map"
+
+
+```
+
+```{r}
+dc_income = get_acs(
+  geography = "tract",
+  variables = "B19013_001",
+  state = "DC",
+  year = 2023,
+  geometry = T
+)
+
+mapview(
+  dc_income,
+  zcol = "estimate"
+)
+
+```
+
+
+
+
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+```{r}
+install.packages("praise")
+library(praise)
+praise()
+```
+
+```{r}
+
+atl_income = get_acs(
+  geography = "tract",
+  variables = "B19013_001",
+  state = "Georgia",
+  year = 2023,
+  geometry = T
+)
+
+mapview(
+  atl_income,
+  zcol = "estimate"
+)
+
+```
+```{r}
+atl_income_2 <- get_acs(
+  geography = "tract",
+  state = "GA",
+  county = "Fulton",
+  variables = "B19013_001",
+  year = 2023,
+  geometry = T
+)
+
+mapview(
+  atl_income_2,
+  zcol = "estimate"
+)
+
+```
+
+```{r}
+# Install packages as needed
+# install.packages(c("tidycensus", "tidyverse", "mapview", "mapgl", "quarto"))
+
+# Load your Census
+#CENSUS_API_KEY='your_api_key'
+
+# Load necessary libraries
+library(tidycensus)
+library(dplyr)
+library(ggplot2)
+library(sf)
+library(viridis)
+library(scales)
+
+```
+
+```{r}
+dc_tracts <- get_acs(
+  geography = "tract",
+  variables = c(black = "B02001_003", # Black/African American population alone
+                total = "B01001_001" # Total population
+  ),
+  state = "DC",
+  year = 2023,
+  geometry = T,
+  output = "wide"
+)
+
+dc_tracts %>% 
+  head()
+```
+
+```{r}
+ggplot(dc_tracts) +
+  geom_sf(aes(fill = blackE)) +
+  scale_fill_viridis_c(option = "magma", 
+                       na.value = "grey50",
+                       labels = comma) +
+  labs(title = "Estimated Black Population by Census Tract in DC (2023)",
+       fill = "Population") +
+  theme_minimal()
+```
+
+```{r}
+dc_tracts <- dc_tracts %>% 
+  mutate(nonblackE = totalE - blackE) %>% 
+  select(GEOID, blackE, nonblackE, totalE)
+
+```
+
+```{r}
+ggplot(dc_tracts) +
+  geom_sf(aes(fill = nonblackE)) +
+  scale_fill_viridis_c(option = "magma", 
+                       na.value = "grey50",
+                       labels = comma) +
+  labs(title = "Estimated Non-Black Population by Census Tract in DC (2023)",
+       fill = "Population") +
+  theme_minimal()
+```
+```{r}
+# Get Black population by tract in DC
+dc_black_pop <- get_acs(
+  geography = "tract",
+  variables = "B02001_003",  # Black alone
+  state = "DC",
+  year = 2023,
+  geometry = T
+) %>%
+  mutate(estimate_black = estimate)
+
+
+```
+```{r}
+# Get total population by tract in DC
+dc_total_pop <- get_acs(
+  geography = "tract",
+  variables = "B01003_001",  # total population
+  state = "DC",
+  year = 2023,
+  geometry = F # note that we have geometry turned off here
+) %>%
+  mutate(estimate_total = estimate)
+
+```
+
+```{r}
+dc_combined <- left_join(dc_black_pop, dc_total_pop, by = "GEOID") %>%
+  mutate(estimate_nonblack = estimate_total - estimate_black) %>%
+  st_as_sf()
+
+```
+
+```{r}
+dc_combined %>% 
+  relocate(GEOID, estimate_total) %>% 
+  arrange(desc(estimate_black)) %>% 
+  head()
+
+```
+```{r}
+total_black <- sum(dc_combined$estimate_black, na.rm = TRUE)
+total_nonblack <- sum(dc_combined$estimate_nonblack, na.rm = TRUE)
+
+dc_combined <- dc_combined %>% 
+  mutate(proportion_black = estimate_black / estimate_total)
+
+```
+
+```{r}
+dc_combined %>%
+  mutate(proportion_non_black = 1 - proportion_black) %>% 
+  arrange(desc(proportion_black)) %>% 
+  select(GEOID, proportion_black, proportion_non_black) %>% 
+  head(n = 10)
+
+```
+
+```{r}
+dc_combined %>%
+  # Count how many tracts have proportion_black >= 0.75
+  summarise(
+    total_tracts = n(),
+    tracts_above_threshold = sum(proportion_black >= 0.75),
+    proportion_above_threshold = mean(proportion_black >= 0.75)
+  )
+
+```
+
+```{r}
+dissimilarity_dc = 0.5 * sum(abs(
+  (dc_combined$estimate_black / total_black) -
+  (dc_combined$estimate_nonblack / total_nonblack)
+), na.rm = TRUE)
+#Count the D, or the solution to the computational formula
+dissimilarity_dc
+```
+```{r}
+# we need to manually convert our combined data frame to include simnple features
+dc_combined <- st_as_sf(dc_combined)
+
+ggplot(dc_combined) +
+  geom_sf(aes(fill = proportion_black), color = "white") +
+  scale_fill_viridis_c(option = "plasma", direction = -1) +
+  labs(title = "Proportion of Black Residents by Census Tract in DC",
+       fill = "Proportion Black") +
+  theme_minimal()
+
+```
+
+```{r}
+dc_combined <- dc_combined %>%
+  mutate(majority_black = proportion_black > 0.5)
+
+```
+
+```{r}
+# Union geometries by group
+union_black <- dc_combined %>%
+  filter(majority_black) %>%
+  summarise(geometry = st_union(geometry))
+
+union_nonblack <- dc_combined %>%
+  filter(!majority_black) %>%
+  summarise(geometry = st_union(geometry))
+
+```
+
+```{r}
+boundary_line = 
+  st_intersection(st_boundary(union_black), st_boundary(union_nonblack))
+
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = dc_combined, aes(fill = majority_black), 
+          color = "grey40", 
+          alpha = 0.5) +
+  geom_sf(data = boundary_line, 
+          color = "black", 
+          size = 1) +
+  labs(title = "Dividing Wall Between Majority Black and Non-Black Areas") +
+  theme_minimal()
+```
+
+```{r}
+md_counties <- get_acs(
+  geography = "county",
+  variables = c(black = "B02001_003", # Black/African American population alone
+                total = "B01001_001" # Total population
+  ),
+  state = "Md",
+  year = 2023,
+  geometry = T,
+  output = "wide"
+)
+
+# Add county FIPS code by extracting first 5 digits of GEOID
+md_counties <- md_counties %>%
+  mutate(county_fips = substr(GEOID, 1, 5)) %>% 
+  relocate(GEOID, county_fips)
+
+head(md_counties) %>% 
+  select(GEOID, county_fips, NAME, blackE, totalE)
+
+```
+```{r}
+md_tracts <- get_acs(
+  geography = "tract",
+  variables = c(
+    black = "B02001_003",      # Black or African American alone
+    total = "B01001_001"       # Total population
+  ),
+  state = "Md",
+  county = "Prince George's",
+  year = 2023,
+  geometry = TRUE,
+  output = "wide"
+)
+
+md_tracts %>% 
+  head()
+
+```
+
+```{r}
+ggplot(md_tracts) +
+  geom_sf(aes(fill = blackE), color = NA) +
+  scale_fill_viridis_c(option = "magma", na.value = "grey50", labels = comma) +
+  labs(title = "Estimated Black Population by Census Tract in Prince George's County, MD (2023)",
+       fill = "Population") +
+  theme_minimal()
+
+```
+```{r}
+md_tracts <- md_tracts %>% 
+  mutate(nonblackE = totalE - blackE) %>% 
+  select(GEOID, blackE, nonblackE, totalE)
+
+
+```
+
+```{r}
+
+
+```
+
+
+
+
+```{r}
+pg_black_pop <- get_acs(
+  geography = "county",
+  variables = "B02001_003",  # Black alone
+  state = "Md",
+  county = "Prince George's",
+  year = 2023,
+  geometry = T
+) %>%
+  mutate(estimate_black = estimate)
+
+```
+
+```{r}
+ggplot(md_tracts) +
+  geom_sf(aes(fill = nonblackE)) +
+  scale_fill_viridis_c(option = "magma", 
+                       na.value = "grey50",
+                       labels = comma) +
+  labs(title = "Estimated Non-Black Population by Census Tract in DC (PG 2023)",
+       fill = "Population") +
+  theme_minimal()
+```
+
+```
+
+
+```{r}
+pg_total_pop <- get_acs(
+  geography = "county",
+  variables = "B01003_001",  # total population
+  state = "Md",
+  county = "Prince George's",
+  year = 2023,
+  geometry = F # note that we have geometry turned off here
+) %>%
+  mutate(estimate_total = estimate)
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+
+```{r}
+pg_total_pop <- get_acs(
+  geography = "county",
+  variables = "B01003_001",  # total population
+  state = "Md",
+  county = "Prince George's",
+  year = 2023,
+  geometry = F # note that we have geometry turned off here
+) %>%
+  mutate(estimate_total = estimate)
+
+```
+
+```{r}
+pg_combined <- left_join(pg_black_pop, pg_total_pop, by = "GEOID") %>%
+  mutate(estimate_nonblack = estimate_total - estimate_black) %>%
+  st_as_sf()
+```
+
+```{r}
+pg_combined %>% 
+  relocate(GEOID, estimate_total) %>% 
+  arrange(desc(estimate_black)) %>% 
+  head()
+```
+
+```{r}
+total_black <- sum(pg_combined$estimate_black, na.rm = TRUE)
+total_nonblack <- sum(pg_combined$estimate_nonblack, na.rm = TRUE)
+
+pg_combined <- pg_combined %>% 
+  mutate(proportion_black = estimate_black / estimate_total)
+```
+
+```{r}
+
+pg_combined %>%
+  mutate(proportion_non_black = 1 - proportion_black) %>% 
+  arrange(desc(proportion_black)) %>% 
+  select(GEOID, proportion_black, proportion_non_black) %>% 
+  head(n = 10)
+```
+
+```{r}
+pg_combined %>%
+  # Count how many tracts have proportion_black >= 0.75
+  summarise(
+    total_tracts = n(),
+    tracts_above_threshold = sum(proportion_black >= 0.75),
+    proportion_above_threshold = mean(proportion_black >= 0.75)
+  )
+
+```
+
+
+```{r}
+dissimilarity_pg = 0.5 * sum(abs(
+  (pg_combined$estimate_black / total_black) -
+  (pg_combined$estimate_nonblack / total_nonblack)
+), na.rm = TRUE)
+#Count the D, or the solution to the computational formula
+dissimilarity_pg
+
+pg_combined <- st_as_sf(pg_combined)
+
+ggplot(pg_combined) +
+  geom_sf(aes(fill = proportion_black), color = "white") +
+  scale_fill_viridis_c(option = "plasma", direction = -1) +
+  labs(title = "Proportion of Black Residents by Census Tract in Prince George's County, Maryland",
+       fill = "Proportion Black") +
+  theme_minimal()
+
+pg_combined <- pg_combined %>%
+  mutate(majority_black = proportion_black > 0.5)
+
+union_black <- pg_combined %>%
+  filter(majority_black) %>%
+  summarise(geometry = st_union(geometry))
+
+union_nonblack <- pg_combined %>%
+  filter(!majority_black) %>%
+  summarise(geometry = st_union(geometry))
+  
+ boundary_line = 
+  st_intersection(st_boundary(union_black), st_boundary(union_nonblack))
+ 
+  ggplot() +
+  geom_sf(data = pg_combined, aes(fill = majority_black), 
+          color = "grey40", 
+          alpha = 0.5) +
+  geom_sf(data = boundary_line, 
+          color = "black", 
+          size = 1) +
+  labs(title = "Dividing Wall Between Majority Black and Non-Black Areas") +
+  theme_minimal()
+  
+  
+
+```
+
+```
+
+```{r}
+pg_combined <- st_as_sf(pg_combined)
+
+ggplot(pg_combined) +
+  geom_sf(aes(fill = proportion_black), color = "white") +
+  scale_fill_viridis_c(option = "plasma", direction = -1) +
+  labs(title = "Proportion of Black Residents by Census Tract in Prince George's County, Maryland",
+       fill = "Proportion Black") +
+  theme_minimal()
+
+```
+
+```{r}
+pg_combined <- pg_combined %>%
+  mutate(majority_black = proportion_black > 0.5)
+
+
+```
+
+```{r}
+
+#Union geometries by group
+
+union_black <- pg_combined %>%
+  filter(majority_black) %>%
+  summarise(geometry = st_union(geometry))
+
+union_nonblack <- pg_combined %>%
+  filter(!majority_black) %>%
+  summarise(geometry = st_union(geometry))
+  
+ boundary_line = 
+  st_intersection(st_boundary(union_black), st_boundary(union_nonblack))
+ 
+  ggplot() +
+  geom_sf(data = pg_combined, aes(fill = majority_black), 
+          color = "grey40", 
+          alpha = 0.5) +
+  geom_sf(data = boundary_line, 
+          color = "black", 
+          size = 1) +
+  labs(title = "Dividing Wall Between Majority Black and Non-Black Areas") +
+  theme_minimal()
+  
+```
+
+```{r}
+
+```
+
+
+
+
+```{r}
+
+
+```
+
+
+
+```{r}
+
+```
+
+```{r}
+
+  
+```
+
+
+```{r}
+
+
+```
+
+
+
+
+
+
