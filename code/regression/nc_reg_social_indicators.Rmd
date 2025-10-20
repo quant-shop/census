@@ -1,0 +1,153 @@
+---
+title: "Regression with ACS Census Data"
+author: "Nathan Alexander"
+date: "2025-10-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#install.packages("stargazer")
+#install.packages("ggeffects")
+library(tidycensus) 
+library(tidyverse) 
+library(sf) 
+library(viridis) 
+library(mapview) 
+library(stargazer) 
+library(ggeffects) 
+library(gridExtra)
+```
+
+
+```{r, warning=F, message=F}
+nc_tract <- get_acs(
+  geography = "tract",
+  variables = c(black = "B02001_003", # Black/African American population alone
+                population = "B01001_001", # Total population
+                immigrant = "B05002_014", # Immigrant population
+                education = "B06009_005", # Individuals that have a bachelor's degree 
+                poverty = "B17001_001", # Individuals whose household income
+                income = "B19001_001",
+                young1 = "B01001_007",
+                young2 = "B01001_008",
+                young3 = "B01001_009",
+                young4 = "B01001_010"
+  ),
+  state = "NC",
+  year = 2023,
+  geometry = T,
+  output = "wide"
+)
+```
+
+```{r, warning=F, message=F}
+head(nc_tract)
+```
+
+
+
+```{r warning=F, message=F}
+#Turning population data into proportions to control for population size
+nc_tract <- nc_tract %>%
+  mutate(youngmale = young1E + young2E + young3E + young4E) %>% 
+  mutate(blackP = blackE / populationE) %>%
+  mutate(immigrantP = immigrantE / populationE) %>% 
+  mutate(educationP = educationE / populationE) %>%
+  mutate(youngmaleP = youngmale / populationE) %>% 
+  mutate(povertyP = povertyE / populationE)
+```
+
+## Bivariate regression
+
+We will model the proportion of Black population and its relationship to median household income.
+
+$$ y_i = \alpha + \beta\text{BlackShare}_i+\epsilon_i$$
+
+```{r warning=F, message=F}
+plot(nc_tract$incomeE ~ nc_tract$blackP, pch = 21,
+     bg = "gray",
+     cex = 0.9,
+     ylab = "Median Household Income in USD",
+     xlab = "Proportion of Black Population per tract")
+```
+
+
+
+```{r warning=F, message=F}
+cor.test(x = nc_tract$blackP, y = nc_tract$incomeE, method = "kendall")
+```
+
+
+```{r warning=F, message=F}
+model1 <- lm(incomeE ~ blackP, data = nc_tract)
+summary(model1)
+```
+
+
+
+```{r warning=F, message=F}
+plot(nc_tract$incomeE ~ nc_tract$blackP, pch = 21,
+     bg = "gray",
+     cex = 0.9,
+     ylab = "Median Household Income in USD",
+     xlab = "Proportion of Black Population per tract")
+abline(model1, lwd = 2,
+       col = "steelblue")
+```
+
+
+
+```{r warning=F, message=F}
+par(mfrow = c (2,2)) 
+plot(model1)
+```
+
+
+## Logistic regression
+
+```{r warning=F, message=F}
+
+nc_tract_logi <- nc_tract %>% 
+  mutate(nonblackE = populationE - blackE)
+
+nc_tract_logi <- nc_tract_logi %>% 
+  mutate(proportion_black = blackE / populationE) %>% 
+  mutate(proportion_non_black = 1 - proportion_black)
+
+nc_tract_logi <- nc_tract_logi %>% 
+  mutate(majority_black = ifelse(
+    proportion_black > .50, 1, 0))
+
+head(nc_tract_logi)
+```
+
+
+
+```{r warning=F, message=F}
+
+```
+
+
+```{r warning=F, message=F}
+
+```
+
+
+
+```{r warning=F, message=F}
+
+```
+
+
+
+```{r warning=F, message=F}
+
+```
+
+
+
+```{r warning=F, message=F}
+
+```
+
