@@ -1,0 +1,281 @@
+---
+title: "mapping"
+author: "Myles Ndiritu"
+date: "2025-08-21"
+output: html_document
+---
+i love maps YAYY
+
+```{r packages}
+
+# install.packages("mapview")
+# install.packages("mapgl")
+
+library(tidycensus)
+library(tidyverse)
+library(mapview)
+library(mapgl)
+library(ggplot2)
+library(sf)
+
+```
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = TRUE)
+census_api_key("f82508cd291cb6c902d7e0558e5d8962e5900ba5")
+#census_api_key()
+```
+
+```{r}
+
+acs_vars <- load_variables(2023, dataset = "acs5")
+View(acs_vars)
+
+```
+
+
+```{r getdata}
+
+ma_income_sf <- get_acs(
+  geography = "county",
+  variables = "B19013_001", # income
+  state = "MA",
+  year = 2023,
+  geometry = T
+)
+
+```
+
+
+
+
+```{r plot1}
+
+plot(ma_income_sf)
+
+```
+
+
+```{r plot}
+
+plot(ma_income_sf["estimate"])
+
+```
+
+```{r suffolk}
+
+ma_suffolk_income <- get_acs(
+  geography = "tract",
+  state = "MA",
+  county = "Suffolk",
+  variables = "B19013_001",
+  year = 2023,
+  geometry = T
+)
+
+# 
+# ma_suffolk_income2 <- get_acs(
+#   geography = "county",
+#   state = "MA",
+#   # county = "Southeastern Connecticut Planning Region, Connecticut",
+#   variables = "B19013_001",
+#   year = 2023,
+#   geometry = T
+# )
+```
+
+```{r suffolkmap}
+
+plot(ma_suffolk_income['estimate'])
+
+```
+
+```{r viridismap}
+
+library(viridis) %>% 
+ggplot(ma_suffolk_income) +
+  geom_sf(aes(fill = estimate), color = "white", size = 0.1) +
+  scale_fill_viridis(option = "magma", name = "Median Household Income") +
+  labs(
+    title = "Median Household Income in Mecklenburg County, NC",
+    subtitle = "By Census Tract (2023)",
+    caption = "Data: American Community Survey 5-Year Estimates"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 12),
+    axis.title = element_blank(),
+    legend.position = "right"
+  )
+
+```
+```{r mapview}
+library(mapview)
+
+mapview(
+  ma_income_sf, 
+  zcol = "estimate"
+)
+
+```
+
+```{r}
+
+ma_blackpop_sf <- get_acs(
+  geography = "County",
+  variables = "B01001B_001", # black
+  state = "MA",
+  year = 2023,
+  geometry = T
+)
+
+suffolk_blackpop_sf <- get_acs(
+  geography = "tract",
+  variables = "B01001B_001", # black
+  state = "MA",
+  county = "Suffolk",
+  year = 2023,
+  geometry = T
+)
+
+
+```
+
+
+```{r}
+
+black_dots <- as_dot_density(
+  suffolk_blackpop_sf,
+  value = "estimate",
+  values_per_dot = 500
+)
+
+```
+
+```{r}
+
+mapview(
+  ma_suffolk_income, 
+  zcol = "estimate",
+  alpha.regions = 0.75
+)+
+  mapview(black_dots, cex = 0.01, layer.name = "Black population<br>1 dot = 500 people",
+        col.regions = "NA", color = "red")
+```
+
+```{r}
+
+suffolk_black_pop <- get_acs(
+  geography = "tract",
+  variables = "B02001_003",  # Black alone
+  state = "MA",
+  county = "suffolk",
+  year = 2023,
+  geometry = T
+) %>%
+  rename(estimate_black = estimate)
+
+# We then grab the total population by tract in DC, we will call it
+
+suffolk_total_pop <- get_acs(
+  geography = "tract",
+  variables = "B01003_001",  # total population
+  state = "MA",
+  county = "suffolk",
+  year = 2023,
+  geometry = F # note that we have geometry turned off here
+) %>%
+  rename(estimate_total = estimate)
+
+# combining black population with total population.
+suffolk_combined <- left_join(suffolk_black_pop, suffolk_total_pop, by = "GEOID") %>%
+  mutate(estimate_nonblack = estimate_total - estimate_black) %>%
+  st_as_sf()
+
+# checking combined data with the other estimates.
+suffolk_combined %>% 
+  relocate(GEOID, estimate_total) %>% 
+  arrange(desc(estimate_black)) %>% 
+  head()
+
+# calculating proportion of Black people in all suffolk tracts.
+total_black <- sum(suffolk_combined$estimate_black, na.rm = TRUE)
+total_nonblack <- sum(suffolk_combined$estimate_nonblack, na.rm = TRUE)
+
+suffolk_combined <- suffolk_combined %>% 
+  mutate(proportion_black = estimate_black / estimate_total)
+
+# Now we can view the top 10 tracts with the highest proportion of Black individuals.
+
+suffolk_combined %>%
+  mutate(proportion_non_black = 1 - proportion_black) %>% 
+  arrange(desc(proportion_black)) %>% 
+  select(GEOID, proportion_black, proportion_non_black) %>% 
+  head(n = 10)
+
+# calculate proportion of tracts that above a certain threshold of Black only individuals.
+suffolk_combined %>%
+  # Count how many tracts have proportion_black >= 0.75
+  summarise(
+    total_tracts = n(),
+    tracts_above_threshold = sum(proportion_black >= 0.75),
+    proportion_above_threshold = mean(proportion_black >= 0.75)
+  )
+
+
+```
+
+```{r}
+
+# calculate D (lack of even distribution between Black and non-Black residents across the geographical units of a region G)
+dissimilarity_bos = 0.5 * sum(abs(
+  (suffolk_combined$estimate_black / total_black) -
+    (suffolk_combined$estimate_nonblack / total_nonblack)
+), na.rm = TRUE)
+# results
+dissimilarity_bos
+
+# proportion of black people map
+suffolk_combined <- st_as_sf(suffolk_combined)
+
+ggplot(suffolk_combined) +
+  geom_sf(aes(fill = proportion_black), color = "white") +
+  scale_fill_viridis_c(option = "plasma", direction = -1) +
+  labs(title = "Proportion of Black Residents by Census Tract in Suffolk",
+       fill = "Proportion Black") +
+  theme_minimal()
+```
+
+
+```{r}
+
+
+suffolk_combined <- suffolk_combined %>%
+  mutate(majority_black = proportion_black > 0.5)
+
+# Union geometries by group
+union_black <- suffolk_combined %>%
+  filter(majority_black) %>%
+  summarise(geometry = st_union(geometry))
+
+union_nonblack <- suffolk_combined %>%
+  filter(!majority_black) %>%
+  summarise(geometry = st_union(geometry))
+
+boundary_line = 
+  st_intersection(st_boundary(union_black), st_boundary(union_nonblack))
+
+
+ggplot() +
+  geom_sf(data = suffolk_combined, aes(fill = majority_black), 
+          color = "grey40", 
+          alpha = 0.5) +
+  geom_sf(data = boundary_line,
+          color = "red",
+          size = 1) +
+  labs(title = "Majority Black and Non-Black Areas in Suffolk County",
+       fill = "Majority Black") +
+  theme_minimal()
+
+```
+

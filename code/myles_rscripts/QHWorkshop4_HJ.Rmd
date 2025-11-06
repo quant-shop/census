@@ -1,0 +1,801 @@
+---
+title: "Critical Computational Geographies: Spatial Regression Analysis"
+author: "Hye Ryeon Jang, Ph.D."
+date: "10/27/2025"
+output: pdf_document
+bibliography: mybibliography.bib
+csl: chicago-author-date.csl
+urlcolor: purple
+---
+
+# Introduction
+
+The United States often argues that social mobility is attainable through hard work and advertises itself as a pure meritocracy. This has been challenged throughout the United States' history and called into question the integrity of the statement. Specifically when interrogating the social position of non-white males. This session seeks to analyze how income varies between different demographic groups to understand what factors contribute to differing socioeconomic outcomes. 
+
+This lab session has been developed based on Sciabolazza (2017)'s Spatial Statistics and Spatial Econometrics and Alexander (2025)'s technical documentation on Critical Critical Computational Geographies - Measures of Segregation: Dissimilarity materials [@sciabolazzaspatial] [@alexanderdissimilarity].
+
+
+# Research Question 
+
+How do different demographic backgrounds affect income level in Georgia?
+
+Our independent variables are race (black and white), age, education, and immigrant status and the dependent variable is median household income. We chose to use these independent variables because, with the exception of gender, these are the most studied factors in social science when identifying discrimination. Income is used as an indicator of socioeconomic status because it reflects the level of economic capital individuals possess in the United States. While there are more factors that influence socioeconomic status, within Georgia and Atlanta income can be weighed more heavily and provide greater validity.
+
+```{r}
+
+census_api_key("f82508cd291cb6c902d7e0558e5d8962e5900ba5")
+
+```
+
+# Necessary Packages 
+
+```{r packages, warning=FALSE, message=FALSE}
+library(tidycensus)
+library(tidyverse)
+library(sf)
+library(viridis)
+library(scales)
+library(mapview)
+library(stargazer)
+library(ggeffects)
+library(gtools)
+library(spdep)
+library(gstat)
+library(spectralGP)
+library(MASS)
+library(lattice)
+library(nlme)
+library(splancs)
+library(lmtest)
+library(boot)
+library(RColorBrewer)
+library(tmap)
+library(spatialreg)
+```
+
+# Census Data 
+
+We are going to collect the census data we want using the, `get_acs` function.
+
+```{r census, warning=FALSE, message=FALSE}
+
+ga_tract <- get_acs(
+  geography = "tract",
+  variables = c(black = "B02001_003", # Black/African American population alone
+                population = "B01001_001", # Total population
+                immigrant = "B05002_014", # Immigrant population
+                education = "B06009_005", # Individuals that have a bachelor's degree
+                poverty = "B17001_001",  # Individuals whose household income 
+                                         # is below the poverty line
+                income = "B19001_001",   # Household income
+                young1 = "B01001_007",   # Male 18-19
+                young2 = "B01001_008",   # Male 20
+                young3 = "B01001_009",   # Male 21
+                young4 = "B01001_010"    # Male 22-24
+                
+                
+  ),
+  state = "GA",
+  year = 2023,
+  geometry = T,
+  output = "wide"
+)
+
+ga_tract <- na.omit(ga_tract)
+head(ga_tract)
+
+```
+
+To control for population size we will wrangle the data so that our population variables appear as a fraction of the total population. We will include the variables:
+
+* Proportion of Black People = blackP
+* Proportion of Immigrants = immigrantP
+* Proportion of people with a Bachelor's Degree = educationP
+* Proportion of Young Men = youngmaleP
+* Proportion of Individuals living below the Poverty line = povertyP
+
+```{r setup, warning=FALSE, message=FALSE}
+#Turning population data into proportions to control for population size
+
+ga_tract <- ga_tract %>% 
+  mutate(youngmale = young1E + young2E + young3E + young4E) %>% 
+  mutate(blackP = blackE / populationE) %>% 
+  mutate(immigrantP = immigrantE / populationE) %>% 
+  mutate(educationP = educationE / populationE) %>% 
+  mutate(youngmaleP = youngmale / populationE) %>% 
+  mutate(povertyP = povertyE / populationE)
+``` 
+
+If you want to extract a shape file from the census data, below is the code. 
+
+```{r shape, warning=FALSE, message=FALSE}
+#st_write(ga_tract, "GA_tract_income.shp") 
+# Dataset already exists in my working directory
+```
+
+Let's plot our median income variable per tract in Georgia. 
+
+```{r bplot, warning=FALSE, message=FALSE, results='asis'}
+ggplot(ga_tract) +
+  geom_sf(aes(fill = incomeE)) +
+  scale_fill_viridis_c(option = "magma", 
+                       na.value = "grey50",
+                       labels = comma) + # this is where we apply the scales lib
+  labs(title = "Estimated Median Household Income by Census Tract in Georgia (2023)",
+       fill = "Median Household Income in USD") +
+  theme_minimal()
+```
+
+# Spatial Data 
+
+Spatial data combine **attribute information** (e.g., name of the spatial object, population density, productivity, income, etc.) with **location information** (spatial coordinates such as latitude and longitude).
+
+This combination allows researchers to analyze not only what is happening but also *where* it is happening.
+
+
+## Types of Spatial Data 
+
+* Point data: represent a single location defined by one coordinate pair (latitude and longitude).
+  * Examples: houses, firms, bus stops, crime incidents, or GPS readings.
+
+* Line data (arcs): represent paths or connections between ordered points. Each line consists of vertices connected by straight segments.
+  * Examples: roads, rivers, pipelines, or migration routes.
+
+* Polygon data: represent areas enclosed by one or more boundary lines. Each polygon has an interior and exterior.
+  * Examples: countries, states, counties, campus boundaries (e.g., Morehouse College), or city limits (e.g., Atlanta, Georgia).
+
+* Grid (raster) data: represent spatially continuous phenomena measured or estimated on a regular grid (a lattice of rectangular cells or pixels).
+  * Examples: air temperature, precipitation, elevation, satellite imagery, or land cover.
+
+
+## Coordinate Reference Systems (CRS) and Projections
+
+To uniquely reference a two-dimensional spatial point on Earth’s surface, measure distances, and compute relative positions, we need a Coordinate Reference System (CRS) and map projection.
+
+* A **Coordinate Reference System (CRS)** defines how locations on Earth are mapped onto a flat surface. It approximates the Earth as a sphere or ellipsoid, allowing us to use geometric properties (distance, area, direction) consistently.
+
+* **Geographic coordinates** are expressed as pairs of numbers - latitude and longitude - usually measured in degrees (°).
+
+Common global CRS:
+
+* WGS 84 (EPSG:4326) - used by GPS and most web maps.
+* NAD 83 - used in many U.S. datasets.
+* UTM (Universal Transverse Mercator) - divides the Earth into zones for more precise local mapping.
+
+
+## Shapefiles and GIS Software
+
+Information on spatial data and coordinates is stored in special file formats used by **Geographic Information Systems (GIS)** software, such as ArcGIS, QGIS, and R.
+
+The most common format is the shapefile, which actually consists of several component files sharing the same name but different extensions:
+
+| File Type       | Extension | Description                                         |
+|-----------------|------------|----------------------------------------------------|
+| Main file       | .shp       | Contains the geometry (points, lines, polygons)    |
+| Attribute table | .dbf       | Stores non-spatial attributes (e.g., population)   |
+| Index file      | .shx       | Indexes the geometry for faster access             |
+| Projection file | .prj       | Stores coordinate reference system (CRS) info      |
+
+
+## Preparing for Spatial Data with Census 
+
+From the shapefile, we will extract the geographic coordinates (latitude and longitude) and the polygon identifiers associated with each spatial unit, tract. This step allows us to analyze the spatial structure of the data and link geometry information to their corresponding data attributes. 
+
+```{r coordinates, warning=FALSE, message=FALSE}
+# Get polygon centroids
+# The centroid is a single point that represents the center of that polygon.
+centroids_ga <- st_centroid(ga_tract)
+
+# Extract centroid coordinates
+coord_ga <- st_coordinates(centroids_ga)
+head(coord_ga)
+
+# Extracting polygons id 
+id_ga_tract <- ga_tract$GEOID
+```
+
+# Distance and Proximity 
+
+In spatial analysis, understanding how locations relate to one another is essential. Distance and proximity describe the degree of closeness or connectedness between spatial units (points, lines, or polygons).
+
+Spatial relationships can be defined using topological (contiguity-based) or distance-based concepts of neighborhood.
+
+## Topological or Contiguity-Based Neighbors
+
+Two spatial units are considered neighbors if they share a common boundary (for polygons) or touch each other in space.
+
+This type of relationship is discrete - either two areas are neighbors or they are not.
+
+Common types of contiguity:
+
+* Rook contiguity: two polygons share a common edge (like rook moves in chess).
+* Bishop contiguity: two polygons share a common vertex (corner point).
+* Queen contiguity: two polygons share either a boundary or a vertex (like queen moves in chess). 
+
+![Three Types of Contiguity](Contiguity.png) 
+
+*Example*: Two census tracts in Atlanta are neighbors if they share a boundary line or corner. [@canche2020]
+
+
+## Distance-Based Neighbors
+
+Two spatial units are considered neighbors if they lie within a specified distance threshold from one another.
+
+This relationship is continuous - the smaller the distance, the stronger the relationship.
+
+Common approaches:
+
+* Critical cut-off neighbors: A threshold distance (e.g., 10 km) is chosen so that each location has at least one neighbor.
+  * If the distance is too small, some locations may become “islands” with no neighbors.
+
+* k-nearest neighbors (k-NN): Each observation has exactly k neighbors, regardless of physical distance.
+  * For example, setting k = 4 means each point is connected to its four closest neighbors.
+
+*Example*: In a spatial network of lithium mines, each mine can be connected to its five nearest facilities.
+
+
+## Why Neighborhood Definitions Matter
+
+The way we define neighborhood structures affects:
+
+* Spatial weights matrices (W): used in spatial regression and autocorrelation analysis (e.g., Moran’s I, spatial lag models).
+* Clustering outcomes: identifying hot spots or diffusion patterns.
+* Interpretation of spatial dependence: whether proximity is defined by shared borders or by distance thresholds.
+
+
+## Binary Adjacency Matrix
+
+A binary adjacency matrix is a mathematical way to represent which spatial units are neighbors in our dataset. It is a square matrix (N × N) where N is the number of spatial units (e.g., states, counties, tracts). 
+
+Each row and column represents a spatial unit. Each cell in the matrix (W) takes one of two values: 
+$$ W_{ij} = 1 \quad \text{for i and j neighbors} $$ 
+The two spatial units are neighbors (share a border or are within a threshold distance). 
+
+$$ W_{ij} = 0 \quad \text{otherwise} $$
+
+The two spatial units are not neighbors. The diagonal values (self-neighbors) are usually 0 because a location is not considered its own neighbor. 
+
+![Binary Adjacency Matrix with Queen Contiguity](Queen_Binary.png)
+
+
+## Weighted Adjacency Matrix
+
+A weighted adjacency matrix extends the idea of a binary adjacency matrix by not only indicating who is connected to whom, but also how strong or important each connection is.
+
+Instead of using simple 1’s and 0’s, each cell in the matrix contains a weight that represents the intensity, strength, or relative influence between two spatial units.
+
+Weights can be based on:
+
+* Distance (closer neighbors get higher weights)
+* Shared boundary length
+* Population interaction or trade intensity
+* Row-standardization (common in spatial econometrics)
+
+For example, a square matrix (N × N) where N is the number of spatial units: 
+
+$$ W_{ij} = 1/n_i \quad \text{i and j neighbors, where} \, n_i \, \text{is the number of i's neighbors.} $$
+
+$$ W_{ij} = 0 \quad \text{otherwise} $$ 
+
+
+## Additional Adjacency Matrix 
+
+* k-nearest-neighbors weights matrix: 
+
+$$ W_{ij} = 1 \quad \text{if the geographic center of region j is the one of the nearest k to the center of region i} $$
+
+$$ W_{ij} = 0 \quad \text{otherwise} $$
+
+* Contiguity weights matrix: 
+
+$$ W_{ij} = 1 \quad \text{if regions i and j have a common boundary} $$
+
+$$ W_{ij} = 0 \quad \text{otherwise} $$
+
+* Distance-based binary weights matrix: 
+
+$$ W_{ij} = 1 \quad \text{if the distance between regions i and j is less than a threshold cut-off distance} $$
+
+$$ W_{ij} = 0 \quad \text{otherwise} $$
+
+
+## Making Adjacency Matrix in R
+
+We will make two binary distance matrices of tracts in Georgia with 10km and 50km. The code requires a complete matrix of numeric coordinates (no NAs). We will clean our coordinate data first. 
+
+```{r clean, warning=FALSE, message=FALSE}
+sum(is.na(coord_ga)) 
+
+# If you find any NAs, drop them 
+coord_ga_clean <- coord_ga[complete.cases(coord_ga), ]
+id_ga_tract_clean <- id_ga_tract[complete.cases(coord_ga)]
+
+```
+
+```{r distancem, warning=FALSE, message=FALSE}
+# Two points are connected if they are within 10 km
+dnb10 <- dnearneigh(x = coord_ga_clean, d1 = 0, d2 = 10, 
+                    row.names = id_ga_tract_clean, longlat = TRUE)
+class(dnb10) # nb = neighbor list
+
+# Two points are connected if they are within 50 km
+dnb50 <- dnearneigh(x = coord_ga_clean, d1 = 0, d2 = 50, 
+                    row.names = id_ga_tract_clean, longlat = TRUE)
+class(dnb50)
+```
+
+We can also make a weighted matrix where every point has at least one connection. 
+
+```{r km, warning=FALSE, message=FALSE, results='hide'}
+# k-nearest-neighbors weights matrix:
+neighbors <- knearneigh(x = coord_ga_clean, k = 1, longlat = T)
+  
+  # point's id
+  neighbors$nn
+  # number of points
+  neighbors$np
+  # value of k (nearest neighbors)
+  neighbors$k
+  # coordinates (coord_ga_clean)
+  neighbors$x
+
+# Transform the knn object in a nb object:
+# A list of integer vectors containing neighbor region number ids (neighbors$nn)
+k1 <- knn2nb(neighbors)
+
+# Compute link distances
+k1.dist <-  nbdists(k1, coord_ga_clean, longlat = T)
+# Unlist the object k1.dist
+k1.dist <- unlist(k1.dist); k1.dist
+
+# Find max link distance: 
+# i.e. the distance at which each point has at least one neighbor
+all.linkedT <- max(k1.dist); all.linkedT 
+
+# Create an adjacency matrix where two points are connected if
+# the distance between their centroids is < all.linkedT
+dnb68 <- dnearneigh(x = coord_ga_clean, d1 = 0, d2 = all.linkedT, 
+                    row.names = id_ga_tract_clean, longlat=TRUE)
+dnb68
+```
+
+
+Let's compare different adjacency matrices. 
+
+```{r compare, warning=FALSE, message=FALSE, results='asis'}
+par(mfrow=c(1,2))
+plot(dnb68, coord_ga_clean)
+title("k-nearest-neighbors")
+plot(dnb50, coord_ga_clean)
+title("Distance-based matrix: 50 km")
+```
+
+
+# Spatial Autocorrelation Statistics
+
+Once a neighborhood structure (such as a binary or weighted adjacency matrix) has been defined, we can test whether values observed in nearby locations are spatially dependent - that is, whether similar or dissimilar values tend to occur close together in space. 
+
+Spatial autocorrelation measures the degree to which a variable is correlated with itself across space.
+It indicates whether the spatial distribution of values is random, clustered, or dispersed.
+
+* Positive spatial autocorrelation: similar values cluster together in space (e.g., wealthy neighborhoods near wealthy neighborhoods).
+* Negative spatial autocorrelation: dissimilar values are neighbors (e.g., high-income areas next to low-income areas).
+* No spatial autocorrelation: spatial arrangement is random - location does not explain variation in the variable.
+
+
+## Spatial Lag Operator
+
+The adjacency matrix can be used to compute the average value of neighboring observations, serving as a spatial lag operator that summarizes the influence of surrounding units on each observation.
+
+$$
+Wy = \sum_{j} W_{ij} y_{j} =
+\begin{bmatrix}
+0 & 1 & 0 & 0 \\
+\frac{1}{2} & 0 & \frac{1}{2} & 0 \\
+0 & \frac{1}{2} & 0 & \frac{1}{2} \\
+0 & 0 & 1 & 0
+\end{bmatrix}
+\begin{bmatrix}
+y_{1} \\
+y_{2} \\
+y_{3} \\
+y_{4}
+\end{bmatrix}
+=
+\begin{bmatrix}
+y_{2} \\
+\frac{1}{2}y_{1} + \frac{1}{2}y_{3} \\
+\frac{1}{2}y_{2} + \frac{1}{2}y_{4} \\
+y_{3}
+\end{bmatrix}
+$$
+
+
+## Spatial Tests
+
+The adjacency (or spatial weights) matrix provides the structure needed to formally test spatial dependence.
+
+We test the null hypothesis that spatial location does not matter:
+
+Null Hypothesis ($H_{0}$): There is no spatial autocorrelation.
+
+* Values at one location are independent of values at neighboring locations.
+* The observed pattern could be produced by random spatial arrangement (spatial randomness).
+* If locations were randomly permuted, the overall spatial pattern would remain unchanged.
+
+Alternative Hypotheses ($H_{1}$):
+
+* Positive spatial autocorrelation: nearby observations are similar (spatial clustering).
+* Negative spatial autocorrelation: nearby observations are dissimilar (spatial dispersion).
+
+## Testing Levels (Granularity)
+
+* Global level: evaluates whether spatial autocorrelation exists across the entire study area.
+
+  * Moran's (1950) I
+  * Geary's (1954) c
+  * Getis and Ord's (1992) G
+
+* Local level: identifies clusters or outliers at specific locations. 
+
+  * Local Moran's I (Anselin,1995)
+  * Local Geary's c (Anselin,1995)
+  * Local G* (Getis and Ord, 1995) 
+
+
+## Testing Global Moran's I Spatial Autocorrelation Statistic 
+
+Global Moran's (1950) I spatial autocorrelation statistic can be defined: 
+
+$$  I = (\frac{N}{\sum_{i}\sum_{j}W_{ij}})(\frac{\sum_{i}\sum_{j}W_{ij}(x_i-\overline{x})(x_j-\overline{x})}{\sum_{i}(x_i-\overline{x})^2})    $$
+
+Note that the cross-product of the values at locations i and j is weighted by their spatial proximity - that is, by the spatial weights matrix (W). This weighting reflects how strongly each pair of locations is connected in space, similar to the spatial lag operator, where neighboring observations exert influence on each other. 
+
+The Moran’s I statistic measures the degree of spatial autocorrelation, that is, the extent to which similar (or dissimilar) values cluster together in space. 
+
+![Spatial Autocorrelation](autocorrelation.jpg)
+
+* Maximum positive spatial autocorrelation: I - +1
+  * High values tend to be located near other high values, and low values near other low values.
+  * Indicates strong spatial clustering or concentration of similar values.
+
+* Maximum negative spatial autocorrelation: I - -1
+  * High and low values are located near each other (a “checkerboard” pattern).
+  * Indicates strong spatial dispersion or alternation of values.
+
+* No spatial autocorrelation (spatial randomness): E[I] = -1 / (n - 1)  
+  * Values at each location are spatially independent; their arrangement is random. 
+  * The observed spatial pattern is no more clustered or dispersed than expected by chance.
+
+
+```{r moranprep, warning=FALSE, message=FALSE, results='asis'}
+# no. of row should be the same 
+ga_clean <- ga_tract[!st_is_empty(ga_tract), ]
+coords   <- st_coordinates(st_centroid(ga_clean))  # one row per feature
+id       <- ga_clean$GEOID
+y        <- ga_clean$incomeE
+
+dnb50 <- dnearneigh(x = coords, d1 = 0, d2 = 50, 
+                    row.names = id, longlat = TRUE)
+class(dnb50)
+```
+
+
+```{r moran}
+# Transform an nb object in a listw object 
+# (e.g. assign weights to the adjacency matrix)
+dnb50.listw <- nb2listw(dnb50, style = "W") # Row standardized matrix
+dnb50.listw
+  
+# Moran test (Moran I significantly close to 1, positive spatial autocorrelation)
+# Null hypothesis: There is no spatial autocorrelation in the variable of interest 
+moran.test(x = y, listw = dnb50.listw, randomisation = F, 
+           zero.policy = F, alternative= "greater", na.action = na.fail)
+  
+# Moran scatterplot 
+msp<- moran.plot(x = y, listw = dnb50.listw, 
+                 labels = id_ga_tract_clean, pch = 19, 
+                 main = "Moran's plot",
+                 xlab = "Median Household Income",  
+                 ylab = "Spatial Lag of Income",
+                 zero.policy = F, quiet = F) 
+#msp 
+```
+
+
+```{r moransi, warning=FALSE, message=FALSE, results='asis'}
+# Select outliers
+infl <- any(msp$is_inf)
+
+# Identify low and high values
+# e.g. lower or higher then the mean
+lhx <- cut(y, breaks=c(min(y), mean(y), max(y)), 
+           labels=c("L", "H"), include.lowest=TRUE)
+
+# Find low and High values in the lagged independent variable
+# Create lagged variable (Gy)
+# # set zero.policy if you have isolates
+wx <- spdep::lag.listw(dnb50.listw, y, zero.policy = TRUE)  
+
+# Now make L/H bins
+lhx  <- cut(y, breaks = c(min(y, na.rm=TRUE), mean(y, na.rm=TRUE), 
+                          max(y, na.rm=TRUE)), labels = c("L","H"), 
+                          include.lowest = TRUE, right = TRUE)
+
+lhwx <- cut(wx, breaks = c(min(wx, na.rm=TRUE), mean(wx, na.rm=TRUE), 
+                           max(wx, na.rm=TRUE)), labels = c("L","H"), 
+                           include.lowest = TRUE, right = TRUE)
+  
+# Find neighborhoods with similar values (H-H, L-L, etc)
+# Note that outliers are considered a separate category 
+# (H-H-Outlier, H-H-Non_Outlier)
+lhlh <- interaction(lhx, lhwx, infl, drop=TRUE)
+  
+# Transform lhlh in a numerical vector
+cols <- rep(1, length(lhlh))
+cols[lhlh == "L.L.TRUE"] <- 2
+cols[lhlh == "H.L.TRUE"] <- 3
+cols[lhlh == "L.H.TRUE"] <- 4
+cols[lhlh == "H.H.TRUE"] <- 5
+
+plot(ga_tract$incomeE, col=c("gray", "yellow", "red", "green", "blue")[cols],axes=T)
+  legend("topleft", legend=c("None", "LL", "HL", "LH", "HH"), 
+         fill=c("gray", "yellow", "red", "green", "blue"), bty="n", cex=0.8,
+         y.intersp=0.8)
+  title("Regions with influence")
+```
+
+## Testing Local Moran's I Spatial Autocorrelation Statistic 
+
+```{r local, warning=FALSE, message=FALSE, results='asis'}
+# Choose contiguity type:
+#    - queen = TRUE  : shares edge OR vertex (more neighbors)
+#    - queen = FALSE : shares edge only (rook contiguity)
+queen_contiguity <- TRUE
+
+# Stable IDs for safety (use our tract id if available)
+id_vec <- if ("GEOID" %in% names(ga_clean)) ga_clean$GEOID else as.character(seq_len(nrow(ga_clean)))
+
+# Build contiguity neighbors
+nb <- spdep::poly2nb(ga_clean, queen = queen_contiguity, row.names = id_vec)
+
+# Convert to weights; allow isolates (zero neighbors) to avoid errors downstream
+lw <- spdep::nb2listw(nb, style = "W", zero.policy = TRUE)
+
+# Target vector
+y   <- ga_clean$incomeE
+
+# Local Moran (returns Ii, E.Ii, Var.Ii, Z.Ii, Pr(z > 0))
+li <- spdep::localmoran(y, lw, zero.policy = TRUE)
+
+# Spatial lag
+wy <- spdep::lag.listw(lw, y, zero.policy = TRUE)
+
+# Center variables to define quadrants
+y_c  <- y  - mean(y,  na.rm = TRUE)
+wy_c <- wy - mean(wy, na.rm = TRUE)
+
+alpha <- 0.05
+sig   <- li[, "Pr(z != E(Ii))"] < alpha   # significance mask
+
+cluster <- ifelse(!sig, "Not significant",
+           ifelse(y_c > 0 & wy_c > 0, "High-High",
+           ifelse(y_c < 0 & wy_c < 0, "Low-Low",
+           ifelse(y_c > 0 & wy_c < 0, "High-Low",
+           ifelse(y_c < 0 & wy_c > 0, "Low-High", "Not significant")))))
+
+# Attach to sf for mapping
+ga_clean <- ga_clean %>%
+  mutate(
+    Ii        = li[, "Ii"],
+    Ii_pval   = li[, "Pr(z != E(Ii))"],
+    lisa_cl   = factor(cluster, levels = c("Not significant","Low-Low",
+                                           "Low-High","High-Low","High-High"))
+  )
+
+# Use tmap
+tmap_mode("plot")
+tm_shape(ga_clean) +
+  tm_fill("lisa_cl",
+          title = "Local Moran's I (LISA) clusters",
+          palette = c("grey80", "blue", "lightblue", "pink", "red")) +
+  tm_borders() +
+  tm_layout(legend.outside = TRUE)
+
+# Use ggplot2
+ggplot(ga_clean) +
+  geom_sf(aes(fill = lisa_cl), linewidth = 0.1) +
+  scale_fill_manual(values = c("grey80","blue","lightblue","pink","red"),
+                    name = "LISA clusters") +
+  theme_minimal()
+
+```
+
+
+# Model Specification 
+
+The Ordinary Least Square (OLS) linear model can be presented in both forms: (1) Vector (2) Matrix
+
+$$ y_{i} = \alpha + \sum_k\beta_kx_{ik} + \epsilon_{i} \quad \epsilon_i \sim i.i.d.(0,\sigma^2)  $$
+
+$$ y = X\beta + \epsilon \quad E[\epsilon]=0 \quad E[\epsilon\epsilon']=\sigma^2l_{n} $$
+
+Consequences of the independence assumptions, there should be no spatial diffusion of idiosyncratic shocks and there should be no spatial indirect (interaction or spillover) effects. How to test if the independence assumption holds? Moran's I test of spatial autocorrelation in OLS residuals.
+
+Given our practice from Lab 3, we will keep using four independent variables to explain variation in median household income per tract in Georgia by using multiple OLS linear regression. Substantive hypotheses:
+
+* As the proportion of Black population increases, the median household income decreases.
+* As the proportion of immigrant population increases, the median household income increases.
+* As the proportion of bachelor’s degree holders increases, the median household income increases.
+* As the young male population increases, the median household income decreases.
+
+```{r linear, warning=FALSE, message=FALSE}
+# Clean the data 
+dat <- ga_clean |>
+  sf::st_make_valid() |>
+  dplyr::select(incomeE, blackP, immigrantP, educationP, youngmaleP, geometry) |>
+  tidyr::drop_na(incomeE, blackP, immigrantP, educationP, youngmaleP)
+
+# Creates a neighbors list based on polygon contiguity 
+nb <- poly2nb(dat, queen = TRUE)
+# Converts a neighbor list into a spatial weights object
+lw <- nb2listw(nb, style = "W", zero.policy = TRUE)
+
+# Running the OLS linear model with the clean data 
+model1 <- lm(incomeE ~ blackP + immigrantP + educationP + youngmaleP, 
+             data = dat, x = TRUE)
+summary(model1)
+```
+
+Let's test whether independence assumption holds based on Moran's I test on residuals. 
+
+```{r diagnostics, warning=FALSE, message=FALSE}
+# Parametric test
+# Relies on theoretical (normal) distribution assumptions for the test statistic
+lm.morantest(model = model1, listw = lw)
+
+# Non-parametric test: Monte Carlo experiment
+set.seed(123)
+res <- residuals(model1)
+mc  <- spdep::moran.mc(res, listw = lw, nsim = 999, zero.policy = TRUE)
+mc
+```
+
+If Moran’s I is higher than expected and statistically significant, it indicates the presence of spatial autocorrelation in the residuals. In this case, the standard OLS model is misspecified, and we should consider fitting a spatial regression model - such as the Spatial Error Model (SEM), Spatial Lag Model (SAR), or the more general Spatial Durbin Model (SDM) - to properly account for spatial dependence.
+
+
+## Spaital Error Model (SEM)
+
+This estimates a Spatial Error Model (SEM), sometimes called the Spatial Autocorrelation Model, where spatial dependence is in the error term, not in the dependent variable. In other words, it is used when there is no specific theoretical expectation about how effects spill over across spatial units.
+For example, one might assume that the median household income level in a given tract is influenced by the characteristics of neighboring tracts, without specifying a particular direction or pattern of influence.
+
+Structural form: 
+
+$$ y_{i} = \alpha + \sum_{k}\beta_{k}x_{ik}+\epsilon_{i} \quad \epsilon_{i}=\delta\sum_{j}^{n}W_{ij}\epsilon{j}+\upsilon_{i}  $$
+
+$$ | \delta | < 1 = \text{Spatial Autoregressive Parameter} $$
+
+Reduced form:
+
+$$ y = X\beta + \beta_{n}\upsilon \quad \beta_n=(I_{n}-\delta W_{n})^{-1} $$ 
+
+```{r sem, warning=FALSE, message=FALSE}
+SEM1 <- errorsarlm(formula = formula(model1),listw = lw, 
+                   method = "eigen", data = dat)
+summary(SEM1)
+```
+
+Let's interpret the results. Did you find any difference from OLS model? 
+
+We should focus on Lambda: 
+
+* It measures the strength of spatial autocorrelation in the model’s error term.
+* A lambda ($\lambda$) of 0.399 means that about 40% of the residual variation in one area is systematically related to the residuals in neighboring areas (as defined by our spatial weights matrix).
+* Since it is positive and highly significant (p < 0.001), you can conclude that unmodeled factors are spatially correlated - meaning there is still some spatial structure in the error term that OLS would have ignored.
+
+
+## Spatial Durbin Model (SDM) 
+
+The Spatial Durbin Model (SDM) extends traditional regression models by allowing spatial spillovers in both the dependent and independent variables. In other words, the outcome in a given unit (i) is influenced not only by the characteristics of that unit itself but also by the characteristics of neighboring units - as defined by the spatial weights matrix (W).
+
+Structural form:
+
+$$ y = \alpha + X\beta + WX\gamma + \epsilon \quad \epsilon_{i} \sim i.i.d.(0, \sigma^2)   $$
+$\gamma$ is the spatial autoregressive parameter. 
+
+
+```{r sdm, warning=FALSE, message=FALSE}
+SDM1 <- lagsarlm(formula = formula(model1), listw = lw, type = "Durbin",
+                 method = "eigen", data = dat)
+summary(SDM1)
+```
+
+$\rho$ is 0.391 (p < 0.001), which indicates strong positive spatial dependence in the outcome. After controlling for our covariates (both local and neighbors’), income in a tract tends to move with income in neighboring tracts. If neighbors’ incomes rise, the focal tract’s income is pulled up via spatial feedback loops, and vice versa. 
+
+Among neighbor (WX) spillover coefficients, spatially lagged proportion of Black population is statistically significant (p < 0.001) which coefficient is -562.9. This indicates that higher neighboring Black share is associated with lower focal income, holding focal characteristics constant.
+
+
+## Spatial Autoregressive Model (SAR) 
+
+Use Spatial Autoregressive Model (SAR) when the outcome in each unit is influenced by neighbors’ outcomes (endogenous spatial dependence). Think diffusion/contagion/peer effects: outcomes spill over across space.
+
+Structural form:
+$$ y = \alpha + X\beta + Wy\rho + \epsilon \quad \epsilon_{i} \sim i.i.d. (0, \sigma^2)  $$
+
+$\rho$ is the spatial autoregressive parameter. 
+
+Reduced form:
+
+$$ y = A_{n}\alpha + A_{n}X\beta + A_{n}\epsilon \quad A_{n} = (I_{n}-\rho W_{n})^{-1}  $$
+
+The matrix $A_n$, sometimes called the *spatial multiplier* or *spatial propagation matrix*, captures how the effect of a shock or change propagates through the spatial network.
+
+
+```{r sar, warning=FALSE, message=FALSE}
+SAR1 <- lagsarlm(formula = formula(model1), listw = lw, type = "lag", 
+                 method = "eigen", data = dat)
+summary(SAR1)
+```
+
+Endogenous spillover ($\rho$) is 0.384 (p < 0.001), which indicates that strong positive spatial dependence in the outcome: tracts’ incomes move with neighboring tracts’ incomes even after controlling for covariates. 
+
+
+## Regression Tables
+
+We will learn how to export our regression table in a fancy way. You need to install a new package, `stargazer` (`install.packages("stargazer")`) and load it to our current R session. Within the parentheses, we can list any model objects (in this case, `model1` and `model2`) that we want to include. Afterwards, we specify our `type = ""`, which in this case is `html`. (The other option is `latex` if we use LaTex, which is an advanced document processor common in political science.) If you want to import the table in a MS Word file, we use `out = ""` to specify the output's file name with extension - the new file to which we want to write our tables. For Word documents, this needs to have a `.doc` extension (NOT `docx`). Make sure to give it a new name, not the name of an existing document you already have. It will overwrite any pre-existing file with that name. This will print the html code for a table in R;s console and create a new Word document in our working directory. 
+
+```{r star, warning=FALSE, message=FALSE, results='asis'}
+stargazer(model1, SEM1, SDM1, SAR1,
+          type = "latex",
+          title = "OLS VS. Spatial Linear Models",
+          column.labels = c("OLS", "SEM", "SDM", "SAR"),
+          colnames = F,
+          model.numbers = F,
+          dep.var.caption = "",
+          dep.var.labels = "Median Household Income",
+          covariate.labels = c("Black Population", "Immigrants", "Bachelor Holders", 
+                               "Young Male Population", "Lagged Black Population",
+                               "Lagged Immigrants", "Lagged Bachelor Holders",
+                               "Lagged Young Male"),
+          keep.stat = c("rsq", "f"),
+          notes.align = "l")
+```
+
+This table presents everything that readers will expect to see in research papers for regression model output. Now you do not need to manually make a regression table anymore. Make sure to change the key elements:
+
+* **title**: Table's title
+* **column.labels**: Model numbers
+* **dep.var.labels**: Dependent variable's name 
+* **covariate.labels**: Independent variables' names 
+
+
+## Goodness of Fit
+
+Since we have multiple ways to model spatial dependence - specifically the Spatial Error Model (SEM), the Spatial Autoregressive Model (SAR), and the Spatial Durbin Model (SDM) - it is important to evaluate which specification provides the best overall fit to the data.
+
+We can compare these models using two complementary goodness-of-fit criteria: the ANOVA likelihood ratio test and the Akaike Information Criterion (AIC).
+
+The ANOVA test (implemented via `anova.sarlm()` in the `spatialreg` package) compares the log-likelihoods of nested spatial models. It tests whether a more complex model (e.g., SDM) provides a statistically significant improvement in model fit compared to a simpler one (e.g., SEM or SAR). A significant likelihood-ratio statistic (with a small p-value) indicates that the more complex model fits the data better.
+
+```{r goodtest, warning=FALSE, message=FALSE}
+anova(SEM1, SDM1)
+anova(SEM1, SAR1)
+anova(SDM1, SAR1)
+```
+
+According to the ANOVA test, SDM fits significantly better than SEM, suggesting that incorporating both spatially lagged dependent and independent variables captures additional spatial structure in the data.
+
+Based on the AIC values, the SEM model fits slightly better than SAR, while the SDM model has the lowest AIC among all three, indicating the best trade-off between goodness of fit and model complexity.
+
+Both the likelihood-ratio tests and AIC comparisons indicate that SDM is the best-fitting model for these data, outperforming both the SEM and SAR specifications. 
+
+However, we should always consider the theoretical logic behind spatial dependence before choosing the “best” model. Model selection should balance empirical fit with the substantive theory of how spatial processes operate in the real world.
+
+
+# Acknowledgement 
+
+I gratefully acknowledge the contributions of my teaching assistants, [Kade Davis](kade.davis@morehouse.edu) and [Myles Ndiritu](myles.ndiritu@morehouse.edu) whose professionalism and commitment have played an essential role in developing and delivering this lab.
+
+
+# References 
+
