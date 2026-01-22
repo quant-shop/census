@@ -1,0 +1,349 @@
+---
+title: "Mapping Atlanta's Gentrification: Part I"
+author: "Felisha White"
+sutitle: |
+ |"Examining Georgia"
+ |"Howard University"
+ | Applied Data Science & Analytics"
+ |"felishashepardwhite@bison.howard.edu"
+date: "2025-09-04" 
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE) #Census API Key has single quotes '   '
+CENSUS_API_KEY='94cc76e5157869265c8e917591d1189de5bb6629'
+```
+
+
+**Final Goal: Mapping Fulton County and Atlanta, GA**
+Background: Exploring the New Great Migration occurring in the early 1970's marking the significant return of Black Americans to the deep south. This marked the reversal of trends in which for the first time in approximately 60 years, more Black Americans moved to the Southern States than left it. The influx contributed to a burgeoning Black middle class. "
+The economic recovery of the Southern United States in the 1970s was a continuation of a broader trend of Sunbelt growth/Sunbelt Boom, driven by economic development that created millions of jobs, a sharp contrast to job losses in the Northeast. This growth was fueled by the breakdown of de jure segregation, which opened new opportunities, along with the mechanization of agriculture and the expansion of low-value-added manufacturing jobs. However, this recovery occurred within a national context of economic challenges, including the stagflation of high inflation and unemployment, and continued dependence on commodity cycles and imported goods in the Southern economy". [Lit Review] A second period of growth for the city of Atlanta as well as the surrounding metropolitan area occured following the 1996 Atlanta Olympics, the city experienced a significant population increase and diversification, with metro-area population nearly doubling by 2025 and the foreign-born population tripling by 2000, primarily due to boosted tourism and a booming economy. This period also marked accelerated gentrification and displacement, particularly in neighborhoods where construction for the Games took place, and contributed to a shift of the city's Black population to the suburbs while metropolitan Black population continued to grow.Neighborhood transformation: This influx, fueled by economic growth and rising property values, has transformed historic Black neighborhoods like the Old Fourth Ward, East Atlanta, and Kirkwood into majority-white or racially mixed areas.
+The BeltLine's influence: Development projects, particularly the Atlanta BeltLine, have accelerated gentrification by increasing demand for housing and driving up prices in adjacent neighborhoods. The BeltLine has been linked to potential displacement and exclusion of low-income households.
+Displacement of Black residents: Between 1980 and 2020, an estimated 22,000 Black residents were displaced from Atlanta, the fifth-highest loss among U.S. metro areas. 
+
+Theory:
+
+
+
+Key dates: 
+1970-1980 New Great Migration
+1996 Olympics
+2005 Atlanta Beltline construction
+
+Data: Census data from 1970, 1980, 1990, 2000, 2010, 2020 and ACS data, which was fully implemented in 2005,
+
+Remember "option + command + i" to auto get the 3 backticks and the r within the squiggly lines 
+
+To tell r that you don't want warnings or messages, just show me my code and the output #{r, message=F, warning=F}
+
+```{r, eval=FALSE}
+
+install.packages("tidycensus")
+install.packages("tidyverse")
+install.packages("mapview")
+install.packages("mapgl")
+install.packages("TideHarmonics")
+install.packages("rmarkdown")
+```
+
+
+```{r,eval=FALSE}
+install.packages("remotes", repos = "http://cran.us.r-project.org")
+install.packages("tidyverse", repos = "http://cran.us.r-project.org")
+install.packages("tidyr", repos = "http://cran.us.r-project.org")
+```
+
+
+```{r, message=F, warning=F }
+#if you forget the quotes; highlight the word and select SHIFT + " to add quotes
+
+#now load the libraries
+library(tidycensus)
+library(dplyr)
+library(ggplot2)
+library(sf)
+library(tidyverse)
+library(mapgl)
+library(TideHarmonics)
+library(mark)
+
+#the sf package, (special features package) handles & analyzes spatial vector data.
+```
+Gather spatial data for North Carolina.
+
+
+Part I: Examining Georgia
+This code begins with an examination of the poverty level, household income...across the census tracts of Georgia.
+
+
+```{r, message=F, warning=F }
+
+#using the assignment operator <- to get ASC data
+#always start with geography; in this case county level #data; be sure to add the comma and then add another #variable
+
+#Now tell R you have access; Use API Key; add to set up chunk
+#ga_income_sf. < - get_acs 
+#Retrieves data/calls the get_acs() function, which downloads data from the U.S. Census Bureau's American Community Survey (ACS) via its API.
+#Then assigns a variable using the <- operator (i.e., assigns the data returned by get_acs() to a new variable called ga_income_sf. 
+
+#the sf package, (special features package) handles & analyzes spatial vector data.Adding sf to the object tells R to provide vector data.
+
+ga_income.sf <- get_acs(
+  geography = "county",
+  variables = "B19013_001", # this is the income variable in the ASC data
+  state = "GA",
+  year = 2023,
+  geometry = T
+)
+
+ga_income.sf
+
+```
+
+
+ #Using geometry = TRUE in a function that operates on an sf object, requires that the output retain its spatial geometry. 
+  #The function will return an sf object, which includes both the attribute data and the corresponding geometric features (points, lines, polygons, etc.).
+  #Using geometry = FALSE discards the spatial geometry and only keep the attribute data. 
+  #The function will return a standard R data frame (or tibble) containing only the non-geometry columns.
+
+
+```{r}
+View(ga_income.sf)
+```
+
+
+
+```{r}
+View(ga_income.sf)
+```
+
+
+```{r}
+plot(ga_income.sf['estimate'])
+```
+
+
+```{r}
+plot(ga_income.sf)
+```
+
+
+```{r}
+ga_fulton_income.sf. <- get_acs (
+  geography = "tract",
+  state = "GA",
+  county = "Fulton",
+  variable = "B19013_001",
+  year = 2023,
+  geometry = T
+  )
+```
+
+```{r}
+View(ga_fulton_income.sf.)
+```
+
+```{r}
+ga_fulton_income.sf.
+```
+```{r, message=F, warning=F }
+plot(ga_fulton_income.sf.['estimate'])
+```
+```{r, message=F, warning=F }
+library(viridis)
+```
+
+
+
+III: IMPROVING THE MAP
+
+Produce the map using ggplot2
+Data visualization: Uses ggplot2 to create a map from the nc_mecklenburg_income_sf dataset, using the spatial data from the Census) containing income estimates by census tract.
+
+Map formatting: 
+-geom_sf() renders the geographic boundaries with income data mapped by colors** See below
+-white borders set by (color = "white") with thin lines (size =0.1) seperate each tract
+-the "magma color palette (purple to yellow) represents income levels
+-legend is titled "Median Household INcome"
+-theme_minimal() applies a pre-built theme that removes the default settings
+-custom theme changes include:
+  plot.title = element_text(face = "bold", size = 16)
+  plot.subtitle = element_text(size = 12)
+  axis.title = element_blank() removes the x and y axis lables
+  legend.position = "right"
+
+#The + at the end of a line of code indicates that the code continues.
+    # And indicates that the statement is incomplete and continues on the next line. 
+    #This is common when constructing complex expressions or function calls that span multiple lines for readability.
+    #And frequently used in ggplot2 package when building plots layer by layer
+    #And each + connects a new layer or aesthetic to the plot object.
+
+
+```{r, message=F, warning=F } 
+ggplot(ga_fulton_income.sf.)+
+  geom_sf(aes(fill = estimate), color = "white", size = 0.1)+
+  scale_fill_viridis(option ="magma", name = "Median Household Income", labels = scales::dollar_format(scale = 0.001, suffix = "K", accuracy = 1)) +
+  labs(
+    title = "Median Household Income in Fulton County, GA",
+    subtitle = "By Census Tract(2023)",
+    caption = "Data: American Community Survey 5-Year Estimates",
+  )+
+  theme_minimal()+
+  theme(
+    plot.title = element_text(face ="bold",size = 16),
+    plot.subtitle = element_text(size = 10),
+    axis.title = element_blank(),
+    legend.position = "right"
+  )
+``` 
+
+
+```{r}
+library(mapview)
+```
+
+
+```{r}
+mapview(
+  ga_fulton_income.sf.,
+  zcol = "estimate"
+)
+
+```
+
+
+```{r, messages=F, warnings=F}
+  ga_poverty_level <- get_acs(
+  geography = "county",
+  variables = "B06012_001", #Place of Birth by Poverty Status in the Past 12 Months
+  state = "GA",
+  year = 2023,
+  geometry = T
+)
+```
+
+
+```{r, messages=F, warnings=F}
+  ga_poverty_level
+```
+
+```{r, messages=F, warnings=F}
+plot(ga_poverty_level['estimate'])
+```
+
+
+
+```{r, messages=F, warnings=F}
+  ga_fulton_poverty_level <- get_acs (
+    geography = "tract",
+    state = "GA",
+    county = "Fulton",
+    variable = "B06012_001",# "Place of Birth by Poverty Status in the Past 12 Months"
+    year = 2023,
+    geometry = T
+  )
+```
+
+
+```{r, messages=F, warnings=F}
+ga_poverty_level
+```
+**BASIC ESTIMATE OF POVERTY LEVEL IN FULTON COUNTY**
+The Official Poverty Measure
+The U.S. Census Bureau uses poverty thresholds set by the federal government that vary by:
+
+Family size
+Number of children under 18
+Age of householder (under or over 65)
+
+How it's measured
+A family is classified as "below poverty" if their total pre-tax cash income falls below the threshold for their specific family composition. For example, in 2023, the poverty threshold for a family of four with two children was around $29,960.
+What you'll see in census data
+Census data typically shows:
+
+**Number/percentage below poverty level** - those whose income is below 100% of the threshold
+**Poverty ratio categories** - often broken into ranges like under 50% of poverty level, 50-99%, 100-149%, 150-199%, and 200%+ of poverty level
+**Income-to-poverty ratio **- shows household income as a percentage of the poverty threshold
+
+**IMPORTANT NOTES**
+
+The thresholds are updated annually for inflation
+They don't vary by geographic location (same threshold in rural Mississippi as in San Francisco)
+They only count cash income, not non-cash benefits like SNAP or housing assistance
+The Census also produces a Supplemental Poverty Measure that accounts for more factors
+
+The main variable codes for poverty level data in the Census depend on which dataset you're using:
+American Community Survey (ACS) / Decennial Census:
+
+POVPIP - Poverty status (income-to-poverty ratio) as a percentage (e.g., 150 means 150% of poverty threshold)
+POVERTY - Poverty status recode showing categorized poverty levels
+
+For tables (Summary Files):
+
+B17001 - Poverty status in the past 12 months by sex and age
+B17002 - Ratio of income to poverty level in the past 12 months
+B17003 - Poverty status by sex by age (detailed)
+B17010 - Poverty status by family type
+B17017 - Poverty status by household type
+C17002 - Ratio of income to poverty level (collapsed version)
+
+Public Use Microdata Sample (PUMS):
+
+POVPIP - Income-to-poverty ratio recode (percentage)
+GRPIP - Gross rent as a percentage of household income
+
+Decennial Census (older):
+
+P159 (2000 Census) - Poverty status
+Various P-tables for poverty by demographic characteristics
+
+**IMPORTANT NOTES**
+The exact variable codes can differ between:
+
+Which year of data you're accessing
+Whether you're using microdata (individual records) vs. summary tables
+The API vs. downloaded files
+
+```{r, messages=F, warnings=F}
+plot(ga_fulton_poverty_level['estimate']) # estimate is the column name you should
+```
+
+```{r, messages=F,warnings=F}
+  library(viridis)
+
+```
+
+
+```{r, messages=F,warnings=F}
+ggplot(ga_fulton_poverty_level)+
+  geom_sf(aes(fill = estimate), color = "white", size = 0.1)+
+  scale_fill_viridis(option ="magma", name = "Estimated Poverty Levels", labels = scales::dollar_format(scale = 0.001, suffix = "K", accuracy = 1)) +
+  labs(
+    title = "Estimated Poverty Levels in Fulton County, GA",
+    subtitle = "By Census Tract(2023)",
+    caption = "Data: American Community Survey 5-Year Estimates",
+  )+
+  theme_minimal()+
+  theme(
+    plot.title = element_text(face ="bold",size = 16),
+    plot.subtitle = element_text(size = 10),
+    axis.title = element_blank(),
+    legend.position = "right"
+    )
+```
+```{r}
+mapview(
+  ga_fulton_poverty_level,
+  zcol = "estimate"
+)
+```
+
+```{r}
+mapview(
+   ga_fulton_poverty_level, 
+  zcol = "estimate",
+  alpha.regions = 0.35 # adjust transparency here
+)
+```
+    
