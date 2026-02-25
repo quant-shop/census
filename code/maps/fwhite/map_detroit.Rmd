@@ -1,0 +1,217 @@
+---
+title: "map_detroit"
+author: "Felisha White"
+date: "2025-11-10"
+output:
+  html_document:
+    toc: true
+  pdf_document:
+    toc: true
+---
+```{r, message=F, warning=F}
+knitr::opts_chunk$set(echo = TRUE) #Census API Key has single quotes '   '
+CENSUS_API_KEY='94cc76e5157869265c8e917591d1189de5bb6629'
+```
+---
+
+```{r, message=F, warning=F}
+
+# Install packages as needed
+install.packages(c("tidycensus", "tidyverse", "mapview", "mapgl", "quarto", "tigris"))
+
+
+# Load necessary libraries
+
+library(tidycensus)
+library(dplyr)
+library(ggplot2)
+library(sf)
+library(viridis)
+library(scales)
+library(tigris)
+```
+
+
+## GATHER CITY BOUNDARY DATA
+```{r, message=F, warning=F}
+# Get Detroit city boundary
+detroit_boundary <- places(state = "MI", year = 2023) %>%
+  filter(NAME == "Detroit")
+```
+
+## GATHER TRACT LEVEL DATA FROM ACS
+```{r, message=F, warning=F}
+# Get all tracts in Wayne County (Detroit is in Wayne County)
+wayne_tracts <- get_acs(
+  geography = "tract",
+  variables = c(
+    black = "B02001_003",      # Black or African American alone
+    total = "B01001_001"       # Total population
+  ),
+  state = "MI",
+  county = "Wayne",
+  year = 2023,
+  geometry = TRUE,
+  output = "wide"
+)
+
+# Filter to only tracts within Detroit city boundary
+detroit_tracts <- wayne_tracts %>%
+  st_transform(st_crs(detroit_boundary)) %>%
+  st_filter(detroit_boundary, .predicate = st_intersects)
+
+# Add county FIPS code
+detroit_tracts <- detroit_tracts %>%
+  mutate(county_fips = substr(GEOID, 1, 5)) %>%
+  relocate(GEOID, county_fips)
+```
+
+Examine the data
+```{r, message=F, warning=F}
+detroit_tracts %>% 
+  head()
+```
+
+## PLOT THE DATA
+
+Detroit City Black Population
+(create an estimate of the city's black population)
+```{r, message=F, warning=F}
+ggplot(detroit_tracts) +
+  geom_sf(aes(fill = blackE), color = NA) +
+  scale_fill_viridis_c(option = "magma", na.value = "grey50", labels = comma) +
+  labs(title = "Estimated Black Population by Census Tract in Detroit, MI (2023)",
+       fill = "Population") +
+  theme_minimal()
+```
+
+Detroit City Non-Black Population
+(create a non-black estimate)
+```{r, message=F, warning=F}
+detroit_tracts <- detroit_tracts %>% 
+  mutate(nonblackE = totalE - blackE) %>% 
+  select(GEOID, county_fips, blackE, nonblackE, totalE)
+```
+
+Add the data for non-black residents to the map
+```{r, message=F, warning=F}
+ggplot(detroit_tracts) +
+  geom_sf(aes(fill = nonblackE)) +
+  scale_fill_viridis_c(option = "magma", 
+                       na.value = "grey50",
+                       labels = comma) +
+  labs(title = "Estimated Non-Black Population by Census Tract in Detroit, MI (2023)",
+       fill = "Population") +
+  theme_minimal()
+```
+
+## INDEX OF DISSIMILARITY
+
+Calculate the proportion of Black people in all tracts of the city
+```{r}
+
+detroit_tracts <- detroit_tracts %>% 
+  mutate(proportion_black = blackE / totalE) %>%
+  mutate(proportion_non_black = 1 - proportion_black)
+```
+
+View the top 10 tracts with the highest proportion of black residents
+```{r, message=F, warning=F}
+detroit_tracts %>%
+  arrange(desc(proportion_black)) %>% 
+  select(GEOID, proportion_black, proportion_non_black) %>% 
+  head(n = 10)
+```
+
+Calculate the proportion of tracts that are ABOVE a certain threshold of Black only individuals. Set the threshold at tracts with 60 percent or more (60% >) Black residents. ADJUST AS NEEDED
+
+Note that we need to remove the geometry feature before summarizing.
+```{r, message=F, warning=F}
+detroit_tracts %>%
+  st_set_geometry(NULL) %>%   # Remove geometry to treat as normal data.frame
+  summarise(
+    total_tracts = n(),
+    tracts_above_threshold = sum(proportion_black >= 0.60, na.rm = TRUE),
+    proportion_above_threshold = mean(proportion_black >= 0.60, na.rm = TRUE)
+  )
+```
+
+Query: What percentage of tracts have a Black population >= 60 percent
+```{r, message=F, warning=F}
+```
+## CALCULATE THE DISSIMILARITY INDEX (D) FOR THE CITY
+```{r, message=F, warning=F}
+detroit_total_black <- sum(detroit_tracts$blackE, na.rm = TRUE)
+detroit_total_nonblack <- sum(detroit_tracts$nonblackE, na.rm = TRUE)
+
+dissimilarity_detroit <- 0.5 * sum(abs(
+  (detroit_tracts$blackE / detroit_total_black) - 
+  (detroit_tracts$nonblackE / detroit_total_nonblack)
+), na.rm = TRUE)
+```
+
+Print the results
+```{r, message=F, warning=F}
+dissimilarity_detroit
+```
+
+Values between roughly 0.3 to 0.6 indicate moderate segregation; 
+Values above 0.6 is high segregation. 
+
+## VISUALIZE THE DISSIMILARITY
+
+First visualize the proportion of black residents by Census Tract in the city
+```{r, message=F, warning=F}
+ggplot(detroit_tracts) +
+  geom_sf(aes(fill = proportion_black), color = "white") +
+  scale_fill_viridis_c(option = "plasma", direction = -1) +
+  labs(title = "Proportion of Black Residents by Census Tract in Detroit, MI",
+       fill = "Proportion Black") +
+  theme_minimal()
+```
+
+## VISUALIZE THE DIVIDING WALL
+```{r, message=F, warning=F}
+detroit_tracts <- detroit_tracts %>%
+  mutate(majority_black = proportion_black > 0.5)
+```
+
+Join the 2 geometries for majority black and majority nonblack by filtering for tracts where majority_black ==TRUE and majority_black == FALSE in detroit_union_black and detroit_union_nonblack respectively
+```{r, message=F, warning=F}
+# Union geometries by group
+detroit_union_black <- detroit_tracts %>%
+  filter(majority_black) %>%
+  summarise(geometry = st_union(geometry))
+
+detroit_union_nonblack <- detroit_tracts %>%
+  filter(!majority_black) %>%
+  summarise(geometry = st_union(geometry))
+```
+
+Then calculate BOUNDARY (DIFFERENCES) between groups at shared borders
+```{r, message=F, warning=F}
+detroit_boundary_line = 
+  st_intersection(st_boundary(detroit_union_black), st_boundary(detroit_union_nonblack))
+```
+
+Plot the base polygons for the dividing wall.
+```{r, message=F, warning=F}
+#plot for dividing wall
+ggplot() +
+  geom_sf(data = detroit_tracts, aes(fill = majority_black), 
+          color = "grey40", 
+          alpha = 0.5) +
+  geom_sf(data = detroit_boundary_line, 
+          color = "red", 
+          size = 1) +
+  labs(title = "Dividing Walls Between Majority Black and Non-Black Areas in Detroit, MI") +
+  theme_minimal()
+```
+```{r, message=F, warning=F}
+```
+```{r, message=F, warning=F}
+```
+```{r, message=F, warning=F}
+```
+```{r, message=F, warning=F}
+```
