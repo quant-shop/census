@@ -42,7 +42,7 @@ I outline the technical documentation for the Fall 2025 [Quantitative Histories 
 
 ## Conceptual Model
 
-High-dimensional data are characterized by the relationship between the data's dimensions (the number of features) and the data sample (number of observations). In an ideal interdisciplinary model that is informed by the various fields of human development, there is a potential to understand how the number of data features relate to the sample, and what methodological selections are used to characterize the set of indicators used in a mathematical model (Sørensen, 1978). 
+High-dimensional data is characterized by the relationship between the data's dimensions (the number of features) and the data sample (number of observations). In an ideal interdisciplinary model that is informed by the various fields of human development, there is a potential to understand how the number of data features relate to the sample, and what methodological selections are used to characterize the set of indicators used in a mathematical model (Sørensen, 1978). 
 
 We will use U.S. census data to consider a measure of dissimilarity and spatial maps to: (1) observe land and coverings of different variables that quantify race, and (2) engage in assessing the various spatial conditions that inform racial isolation, or a series of dividing walls that separate one group from another group ([Short, 2011](https://plus.maths.org/content/dividing-walls-topology-and-topography-i){target="_blank"}).
 
