@@ -29,7 +29,7 @@ here::i_am("dc_historical_census_tracts.Rmd")
 
 # DATA
 
-Files on the Census tracts from various historical periods are uploaded from DC Open Data. Additional data files can be accessed from the DC Open Data webiste [here](https://opendata.dc.gov/) and include KML, GeoJSON, and shapefies.
+Files on the Census tracts from various historical periods are uploaded from DC Open Data. Additional data files can be accessed from the DC Open Data website [here](https://opendata.dc.gov/) and include KML, GeoJSON, and shapefies.
 
 ## Historical Census Tracts for DC
 

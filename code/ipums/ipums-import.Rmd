@@ -1,0 +1,49 @@
+---
+title: "Importing data from IPUMS"
+author: 
+  - "Nathan Alexander, PhD"
+  - "Center for Applied Data Science and Analytics"
+  - "Howard University"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true  # Enable floating TOC in the sidebar
+    number_sections: true
+    theme: cerulean
+    always_allow_html: true
+    self_contained: true
+editor_options:
+  markdown:
+    wrap: sentence
+---
+
+```{r setup, include=T, warning=F, results=F, message=F}
+knitr::opts_chunk$set(echo = TRUE)
+#install.packages("ipumsr")
+library(ggplot2)
+library(dplyr)
+library(here)
+here::i_am("ipums-import.Rmd")
+```
+
+# DATA
+
+[What is IPUMS?](https://tech.popdata.org/ipumsr/index.html)
+
+> "IPUMS is the world’s largest publicly available population database, providing census and survey data from around the world integrated across time and space. IPUMS integration and documentation make it easy to study change, conduct comparative research, merge information across data types, and analyze individuals within family and community context. Data and services are available free of charge."
+
+For example, if we want U.S. Census data and GIS mapping files from 1790-present, we want to use the [IPUMS NHGIS](https://www.nhgis.org/). We can also gather data about public schools from the [SABINS Public School Data Files](https://www.nhgis.org/sabins-public-school-data). 
+
+For all files, we can select data tables directly from the website using the DATA FINDER and, for some API supported files, we can use the [`ipumsr` package](https://tech.popdata.org/ipumsr/index.html) after we download relevant `.xml` files.
+
+# Calling data from the `ipumsr` package
+
+IPUMS data are free but require registration by clicking the `Register` link [here](https://www.ipums.org/overview).
+
+Once registered, you must create and submit an *extract* request. The detailed instructions for this requested can be found [here](https://tech.popdata.org/ipumsr/articles/ipums.html). Below, I go through a sample extraction and import to attain data for one of our lab projects.
+
+
+
+
+
