@@ -1,5 +1,5 @@
 ---
-title: "Importing data from IPUMS"
+title: "Importing data from IPUMS" 
 author: 
   - "Nathan Alexander, PhD"
   - "Center for Applied Data Science and Analytics"
