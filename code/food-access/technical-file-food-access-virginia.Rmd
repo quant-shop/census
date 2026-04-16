@@ -1,0 +1,226 @@
+---
+title: "Technical File: Examining Community Food Environments and Health Outcomes in Virginia"
+author: 
+- "Nathan Alexander, PhD"
+- "Emmanuel Christian"
+- "Howard University"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true  # Enable floating TOC in the sidebar
+    number_sections: true
+    theme: cerulean
+    always_allow_html: true
+    self_contained: true
+editor_options:
+  markdown:
+    wrap: sentence
+---
+
+# Project setup
+
+```{r setup, include=F, warning=F, message=F}
+knitr::opts_chunk$set(echo = TRUE)
+library(here)
+here::i_am("technical-file-food-access-virginia.Rmd")
+
+# install packages
+#install.packages("tidycensus")
+#install.packages("tidyverse")
+#install.packages("mapview")
+#install.packages("mapgl")
+library(tidycensus)
+library(dplyr)
+library(ggplot2)
+library(sf)
+library(viridis)
+library(scales)
+library(readr)
+```
+
+# Food access data import
+
+We import data from the [Food Access Research Atlas](https://www.ers.usda.gov/data-products/food-access-research-atlas).
+
+```{r food-access-data, include=T, warning=F, message=F}
+food.access <- read.csv("../../data/food-access/foodaccessdata2019.csv")
+#head(food.access)
+str(food.access)
+```
+
+# VA food access data subset
+
+```{r va-food-access-data, include=T, warning=F, message=F}
+va_food <- food.access %>%
+  filter(State == "Virginia")
+
+# convert to proper GEOID to merge with census data
+va_food <- va_food %>%
+  mutate(
+    GEOID = sprintf("%011.0f", CensusTract)
+  )
+```
+
+# Census data important
+
+```{r census-data, include=T, warning=F, message=F}
+va_census <- get_acs(
+  geography = "tract",
+  state = "VA",
+  variables = c(
+    total_pop = "B01003_001",
+    median_income = "B19013_001"
+  ),
+  year = 2020,
+  survey = "acs5"
+)
+
+# reshape census data
+
+va_census_wide <- va_census %>%
+  select(GEOID, variable, estimate) %>%
+  tidyr::pivot_wider(
+    names_from = variable,
+    values_from = estimate
+  )
+```
+
+# Merge data sets
+
+```{r, include=T, warning=F, message=F}
+va_merged <- va_food %>%
+  left_join(va_census_wide, by = "GEOID")
+
+# validate
+nrow(va_food)
+nrow(va_merged)
+
+sum(is.na(va_merged$total_pop))
+```
+
+---
+
+# Research Question
+
+- General question: How does living in a community characterized as a food swamp, food desert, or food oasis affect the health outcomes of residents of these communities in Virginia Beach City County and Henrico County, VA?
+
+- Focus question: How are tract-level food environment classifications associated with tract- or county-level health outcomes?
+
+## Clean data
+
+```{r, include=T, warning=F, message=F}
+va_clean <- va_merged %>%
+  mutate(
+    across(where(is.character), ~na_if(., "NULL")),
+    across(
+      c(PovertyRate, MedianFamilyIncome, lalowihalfshare,
+        lasnaphalfshare, lapophalfshare),
+      readr::parse_number
+    )
+  )
+```
+
+## Study counties
+
+```{r, include=T, warning=F, message=F}
+va_study <- va_clean %>%
+  filter(
+    County %in% c("Virginia Beach city", "Henrico County")
+  )
+```
+
+## Food environment classifications
+
+```{r, include=T, warning=F, message=F}
+va_study <- va_study %>%
+  mutate(
+    food_desert = LILATracts_1And10 == 1,
+    food_oasis  = LILATracts_1And10 == 0 & LowIncomeTracts == 0
+  )
+```
+
+
+We use a data driven threshold.
+
+```{r, include=T, warning=F, message=F}
+snap_cut   <- median(va_study$lasnaphalfshare, na.rm = TRUE)
+access_cut <- median(va_study$lapophalfshare, na.rm = TRUE)
+
+va_study <- va_study %>%
+  mutate(
+    food_swamp = LowIncomeTracts == 1 &
+                 lasnaphalfshare > snap_cut &
+                 lapophalfshare > access_cut
+  )
+```
+
+Then we combine it into one variable.
+
+```{r, include=T, warning=F, message=F}
+va_study <- va_study %>%
+  mutate(
+    food_env = case_when(
+      food_desert ~ "Food Desert",
+      food_swamp  ~ "Food Swamp",
+      food_oasis  ~ "Food Oasis",
+      TRUE        ~ "Other"
+    )
+  )
+
+```
+
+## Import spatial data
+
+```{r, include=F, warning=F, message=F}
+va_tracts <- get_acs(
+  geography = "tract",
+  state = "VA",
+  county = c("Virginia Beach city", "Henrico County"),
+  variables = "B01003_001",
+  geometry = TRUE
+)
+
+```
+
+### Join data to the map
+
+```{r, include=T, warning=F, message=F}
+va_map <- va_tracts %>%
+  select(GEOID, geometry) %>%
+  left_join(va_study, by = "GEOID")
+
+```
+
+# Map 1: Food enviornment classifications
+
+```{r, include=T, warning=F, message=F}
+library(ggplot2)
+
+ggplot(va_map) +
+  geom_sf(aes(fill = food_env), color = NA) +
+  scale_fill_manual(values = c(
+    "Food Desert" = "red",
+    "Food Swamp"  = "orange",
+    "Food Oasis"  = "green",
+    "Other"       = "grey80"
+  )) +
+  labs(
+    title = "Food Environment Classification",
+    subtitle = "Virginia Beach city & Henrico County",
+    fill = "Category"
+  ) +
+  theme_minimal()
+
+```
+
+
+```{r, include=T, warning=F, message=F}
+
+
+```
+
+
+
+
