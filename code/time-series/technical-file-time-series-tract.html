@@ -1551,8 +1551,22 @@ mob_pop_2000</code></pre>
 ##   &lt;chr&gt; &lt;chr&gt;                  &lt;chr&gt;     &lt;dbl&gt;
 ## 1 01097 Mobile County, Alabama P001001  399843</code></pre>
 </div>
-<div id="s-data-from-nhgis" class="section level1" number="3">
-<h1><span class="header-section-number">3</span> 1950s data from
+<div id="merging-data" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> Merging data</h1>
+<pre class="r"><code>county_joined &lt;- mob_pop_2020 %&gt;% 
+  select(GEOID, NAME, value20 = value) %&gt;% 
+  left_join(mob_pop_2010, by = &quot;GEOID&quot;) %&gt;% 
+  mutate(total_change = value20 - value,
+         percent_change = 100 * (total_change / value))
+
+county_joined</code></pre>
+<pre><code>## # A tibble: 1 × 8
+##   GEOID NAME.x        value20 NAME.y variable  value total_change percent_change
+##   &lt;chr&gt; &lt;chr&gt;           &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;     &lt;dbl&gt;        &lt;dbl&gt;          &lt;dbl&gt;
+## 1 01097 Mobile Count…  414809 Mobil… P001001  412992         1817          0.440</code></pre>
+</div>
+<div id="s-data-from-nhgis" class="section level1" number="4">
+<h1><span class="header-section-number">4</span> 1950s data from
 NHGIS</h1>
 <p>Pulling in data from 1950</p>
 <pre class="r"><code>pop_1950 &lt;- read.csv(&quot;../../data/time-series/nhgis0006_csv/nhgis0006_ds82_1950_tract.csv&quot;)
@@ -1738,8 +1752,8 @@ pop_1950 %&gt;%
 ## 56      0
 ## 57      2
 ## 58      0</code></pre>
-<div id="shape-files" class="section level2" number="3.1">
-<h2><span class="header-section-number">3.1</span> 1950 Shape files</h2>
+<div id="shape-files" class="section level2" number="4.1">
+<h2><span class="header-section-number">4.1</span> 1950 Shape files</h2>
 <pre class="r"><code>tracts_1950 &lt;- st_read(
   &quot;../../data/time-series/nhgis0006_shape/nhgis0006_shapefile_tl2000_us_tract_1950/US_tract_1950.shp&quot;
 )</code></pre>
@@ -1802,8 +1816,8 @@ mobile_1950 &lt;- st_transform(mobile_1950, 4326)</code></pre>
 sometimes incomplete (tracts didn’t cover all areas yet).</p>
 </div>
 </div>
-<div id="s-data-from-nhgis-1" class="section level1" number="4">
-<h1><span class="header-section-number">4</span> 1960s data from
+<div id="s-data-from-nhgis-1" class="section level1" number="5">
+<h1><span class="header-section-number">5</span> 1960s data from
 NHGIS</h1>
 <pre class="r"><code>pop_1960 &lt;- read.csv(&quot;../../data/time-series/nhgis0007_csv/nhgis0007_ds92_1960_tract.csv&quot;)
 
@@ -2916,8 +2930,8 @@ pop_1960 %&gt;%
 ## 218      0
 ## 219     20
 ## 220     55</code></pre>
-<div id="shape-files-1" class="section level2" number="4.1">
-<h2><span class="header-section-number">4.1</span> 1960 Shape files</h2>
+<div id="shape-files-1" class="section level2" number="5.1">
+<h2><span class="header-section-number">5.1</span> 1960 Shape files</h2>
 <pre class="r"><code>tracts_1960 &lt;- st_read(
   &quot;../../data/time-series/nhgis0007_shape/nhgis0007_shapefile_tl2000_us_tract_1960/US_tract_1960.shp&quot;
 )</code></pre>
@@ -2983,8 +2997,8 @@ mobile_1960 &lt;- tracts_1960 %&gt;%
 mobile_1960 &lt;- st_transform(mobile_1960, 4326)</code></pre>
 </div>
 </div>
-<div id="shape-files-2" class="section level1" number="5">
-<h1><span class="header-section-number">5</span> 1970 Shape files</h1>
+<div id="shape-files-2" class="section level1" number="6">
+<h1><span class="header-section-number">6</span> 1970 Shape files</h1>
 <pre class="r"><code>tracts_1970 &lt;- st_read(
   &quot;../../data/time-series/nhgis0007_shape/nhgis0007_shapefile_tl2000_us_tract_1970/US_tract_1970.shp&quot;
 )</code></pre>
@@ -3055,23 +3069,131 @@ mobile_1970 &lt;- tracts_1970 %&gt;%
 # to overlay with modern data
 mobile_1970 &lt;- st_transform(mobile_1970, 4326)</code></pre>
 </div>
-<div id="merging-data" class="section level1" number="6">
-<h1><span class="header-section-number">6</span> Merging data</h1>
-<pre class="r"><code>county_joined &lt;- mob_pop_2020 %&gt;% 
-  select(GEOID, NAME, value20 = value) %&gt;% 
-  left_join(mob_pop_2010, by = &quot;GEOID&quot;) %&gt;% 
-  mutate(total_change = value20 - value,
-         percent_change = 100 * (total_change / value))
-
-county_joined</code></pre>
-<pre><code>## # A tibble: 1 × 8
-##   GEOID NAME.x        value20 NAME.y variable  value total_change percent_change
-##   &lt;chr&gt; &lt;chr&gt;           &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;     &lt;dbl&gt;        &lt;dbl&gt;          &lt;dbl&gt;
-## 1 01097 Mobile Count…  414809 Mobil… P001001  412992         1817          0.440</code></pre>
-</div>
 <div id="building-a-time-series" class="section level1" number="7">
 <h1><span class="header-section-number">7</span> Building a time
 series</h1>
+<p>Get 2020 tract geometries</p>
+<pre class="r"><code>tracts_2020 &lt;- get_decennial(
+  geography = &quot;tract&quot;,
+  state = &quot;AL&quot;,
+  county = &quot;Mobile&quot;,
+  variables = c(total = &quot;P1_001N&quot;),
+  geometry = TRUE,
+  year = 2020
+) %&gt;%
+  select(GEOID, geometry)</code></pre>
+<pre><code>##   |                                                                              |                                                                      |   0%  |                                                                              |=                                                                     |   1%  |                                                                              |=                                                                     |   2%  |                                                                              |==                                                                    |   3%  |                                                                              |===                                                                   |   4%  |                                                                              |===                                                                   |   5%  |                                                                              |====                                                                  |   5%  |                                                                              |====                                                                  |   6%  |                                                                              |=====                                                                 |   7%  |                                                                              |======                                                                |   8%  |                                                                              |======                                                                |   9%  |                                                                              |=======                                                               |  10%  |                                                                              |=======                                                               |  11%  |                                                                              |========                                                              |  12%  |                                                                              |=========                                                             |  13%  |                                                                              |==========                                                            |  14%  |                                                                              |==========                                                            |  15%  |                                                                              |===========                                                           |  16%  |                                                                              |============                                                          |  17%  |                                                                              |============                                                          |  18%  |                                                                              |=============                                                         |  18%  |                                                                              |==============                                                        |  19%  |                                                                              |==============                                                        |  20%  |                                                                              |===============                                                       |  21%  |                                                                              |================                                                      |  22%  |                                                                              |================                                                      |  23%  |                                                                              |=================                                                     |  24%  |                                                                              |==================                                                    |  25%  |                                                                              |==================                                                    |  26%  |                                                                              |===================                                                   |  27%  |                                                                              |====================                                                  |  28%  |                                                                              |====================                                                  |  29%  |                                                                              |=====================                                                 |  30%  |                                                                              |======================                                                |  31%  |                                                                              |======================                                                |  32%  |                                                                              |=======================                                               |  33%  |                                                                              |=======================                                               |  34%  |                                                                              |========================                                              |  35%  |                                                                              |=========================                                             |  35%  |                                                                              |=========================                                             |  36%  |                                                                              |==========================                                            |  37%  |                                                                              |===========================                                           |  38%  |                                                                              |===========================                                           |  39%  |                                                                              |============================                                          |  40%  |                                                                              |=============================                                         |  41%  |                                                                              |=============================                                         |  42%  |                                                                              |==============================                                        |  43%  |                                                                              |===============================                                       |  44%  |                                                                              |===============================                                       |  45%  |                                                                              |================================                                      |  46%  |                                                                              |=================================                                     |  47%  |                                                                              |=================================                                     |  48%  |                                                                              |==================================                                    |  49%  |                                                                              |===================================                                   |  50%  |                                                                              |===================================                                   |  51%  |                                                                              |====================================                                  |  51%  |                                                                              |=====================================                                 |  52%  |                                                                              |=====================================                                 |  53%  |                                                                              |======================================                                |  54%  |                                                                              |=======================================                               |  55%  |                                                                              |=======================================                               |  56%  |                                                                              |========================================                              |  57%  |                                                                              |=========================================                             |  58%  |                                                                              |=========================================                             |  59%  |                                                                              |==========================================                            |  60%  |                                                                              |===========================================                           |  61%  |                                                                              |===========================================                           |  62%  |                                                                              |============================================                          |  63%  |                                                                              |=============================================                         |  64%  |                                                                              |=============================================                         |  65%  |                                                                              |==============================================                        |  66%  |                                                                              |===============================================                       |  67%  |                                                                              |===============================================                       |  68%  |                                                                              |================================================                      |  68%  |                                                                              |=================================================                     |  69%  |                                                                              |=================================================                     |  70%  |                                                                              |==================================================                    |  71%  |                                                                              |===================================================                   |  72%  |                                                                              |===================================================                   |  73%  |                                                                              |====================================================                  |  74%  |                                                                              |=====================================================                 |  75%  |                                                                              |=====================================================                 |  76%  |                                                                              |======================================================                |  77%  |                                                                              |=======================================================               |  78%  |                                                                              |=======================================================               |  79%  |                                                                              |========================================================              |  80%  |                                                                              |=========================================================             |  81%  |                                                                              |=========================================================             |  82%  |                                                                              |==========================================================            |  83%  |                                                                              |===========================================================           |  84%  |                                                                              |===========================================================           |  85%  |                                                                              |============================================================          |  85%  |                                                                              |============================================================          |  86%  |                                                                              |=============================================================         |  87%  |                                                                              |==============================================================        |  88%  |                                                                              |==============================================================        |  89%  |                                                                              |===============================================================       |  90%  |                                                                              |================================================================      |  91%  |                                                                              |================================================================      |  92%  |                                                                              |=================================================================     |  93%  |                                                                              |==================================================================    |  94%  |                                                                              |==================================================================    |  95%  |                                                                              |===================================================================   |  96%  |                                                                              |====================================================================  |  97%  |                                                                              |====================================================================  |  98%  |                                                                              |===================================================================== |  99%  |                                                                              |======================================================================| 100%</code></pre>
+<pre class="r"><code>nrow(tracts_2020)</code></pre>
+<pre><code>## [1] 135</code></pre>
+<p>Load 1960 NHGIS shapefile + data</p>
+<pre class="r"><code>tracts_1960 &lt;- st_read(&quot;../../data/time-series/nhgis0007_shape/nhgis0007_shapefile_tl2000_us_tract_1960/US_tract_1960.shp&quot;) %&gt;%
+  filter(NHGISST == &quot;010&quot;, NHGISCTY == &quot;0970&quot;)</code></pre>
+<pre><code>## Reading layer `US_tract_1960&#39; from data source 
+##   `/Users/nathanalexander/Dropbox/Projects/census/data/time-series/nhgis0007_shape/nhgis0007_shapefile_tl2000_us_tract_1960/US_tract_1960.shp&#39; 
+##   using driver `ESRI Shapefile&#39;
+## Simple feature collection with 23096 features and 6 fields
+## Geometry type: MULTIPOLYGON
+## Dimension:     XY
+## Bounding box:  xmin: -7115713 ymin: -1249496 xmax: 2063676 ymax: 2275545
+## Projected CRS: USA_Contiguous_Albers_Equal_Area_Conic</code></pre>
+<pre class="r"><code>nhgis_1960 &lt;- read.csv(&quot;../../data/time-series/nhgis0007_csv/nhgis0007_ds92_1960_tract.csv&quot;)
+
+tracts_1960 &lt;- tracts_1960 %&gt;%
+  left_join(nhgis_1960, by = &quot;GISJOIN&quot;)</code></pre>
+<p>Harmonize CRS</p>
+<pre class="r"><code>tracts_1960 &lt;- st_transform(tracts_1960, st_crs(tracts_2020))</code></pre>
+<p>Areal interpolation</p>
+<pre class="r"><code>#install.packages(&quot;areal&quot;)
+library(areal)
+
+
+tracts_1960_clean &lt;- tracts_1960 %&gt;%
+  sf::st_make_valid() %&gt;%
+  sf::st_transform(st_crs(tracts_2020)) %&gt;%
+  dplyr::mutate(
+    total = B79001,
+    white = B79002,
+    black = B79003
+  ) %&gt;%
+  dplyr::select(total, white, black, geometry)
+
+tracts_1960_clean</code></pre>
+<pre><code>## Simple feature collection with 39 features and 3 fields
+## Geometry type: MULTIPOLYGON
+## Dimension:     XY
+## Bounding box:  xmin: -88.21173 ymin: 30.565 xmax: -87.95662 ymax: 30.84063
+## Geodetic CRS:  NAD83
+## First 10 features:
+##    total white black                       geometry
+## 1    285    42   213 MULTIPOLYGON (((-88.1224 30...
+## 2   1398   291   993 MULTIPOLYGON (((-88.0558 30...
+## 3    492    62   400 MULTIPOLYGON (((-88.09139 3...
+## 4    561    49   448 MULTIPOLYGON (((-88.0929 30...
+## 5    278    45   206 MULTIPOLYGON (((-88.10302 3...
+## 6    789    63   488 MULTIPOLYGON (((-88.06641 3...
+## 7    359    26   338 MULTIPOLYGON (((-88.17328 3...
+## 8    173    21   127 MULTIPOLYGON (((-88.0499 30...
+## 9    948   128   725 MULTIPOLYGON (((-88.0764 30...
+## 10     0     2     0 MULTIPOLYGON (((-88.0812 30...</code></pre>
+<pre class="r"><code>intersections &lt;- st_intersection(
+  tracts_1960_clean,
+  tracts_2020
+)</code></pre>
+<pre class="r"><code>tracts_1960_clean &lt;- st_make_valid(tracts_1960_clean)
+tracts_2020 &lt;- st_make_valid(tracts_2020)
+
+any(!st_is_valid(tracts_1960_clean))</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<pre class="r"><code>any(!st_is_valid(tracts_2020))</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<pre class="r"><code>tracts_1960_clean &lt;- st_simplify(
+  tracts_1960_clean,
+  dTolerance = 0,
+  preserveTopology = TRUE
+)
+
+intersections &lt;- st_intersection(
+  tracts_1960_clean,
+  tracts_2020
+)
+
+intersections</code></pre>
+<pre><code>## Simple feature collection with 273 features and 4 fields
+## Geometry type: GEOMETRY
+## Dimension:     XY
+## Bounding box:  xmin: -88.21173 ymin: 30.56506 xmax: -87.95706 ymax: 30.84063
+## Geodetic CRS:  NAD83
+## First 10 features:
+##    total white black       GEOID                       geometry
+## 2   1398   291   993 01097000500 POLYGON ((-88.07749 30.7010...
+## 4    561    49   448 01097000500 POLYGON ((-88.07773 30.7009...
+## 6    789    63   488 01097000500 MULTIPOLYGON (((-88.07711 3...
+## 16  1756   460  1115 01097000500 POLYGON ((-88.05591 30.7114...
+## 32    32    14    21 01097000500 POLYGON ((-88.07756 30.7010...
+## 1    285    42   213 01097002700 POLYGON ((-88.12642 30.6885...
+## 5    278    45   206 01097002700 POLYGON ((-88.12211 30.7069...
+## 21     9     1     7 01097002700 POLYGON ((-88.12259 30.7068...
+## 23    64    15    46 01097002700 MULTIPOLYGON (((-88.12584 3...
+## 26     4     0     4 01097002700 POLYGON ((-88.12651 30.6881...</code></pre>
+<pre class="r"><code>intersections &lt;- sf::st_make_valid(intersections)
+
+sf::sf_use_s2(FALSE)
+
+intersections$int_area &lt;- sf::st_area(intersections)
+
+intersections$int_area &lt;- as.numeric(intersections$int_area)</code></pre>
+<p>compute source tract total area</p>
+<pre class="r"><code>tract_area &lt;- sf::st_area(tracts_1960_clean)
+tract_area &lt;- as.numeric(tract_area)
+
+tract_ids &lt;- tracts_1960_clean$GISJOIN
+names(tract_area) &lt;- tract_ids</code></pre>
+<p>compute weights for intersections</p>
+<pre class="r"><code>intersections &lt;- intersections %&gt;%
+  mutate(
+    source_area = tract_area[GISJOIN],
+    weight = int_area / source_area
+  )</code></pre>
 </div>
 
 

@@ -355,7 +355,7 @@ names(tract_area) <- tract_ids
 
 compute weights for intersections
 
-```{r, message=F, warning=F}
+```{r, eval=F, message=F, warning=F}
 intersections <- intersections %>%
   mutate(
     source_area = tract_area[GISJOIN],
