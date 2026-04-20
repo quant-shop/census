@@ -210,6 +210,16 @@ mobile_1960 <- tracts_1960 %>%
 mobile_1960 <- st_transform(mobile_1960, 4326)
 ```
 
+
+# 1970 data
+
+```{r, message=F, warning=F}
+
+
+```
+
+
+
 # 1970 Shape files
 
 ```{r, message=F, warning=F}
@@ -275,6 +285,9 @@ tracts_1960 <- tracts_1960 %>%
 
 Harmonize CRS
 
+** update this so that 1960 is mapped to 2010
+** update this so that 1970 is mapped to 2020
+
 ```{r, message=F, warning=F}
 tracts_1960 <- st_transform(tracts_1960, st_crs(tracts_2020))
 ```
@@ -284,7 +297,6 @@ Areal interpolation
 ```{r, message=F, warning=F}
 #install.packages("areal")
 library(areal)
-
 
 tracts_1960_clean <- tracts_1960 %>%
   sf::st_make_valid() %>%
