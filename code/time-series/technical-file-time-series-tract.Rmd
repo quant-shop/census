@@ -39,3 +39,166 @@ library(viridis)
 library(scales)
 library(readr)
 ```
+
+# Data import
+
+We'll first search for all variables.
+
+https://api.census.gov/data.html
+
+```{r, eval=F, message=F, warning=F}
+vars2020 <- load_variables(2020, "dhc")
+
+View(vars2020)
+```
+
+
+We will start with importing race vars.
+
+```{r, message=F, warning=F}
+vars <- c(
+  total = "P10_001N",
+  white = "P10_003N",
+  black = "P10_004N"
+)
+
+```
+
+Then we'll pull in data for Mobile, AL.
+
+```{r, message=F, warning=F}
+mob_pop_2020 <- get_decennial(
+  geography = "county",
+  variables = "P1_001N",
+  state = "AL",
+  sumfile = "dhc",
+  year = 2020
+) %>% 
+  filter(NAME == "Mobile County, Alabama")
+
+mob_pop_2020
+```
+
+
+```{r, message=F, warning=F}
+mob_pop_2010 <- get_decennial(
+  geography = "county",
+  variables = "P001001", 
+  state = "AL",
+  year = 2010,
+  sumfile = "sf1"
+) %>% 
+  filter(NAME == "Mobile County, Alabama")
+
+mob_pop_2010
+```
+
+```{r, message=F, warning=F}
+mob_pop_2000 <- get_decennial(
+  geography = "county",
+  variables = "P001001", 
+  state = "AL",
+  year = 2000,
+  sumfile = "sf1"
+) %>% 
+  filter(NAME == "Mobile County, Alabama")
+
+mob_pop_2000
+```
+
+
+
+
+
+```{r, message=F, warning=F}
+county_joined <- mob_pop_2020 %>% 
+  select(GEOID, NAME, value20 = value) %>% 
+  left_join(mob_pop_2010, by = "GEOID") %>% 
+  mutate(total_change = value20 - value,
+         percent_change = 100 * (total_change / value))
+
+county_joined
+```
+
+
+
+
+# Building a time series
+
+```{r, message=F, warning=F}
+
+```
+
+
+```{r, message=F, warning=F}
+
+```
+
+
+```{r, message=F, warning=F}
+
+```
+
+
+```{r, message=F, warning=F}
+
+```
+
+```{r, message=F, warning=F}
+
+```
+
+
+
+```{r, message=F, warning=F}
+
+```
+
+
+```{r, message=F, warning=F}
+
+```
+
+
+```{r, message=F, warning=F}
+
+```
+
+
+```{r, message=F, warning=F}
+
+```
+
+```{r, message=F, warning=F}
+
+```
+
+```{r, message=F, warning=F}
+
+```
+
+
+```{r, message=F, warning=F}
+
+```
+
+
+```{r, message=F, warning=F}
+
+```
+
+```{r, message=F, warning=F}
+
+```
+
+```{r, message=F, warning=F}
+
+```
+
+
+```{r, message=F, warning=F}
+
+```
+
+
+
