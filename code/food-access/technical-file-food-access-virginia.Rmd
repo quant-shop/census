@@ -48,6 +48,12 @@ We import data from the [Food Access Research Atlas](https://www.ers.usda.gov/da
 food.access <- read.csv("../../data/food-access/foodaccessdata2019.csv")
 #head(food.access)
 str(food.access)
+
+food.access.va.beach.city <- food.access %>% 
+  filter(County == "Virginia Beach city")
+
+food.access.henrico <- food.access %>% 
+  filter(County == "Henrico County")
 ```
 
 # VA food access data subset

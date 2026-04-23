@@ -59,13 +59,15 @@ Short's (2011) *Dividing Wall's Theorem* presents a simplified topological equiv
 
 ![Visual proof of Short's (2001) Dividing Wall's Theorem](img/figured.png)
 
-In the conceptual analysis above, there were only two tracts present and they completely segregated the two groups by the dividing wall. This conceptual model is a base example: two groups, two tracks, complete segregation.
+In the conceptual analysis above, there were only two tracts present and they completely segregated the two groups by the dividing wall. This conceptual model is a base example: two groups, two tracts, complete segregation.
 
 ## Computational Model
 
 The index of dissimilarity will be used to quantify the evenness with which Black residents are distributed relative to other non-Black racial groups across census tracts. Our current analysis builds on the perspectives that these base measures may be foundational in understanding and quantifying the dimensions of antiblackness in high-dimensional data sources. 
 
 The index of dissimilarity, $D$, is a demographic measure of the evenness with which two groups are distributed across geographic units within a larger geographical area. The measure quantifies the percentage of one group that would need to relocate to achieve an even distribution across all units in the geographical area. A value of $D = 0$ corresponds to complete integration, while $D = 1$ indicates complete segregation.
+
+
 
 
 $$
@@ -440,7 +442,7 @@ ggplot() +
   geom_sf(data = boundary_line, 
           color = "red", 
           size = 1) +
-  labs(title = "Dividing Wall Between Majority Black and Non-Black Areas") +
+  labs(title = "Dividing Wall Boundary Estimate for DC") +
   theme_minimal()
 ```
 
@@ -683,6 +685,248 @@ ggplot() +
           color = "red", 
           size = 1) +
   labs(title = "Dividing Walls Between Majority Black and Non-Black Areas in Mecklenburg County, NC") +
+  theme_minimal()
+```
+
+From an analysis of history regarding the region, and contextual knowledge about the urban make-up of Charlotte, NC, which is the major proportion of the area, there is clear evidence of white flight given the shape of the dividing wall.
+
+## GA
+
+Similarly, for GA, we'll use `geography = "county"` and then make our way down to `tracts`.
+
+---
+
+### County-level data
+
+```{r, output=F, message=F, warning=F}
+ga_counties <- get_acs(
+  geography = "county",
+  variables = c(black = "B02001_003", # Black/African American population alone
+                total = "B01001_001" # Total population
+  ),
+  state = "GA",
+  year = 2023,
+  geometry = T,
+  output = "wide"
+)
+
+# Add county FIPS code by extracting first 5 digits of GEOID
+ga_counties <- ga_counties %>%
+  mutate(county_fips = substr(GEOID, 1, 5)) %>% 
+  relocate(GEOID, county_fips)
+
+#View(ga_counties)
+```
+
+We can take a `glimpse` of our data.
+
+```{r, message=F, warning=F}
+head(ga_counties) %>% 
+  select(GEOID, county_fips, NAME, blackE, totalE)
+```
+
+#### What counties have the highest and lowest proportions of Black people?
+
+We first view the data for counties with the largest Black populations.
+
+```{r, message=F, warning=F}
+ga_counties %>% 
+  arrange(desc(blackE)) %>%  # desc is descending order
+  head(n=10)
+```
+
+Alternatively, we can view counties with large proportions of Black residents.
+
+```{r, message=F, warning=F}
+ga_counties %>% 
+  mutate(prop_black = blackE / totalE) %>% 
+  relocate(GEOID, prop_black) %>% 
+  arrange(desc(prop_black))
+```
+
+We see that Hancock County, GA has the highest proportion of Black people in the state, but only by a small margin. Alternatively, in the code below, we see that Pickens, Murray, Fannin, and Gilmer counties have the lowest proportion of Black people in the state.
+
+```{r, message=F, warning=F}
+ga_counties %>% 
+  mutate(prop_black = blackE / totalE) %>% 
+  relocate(GEOID, prop_black) %>% 
+  arrange(-desc(prop_black))
+```
+
+These maps will vary by state, and there are many directions to go to from this point. For example we could do some of the following:
+
+- Examine counties with the highest proprtion of Black residents and gather a measure of residential segregation,
+- Examine counties with the lowest proportion of Black residents and gather a measure of residential segregation,
+- Look specifically at those counties with high numbers of white individuals as a proxy for other to assess the relationship to counties with low or high proportion of Black individuals as a basic model of segregation
+
+Here is where theory meets our computational practice.
+
+### Fulton County, GA
+
+I will select my home county: Mecklenburg County, NC for further investigation.
+
+```{r, output=F, message=F, warning=F}
+fulton_tracts <- get_acs(
+  geography = "tract",
+  variables = c(
+    black = "B02001_003",      # Black or African American alone
+    total = "B01001_001"       # Total population
+  ),
+  state = "GA",
+  county = "Fulton",
+  year = 2023,
+  geometry = TRUE,
+  output = "wide"
+)
+
+fulton_tracts %>% 
+  head()
+```
+
+#### Black population
+
+We then plot our data to get an initial visual of Black population.
+
+```{r, message=F, warning=F}
+ggplot(fulton_tracts) +
+  geom_sf(aes(fill = blackE), color = NA) +
+  scale_fill_viridis_c(option = "magma", 
+                       na.value = "grey50", 
+                       labels = comma) +
+  labs(title = "Estimated Black Population by Census Tract in Fulton County, GA (2023)",
+       fill = "Population") +
+  theme_minimal()
+```
+
+#### Non-Black population
+
+We then create a non-black estimate.
+
+```{r, message=F, warning=F}
+fulton_tracts <- fulton_tracts %>% 
+  mutate(nonblackE = totalE - blackE) %>% 
+  select(GEOID, blackE, nonblackE, totalE)
+```
+
+And the data for non-Black individuals.
+
+```{r, message=F, warning=F}
+ggplot(fulton_tracts) +
+  geom_sf(aes(fill = nonblackE)) +
+  scale_fill_viridis_c(option = "magma", 
+                       na.value = "grey50",
+                       labels = comma) +
+  labs(title = "Estimated Non-Black Population by Census Tract in Fulton County (2023)",
+       fill = "Population") +
+  theme_minimal()
+```
+
+---
+
+### Index of Dissimilarity
+
+We can calculate the proportion of Black people in all Mecklenburg tracts.
+
+```{r, message=F, warning=F}
+fulton_tracts <- fulton_tracts %>% 
+  mutate(proportion_black = blackE / totalE) %>%
+  mutate(proportion_non_black = 1 - proportion_black)
+```
+
+Now we can view the top 10 tracts with the highest proportion of Black individuals.
+
+```{r, message=F, warning=F}
+fulton_tracts %>%
+  arrange(desc(proportion_black)) %>% 
+  select(GEOID, proportion_black, proportion_non_black) %>% 
+  head(n = 10)
+```
+
+As we did before, we can also calculate the proportion of tracts that are above a certain threshold of Black only individuals. Here we set the threshold at tracts with 60 percent or more Black residents given the size of the state.
+
+Note that we need to remove the geometry feature before summarizing.
+
+```{r, message=F, warning=F}
+fulton_tracts %>%
+  st_set_geometry(NULL) %>%   # Remove geometry to treat as normal data.frame
+  summarise(
+    total_tracts = n(),
+    tracts_above_threshold = sum(proportion_black >= 0.90, na.rm = TRUE),
+    proportion_above_threshold = mean(proportion_black >= 0.90, na.rm = TRUE)
+  )
+```
+
+Approximately 16 percent of tracts have a Black population greater than or equal to 90 percent in Fulton County, GA.
+
+Finally, we calculate $D$ for the county.
+
+```{r, message=F, warning=F}
+fulton_total_black <- sum(fulton_tracts$blackE, na.rm = TRUE)
+fulton_total_nonblack <- sum(fulton_tracts$nonblackE, na.rm = TRUE)
+
+dissimilarity_fulton <- 0.5 * sum(abs(
+  (fulton_tracts$blackE / total_black) - 
+  (fulton_tracts$nonblackE / total_nonblack)
+), na.rm = TRUE)
+```
+
+We print our result.
+
+```{r, message=F, warning=F}
+dissimilarity_fulton
+```
+
+Values between roughly 0.3 to 0.6 indicate moderate segregation; above 0.6 is high segregation. In this instance, the model result suggests significant residential segregation by race in Mecklenburg County. We close by visualizing our result and the potential dividing wall.
+
+```{r, message=F, warning=F}
+ggplot(fulton_tracts) +
+  geom_sf(aes(fill = proportion_black), color = "white") +
+  scale_fill_viridis_c(option = "plasma", direction = -1) +
+  labs(title = "Proportion of Black Residents by Census Tract in Fulton County, GA",
+       fill = "Proportion Black") +
+  theme_minimal()
+```
+
+### Is there a dividing wall?
+
+Given that our model result indicate a significant measure of segregation, we proceed with identifying the dividing wall. The maps we have viewed up to this point give us a clear view of where that wall may be.
+
+```{r, message=F, warning=F}
+fulton_tracts <- fulton_tracts %>%
+  mutate(majority_black = proportion_black > 0.5)
+```
+
+We’ll join geometries by group.
+
+```{r, message=F, warning=F}
+# Union geometries by group
+fulton_union_black <- fulton_tracts %>%
+  filter(majority_black) %>%
+  summarise(geometry = st_union(geometry))
+
+fulton_union_nonblack <- fulton_tracts %>%
+  filter(!majority_black) %>%
+  summarise(geometry = st_union(geometry))
+```
+
+We then calculate boundary (difference) between groups (shared border).
+
+```{r, message=F, warning=F}
+fulton_boundary_line = 
+  st_intersection(st_boundary(fulton_union_black), st_boundary(fulton_union_nonblack))
+```
+
+We then plot the base polygons for the dividing wall.
+
+```{r, message=F, warning=F}
+ggplot() +
+  geom_sf(data = fulton_tracts, aes(fill = majority_black), 
+          color = "grey40", 
+          alpha = 0.5) +
+  geom_sf(data = fulton_boundary_line, 
+          color = "red", 
+          size = 1) +
+  labs(title = "Dividing Wall Boundary Estimate for Fulton County, GA") +
   theme_minimal()
 ```
 
