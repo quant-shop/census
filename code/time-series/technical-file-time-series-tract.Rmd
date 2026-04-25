@@ -119,269 +119,161 @@ county_joined <- mob_pop_2020 %>%
 county_joined
 ```
 
-# 1950s data from NHGIS
 
-Pulling in data from 1950
+# Time Series
 
 ```{r, message=F, warning=F}
+ts_data <- read.csv("../../data/time-series/time-series-csv/nhgis0009_ts_nominal_tract.csv")
 
-pop_1950 <- read.csv("../../data/time-series/nhgis0006_csv/nhgis0006_ds82_1950_tract.csv")
-
-#View(pop_1950)
-
-pop_1950 %>% 
-  filter(STATE == "Alabama")
-
+str(ts_data)
+#View(ts_data)
 ```
 
-## 1950 Shape files
-
 ```{r, message=F, warning=F}
+library(dplyr)
 
-tracts_1950 <- st_read(
-  "../../data/time-series/nhgis0006_shape/nhgis0006_shapefile_tl2000_us_tract_1950/US_tract_1950.shp"
-)
-
-head(tracts_1950)
-plot(tracts_1950["geometry"])
-
-mobile_1950 <- tracts_1950 %>%
-  dplyr::filter(
-    NHGISST == "010",
-    NHGISCTY == "0970"
+ts_clean <- ts_data %>%
+  select(
+    NHGISCODE,
+    STATE,
+    STATEFP,
+    COUNTY,
+    total_1980 = B18AA1980,
+    total_1990 = B18AA1990,
+    total_2000 = B18AA2000,
+    total_2010 = B18AA2010,
+    
+    white_1980 = B18AB1980,
+    white_1990 = B18AB1990,
+    white_2000 = B18AB2000,
+    white_2010 = B18AB2010,
+    
+    black_1980 = B18AC1980,
+    black_1990 = B18AC1990,
+    black_2000 = B18AC2000,
+    black_2010 = B18AC2010
   )
 
-unique(tracts_1950$NHGISST)
-
-unique(tracts_1950$NHGISCTY)
-
-# GIS join for more robust analysis
-## NHGIS IDs are hierarchical: G0100970XXXX
-mobile_1950 <- tracts_1950 %>%
-  dplyr::filter(grepl("^G0100970", GISJOIN))
-
-# to overlay with modern data
-mobile_1950 <- st_transform(mobile_1950, 4326)
-```
-
-Note: 1950 tract geography is inconsistent with later decades and sometimes incomplete (tracts didn’t cover all areas yet).
-
-# 1960s data from NHGIS
-
-```{r, message=F, warning=F}
-
-pop_1960 <- read.csv("../../data/time-series/nhgis0007_csv/nhgis0007_ds92_1960_tract.csv")
-
-#View(pop_1960)
-
-pop_1960 %>% 
-  filter(STATE == "Alabama")
-
+ts_clean
 ```
 
 
-## 1960 Shape files
+```{r, message=F, warning=F}
+mobile_ts <- ts_clean %>%
+  filter(STATE == "Alabama", COUNTY == "Mobile County")
+
+summary(mobile_ts)
+```
+
 
 ```{r, message=F, warning=F}
+library(tidyr)
 
-tracts_1960 <- st_read(
-  "../../data/time-series/nhgis0007_shape/nhgis0007_shapefile_tl2000_us_tract_1960/US_tract_1960.shp"
-)
-
-head(tracts_1960)
-plot(tracts_1960["geometry"])
-
-mobile_1960 <- tracts_1960 %>%
-  dplyr::filter(
-    NHGISST == "010",
-    NHGISCTY == "0970"
+ts_long <- mobile_ts %>%
+  pivot_longer(
+    cols = matches("^(total|white|black)_"),
+    names_to = c("variable", "year"),
+    names_sep = "_",
+    values_to = "value"
   )
 
-unique(tracts_1960$NHGISST)
-
-unique(tracts_1960$NHGISCTY)
-
-# GIS join for more robust analysis
-## NHGIS IDs are hierarchical: G0100970XXXX
-mobile_1960 <- tracts_1960 %>%
-  dplyr::filter(grepl("^G0100970", GISJOIN))
-
-# to overlay with modern data
-mobile_1960 <- st_transform(mobile_1960, 4326)
-```
-
-
-# 1970 data
-
-```{r, message=F, warning=F}
-
+str(ts_long)
 
 ```
 
-
-
-# 1970 Shape files
-
 ```{r, message=F, warning=F}
-
-tracts_1970 <- st_read(
-  "../../data/time-series/nhgis0007_shape/nhgis0007_shapefile_tl2000_us_tract_1970/US_tract_1970.shp"
-)
-
-head(tracts_1970)
-plot(tracts_1970["geometry"])
-
-mobile_1970 <- tracts_1970 %>%
-  dplyr::filter(
-    NHGISST == "010",
-    NHGISCTY == "0970"
-  )
-
-unique(tracts_1970$NHGISST)
-
-unique(tracts_1970$NHGISCTY)
-
-# GIS join for more robust analysis
-## NHGIS IDs are hierarchical: G0100970XXXX
-mobile_1970 <- tracts_1970 %>%
-  dplyr::filter(grepl("^G0100970", GISJOIN))
-
-# to overlay with modern data
-mobile_1970 <- st_transform(mobile_1970, 4326)
-```
-
-
-
-# Building a time series
-
-Get 2020 tract geometries
-
-```{r, message=F, warning=F}
-tracts_2020 <- get_decennial(
-  geography = "tract",
-  state = "AL",
-  county = "Mobile",
-  variables = c(total = "P1_001N"),
-  geometry = TRUE,
-  year = 2020
-) %>%
-  select(GEOID, geometry)
-
-nrow(tracts_2020)
-```
-
-Load 1960 NHGIS shapefile + data
-
-```{r, message=F, warning=F}
-tracts_1960 <- st_read("../../data/time-series/nhgis0007_shape/nhgis0007_shapefile_tl2000_us_tract_1960/US_tract_1960.shp") %>%
-  filter(NHGISST == "010", NHGISCTY == "0970")
-
-nhgis_1960 <- read.csv("../../data/time-series/nhgis0007_csv/nhgis0007_ds92_1960_tract.csv")
-
-tracts_1960 <- tracts_1960 %>%
-  left_join(nhgis_1960, by = "GISJOIN")
-
-```
-
-Harmonize CRS
-
-** update this so that 1960 is mapped to 2010
-** update this so that 1970 is mapped to 2020
-
-```{r, message=F, warning=F}
-tracts_1960 <- st_transform(tracts_1960, st_crs(tracts_2020))
-```
-
-Areal interpolation
-
-```{r, message=F, warning=F}
-#install.packages("areal")
-library(areal)
-
-tracts_1960_clean <- tracts_1960 %>%
-  sf::st_make_valid() %>%
-  sf::st_transform(st_crs(tracts_2020)) %>%
-  dplyr::mutate(
-    total = B79001,
-    white = B79002,
-    black = B79003
+ts_final <- ts_long %>%
+  pivot_wider(names_from = variable, values_from = value) %>%
+  mutate(
+    year = as.numeric(year),
+    pct_black = black / total
   ) %>%
-  dplyr::select(total, white, black, geometry)
+  filter(!is.na(total))
 
-tracts_1960_clean
+str(ts_final)
+```
+
+```{r, include=F, message=F, warning=F}
+# check for internal consistency
+ts_final %>%
+  group_by(year) %>%
+  summarise(
+    total_black = sum(black, na.rm = TRUE),
+    total_white = sum(white, na.rm = TRUE),
+    total_pop   = sum(total, na.rm = TRUE)
+  )
+```
+
+# Dissimilarity Index
+
+```{r, message=F, warning=F}
+library(dplyr)
+
+dissimilarity <- ts_final %>%
+  group_by(year) %>%
+  summarise(
+    B = sum(black, na.rm = TRUE),
+    W = sum(white, na.rm = TRUE),
+    
+    D = 0.5 * sum(
+      abs((black / sum(black, na.rm = TRUE)) -
+          (white / sum(white, na.rm = TRUE))),
+      na.rm = TRUE
+    )
+  )
+
+dissimilarity
 ```
 
 ```{r, message=F, warning=F}
-intersections <- st_intersection(
-  tracts_1960_clean,
-  tracts_2020
-)
+library(ggplot2)
+library(scales)
+
+ggplot(dissimilarity, aes(x = year, y = D)) +
+  geom_line(linewidth = 1.4, color = "#2C3E50") +
+  geom_point(size = 3, color = "#E74C3C") +
+  
+  # Add value labels
+  geom_text(
+    aes(label = scales::percent(D, accuracy = 0.1)),
+    vjust = -1,
+    size = 4,
+    color = "black"
+  ) +
+  
+  scale_y_continuous(
+    labels = percent_format(accuracy = 1),
+    limits = c(0, max(dissimilarity$D, na.rm = TRUE) + 0.05),
+    expand = expansion(mult = c(0.02, 0.1))
+  ) +
+  
+  scale_x_continuous(
+    breaks = dissimilarity$year
+  ) +
+  
+  labs(
+    title = "Black–White Segregation Estimates for Mobile County, AL",
+    x = "Year",
+    y = "Index of Dissimilarity"
+  ) +
+  
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
 ```
 
 
 
-```{r, message=F, warning=F}
-tracts_1960_clean <- st_make_valid(tracts_1960_clean)
-tracts_2020 <- st_make_valid(tracts_2020)
-
-any(!st_is_valid(tracts_1960_clean))
-any(!st_is_valid(tracts_2020))
-
-tracts_1960_clean <- st_simplify(
-  tracts_1960_clean,
-  dTolerance = 0,
-  preserveTopology = TRUE
-)
-
-intersections <- st_intersection(
-  tracts_1960_clean,
-  tracts_2020
-)
-
-intersections
-
-```
-
-
-```{r, message=F, warning=F}
-
-intersections <- sf::st_make_valid(intersections)
-
-sf::sf_use_s2(FALSE)
-
-intersections$int_area <- sf::st_area(intersections)
-
-intersections$int_area <- as.numeric(intersections$int_area)
-```
-
-compute source tract total area
-
-
-```{r, message=F, warning=F}
-tract_area <- sf::st_area(tracts_1960_clean)
-tract_area <- as.numeric(tract_area)
-
-tract_ids <- tracts_1960_clean$GISJOIN
-names(tract_area) <- tract_ids
-```
-
-compute weights for intersections
 
 ```{r, eval=F, message=F, warning=F}
-intersections <- intersections %>%
-  mutate(
-    source_area = tract_area[GISJOIN],
-    weight = int_area / source_area
-  )
-
-```
-
-```{r, message=F, warning=F}
-
-```
-
-```{r, message=F, warning=F}
-
+ggsave(
+  filename = "img/dissimilarity_mobile_1980_2010.png",
+  width = 7,
+  height = 5,
+  dpi = 300
+)
 ```
 
 
@@ -394,9 +286,6 @@ intersections <- intersections %>%
 
 ```
 
-```{r, message=F, warning=F}
-
-```
 
 ```{r, message=F, warning=F}
 
@@ -406,6 +295,4 @@ intersections <- intersections %>%
 ```{r, message=F, warning=F}
 
 ```
-
-
 
