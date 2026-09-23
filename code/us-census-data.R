@@ -20,9 +20,21 @@ library(sf)
 # census: state, country, tract, zipcode
 
 # suggestion function
-load_variables(2020, "acs5")
+load_variables(2023, "acs5")
+
+data_acs5_2023 <- load_variables(2023, "acs5")
+
+View(data_acs5_2023)
 
 
+
+
+
+
+
+
+
+View()
 data_acs5_2020 <- load_variables(2020, "acs5")
 data_acs5_2015 <- load_variables(2015, "acs5")
 data_acs1_2021 <- load_variables(2021, "acs1")

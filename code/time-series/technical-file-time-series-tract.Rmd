@@ -276,23 +276,180 @@ ggsave(
 )
 ```
 
+# 1980s map (tract-level)
 
 ```{r, message=F, warning=F}
+library(sf)
+
+tracts_1980 <- st_read("../../data/time-series/1980shape/nhgis0008_shapefile_tl2000_us_tract_1980/US_tract_1980.shp")
+
+data_1980 <- read_csv("../../data/time-series/1980csv/nhgis0010_ds104_1980_tract.csv")
+data2_1980 <- read_csv("../../data/time-series/1980csv/nhgis0010_ds116_1980_tract.csv")
+
+#str(tracts_1980)
+#str(data_1980)
+```
+
+
+```{r, message=F, warning=F}
+race_1980 <- data_1980 %>%
+  mutate(
+    total = C9D001 + C9D002 + C9D003 + C9D004 + C9D005 +
+            C9D006 + C9D007 + C9D008 + C9D009 + C9D010 +
+            C9D011 + C9D012 + C9D013 + C9D014 + C9D015,
+
+    white = C9D001,
+    black = C9D002,
+
+    pct_black = black / total
+  )
+```
+
+
+```{r, message=F, warning=F}
+race_1980_mobile <- race_1980 %>%
+  filter(STATEA == "01", COUNTYA == "097")
+```
+
+```{r}
+
+data_1980 %>%
+  select(C6X001, C6X002, C6X003) %>%
+  summary()
+
+
+
+data_1980 %>%
+  mutate(test = C6X002 / C6X001) %>%
+  summarise(max(test, na.rm = TRUE))
+
+```
+
+
+```{r, message=F, warning=F}
+ggplot(race_1980_mobile) +
+  geom_sf(aes(fill = pct_black), color = NA) +
+  scale_fill_viridis_c(
+    option = "magma",
+    limits = c(0, 1),
+    labels = scales::percent_format()
+  ) +
+  labs(
+    title = "Mobile County, AL (1980)",
+    fill = "% Black"
+  ) +
+  theme_minimal()
+```
+
+## Trying different 1980 tract-level data set
+
+```{r, message=F, warning=F}
+data2_1980 <- data2_1980 %>%
+  mutate(
+    total = C6X001 + C6X002 + C6X003 + C6X004 + C6X005,
+    black = C6X002,
+    pct_black = ifelse(total > 0, black / total, NA_real_)
+  )
+
+summary(data2_1980$pct_black)
+```
+
+
+```{r, message=F, warning=F}
+
+race2_1980 <- tracts_1980 %>%
+  left_join(data2_1980, by = "GISJOIN") %>%
+  filter(STATEA == "01", COUNTYA == "097")
+
+saveRDS(race2_1980, "../../data/time-series/1980_race_map.rds")
+
+ggplot(race2_1980) +
+  geom_sf(aes(fill = pct_black), color = NA) +
+  scale_fill_viridis_c(
+    option = "magma",
+    limits = c(0, 1),
+    labels = scales::percent_format(accuracy = 1),
+    guide = guide_colorbar(
+      barwidth = 0.7,
+      barheight = 6
+    )
+  ) +
+  labs(
+    title = "Mobile County, AL (1980)",
+    fill = "% Black"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text = element_blank(),
+    axis.title = element_blank()
+  )
+```
+
+```{r, eval=F, message=F, warning=F}
+
+library(dplyr)
+
+B <- sum(race2_1980$black, na.rm = TRUE)
+W <- sum(race2_1980$white, na.rm = TRUE)
+
+d_1980 <- race2_1980 %>%
+  mutate(
+    black_share = black / B,
+    white_share = white / W,
+    diff = abs(black_share - white_share)
+  ) %>%
+  summarise(D = 0.5 * sum(diff, na.rm = TRUE))
+
+d_1980$D
+```
+
+
+```{r, message=F, warning=F}
+
+ggplot(race2_1980) +
+  geom_sf(aes(fill = pct_black), color = NA) +
+  scale_fill_viridis_c(
+    option = "magma",
+    limits = c(0, 1),
+    labels = scales::percent_format(accuracy = 1),
+    guide = guide_colorbar(
+      barwidth = 0.7,
+      barheight = 6
+    )
+  ) +
+  labs(
+    title = "Mobile County, AL (1980)",
+    subtitle = "Index of Dissimilarity = 0.771",
+    fill = "% Black"
+  ) +
+  coord_sf(expand = FALSE) +
+  theme_minimal() +
+  theme(
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    legend.position = "right",
+    legend.box = "vertical",
+    plot.margin = margin(5, 5, 5, 5)
+  )
+```
+
+
+```{r, message=F, warning=F}
+
 
 ```
 
 
 ```{r, message=F, warning=F}
 
-```
-
-
-```{r, message=F, warning=F}
 
 ```
 
 
 ```{r, message=F, warning=F}
 
+
 ```
+
+
 
