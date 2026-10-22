@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Explore U.S. Census population, income, housing, education, and employment data by state and county.">
+  <meta name="theme-color" content="#f2efe6">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://api.census.gov; object-src 'none'; base-uri 'self'; form-action 'none'; frame-src 'none'">
+  <title>Census Atlas — People, places, patterns</title>
+  <link rel="stylesheet" href="./styles.css?v=2">
+  <script type="module" src="./app.js?v=2"></script>
+</head>
+<body data-section="overview">
+  <a class="skip-link" href="#main">Skip to dashboard</a>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Census Atlas home">
+      <span class="lab-logo lab-logo-header"><img src="./quant_workshop_logo6.png" alt="" width="500" height="500"></span>
+      <span>Census <strong>Atlas</strong></span>
+    </a>
+    <nav aria-label="Primary navigation">
+      <button class="nav-link active" data-section="overview">Overview</button>
+      <button class="nav-link" data-section="topics">Topics</button>
+      <button class="nav-link" data-section="map">Map</button>
+      <button class="nav-link" data-section="compare">Compare</button>
+      <button class="nav-link" data-section="explorer">Data Explorer</button>
+      <button class="nav-link" data-section="methodology">Methodology</button>
+      <button class="nav-link" data-section="about">About</button>
+    </nav>
+    <div class="top-actions">
+      <span class="source-pill"><span></span> ACS 5-year</span>
+      <button class="icon-button" id="theme-toggle" aria-label="Toggle color theme" title="Toggle theme">◐</button>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <div class="eyebrow">United States demographic intelligence</div>
+      <div class="hero-grid">
+        <div>
+          <h1>Understand a place.<br><em>See the pattern.</em></h1>
+          <p>Explore population, housing, and economic measures for every U.S. state and county using American Community Survey data.</p>
+        </div>
+        <div class="hero-note">
+          <span class="note-number">01</span>
+          <p>Official ACS data,<br>in plain view.</p>
+        </div>
+      </div>
+      <div class="atlas-search">
+        <label for="atlas-search-input">Find a state or measure</label>
+        <div class="search-box"><span aria-hidden="true">⌕</span><input id="atlas-search-input" type="search" autocomplete="off" placeholder="Try California, poverty, home value…" aria-controls="atlas-search-results" aria-expanded="false"><kbd>/</kbd></div>
+        <div id="atlas-search-results" class="search-results" hidden></div>
+      </div>
+    </section>
+
+    <section class="filter-shell" aria-label="Dashboard filters">
+      <div class="filter-group">
+        <label for="state-select">State</label>
+        <select id="state-select"></select>
+      </div>
+      <div class="filter-group">
+        <label for="county-select">County</label>
+        <select id="county-select"><option value="">Entire state</option></select>
+      </div>
+      <div class="filter-group compact">
+        <label for="year-select">Year</label>
+        <select id="year-select"></select>
+      </div>
+      <button class="primary-button" id="explore-button">Explore place <span aria-hidden="true">↗</span></button>
+    </section>
+
+    <div class="status-bar" role="status" aria-live="polite">
+      <span id="status-dot" class="status-dot"></span>
+      <span id="status-text">Connecting to the Census Bureau…</span>
+      <button id="api-key-button" class="text-button">Add API key</button>
+      <button id="retry-button" class="text-button" hidden>Retry</button>
+    </div>
+
+    <section id="overview-section" class="dashboard-section active-section">
+      <div class="section-heading">
+        <div>
+          <span class="kicker">Place profile</span>
+          <h2 id="place-name">Maryland</h2>
+        </div>
+        <div class="section-meta">
+          <span id="profile-year">2024 estimates</span>
+          <button class="outline-button" id="share-button">Copy view</button>
+          <button class="outline-button" id="export-button">Export data</button>
+        </div>
+      </div>
+
+      <div id="kpi-grid" class="kpi-grid" aria-busy="true"></div>
+
+      <div class="profile-context">
+        <div><span class="kicker">Context</span><h3>How this place compares</h3></div>
+        <div id="profile-context-grid" class="context-grid"></div>
+      </div>
+
+      <div class="editorial-grid">
+        <article class="panel trend-panel">
+          <div class="panel-heading">
+            <div><span class="kicker">Six-year movement</span><h3>Population trend</h3></div>
+            <div class="metric-toggle" role="group" aria-label="Trend metric">
+              <button class="active" data-trend="population">People</button>
+              <button data-trend="income">Income</button>
+            </div>
+          </div>
+          <div id="trend-chart" class="chart" aria-label="Population trend chart"></div>
+          <p class="chart-note">Adjacent ACS 5-year estimates overlap. Use them as a trend, not as independent five-year periods.</p>
+        </article>
+
+        <article class="panel insight-panel">
+          <span class="kicker">At a glance</span>
+          <blockquote id="insight-text">Loading summary…</blockquote>
+          <div class="insight-rule"></div>
+          <p class="fine-print">Comparisons use ACS 5-year estimates. Differences may fall within margins of error.</p>
+        </article>
+      </div>
+
+      <div class="detail-grid">
+        <article class="panel">
+          <div class="panel-heading"><div><span class="kicker">Population makeup</span><h3>Race &amp; ethnicity</h3></div></div>
+          <div id="race-chart" class="bar-list"></div>
+        </article>
+        <article class="panel">
+          <div class="panel-heading"><div><span class="kicker">Selected outcomes</span><h3>Community profile</h3></div></div>
+          <div id="profile-chart" class="profile-list"></div>
+        </article>
+      </div>
+
+    </section>
+
+    <section id="topics-section" class="dashboard-section" hidden>
+      <div class="section-heading">
+        <div><span class="kicker">Browse the ACS</span><h2>Explore by topic</h2></div>
+        <p>Start with a question, then open any measure on the map.</p>
+      </div>
+      <div id="topics-grid" class="topics-grid"></div>
+    </section>
+
+    <section id="map-section" class="dashboard-section" hidden>
+      <div class="section-heading">
+        <div><span class="kicker">Map explorer</span><h2 id="map-title-heading">Population across states</h2></div>
+        <p>Hover for a value. Select an area to open its profile.</p>
+      </div>
+      <div class="map-toolbar" aria-label="Map controls">
+        <label><span>Geography</span><select id="map-level-select"><option value="state">States</option><option value="county">Counties in a state</option></select></label>
+        <label id="map-state-control" hidden><span>State</span><select id="map-state-select"></select></label>
+        <label><span>Measure</span><select id="map-metric-select" aria-label="Map metric"></select></label>
+        <label><span>Year</span><select id="map-year-select" aria-label="Map year"></select></label>
+      </div>
+      <div class="map-explorer-grid">
+        <article class="panel map-panel">
+          <div id="state-map" class="geo-map" aria-label="ACS choropleth map"></div>
+          <div class="map-footer"><span id="map-low">Lower</span><span class="map-gradient" aria-hidden="true"></span><span id="map-high">Higher</span><span id="map-status">Add an API key for live values</span></div>
+        </article>
+        <aside class="map-context">
+          <div id="map-summary" class="map-summary"></div>
+          <article class="panel"><span class="kicker">Distribution</span><div id="map-distribution" class="distribution-chart"></div></article>
+          <article class="panel ranking-panel"><span class="kicker">Highest values</span><ol id="map-ranking"></ol></article>
+          <article class="panel ranking-panel"><span class="kicker">Lowest values</span><ol id="map-lowest"></ol></article>
+        </aside>
+      </div>
+    </section>
+
+    <section id="compare-section" class="dashboard-section" hidden>
+      <div class="section-heading">
+        <div><span class="kicker">Side by side</span><h2>Compare places</h2></div>
+        <p>Compare up to four states or counties using the same ACS measures.</p>
+      </div>
+      <div class="compare-toolbar">
+        <label class="compare-control" for="compare-year-select"><span>Year</span><select id="compare-year-select" aria-label="Comparison year"></select></label>
+        <select id="compare-level-select" aria-label="Comparison geography level"><option value="state">State</option><option value="county">County</option></select>
+        <select id="compare-state-select" aria-label="Comparison state"></select>
+        <select id="compare-county-select" aria-label="Comparison county" hidden><option value="">Choose county</option></select>
+        <button id="add-compare-button" class="primary-button">Add place</button>
+      </div>
+      <div id="comparison-cards" class="comparison-cards"></div>
+      <div class="panel table-panel">
+        <div class="table-scroll"><table id="comparison-table"><caption class="sr-only">State metric comparison</caption></table></div>
+      </div>
+    </section>
+
+    <section id="explorer-section" class="dashboard-section" hidden>
+      <div class="section-heading">
+        <div><span class="kicker">Build your own query</span><h2>Data Explorer</h2></div>
+        <p>Enter up to 20 ACS detailed-table variables for the selected place.</p>
+      </div>
+      <div class="explorer-grid">
+        <article class="panel query-panel">
+          <label class="input-label" for="variable-code-input">Census variable codes</label>
+          <textarea id="variable-code-input" rows="7" spellcheck="false" placeholder="B01003_001E, B19013_001E, B25077_001E">B01003_001E, B19013_001E, B25077_001E</textarea>
+          <p class="key-help">Separate codes with commas, spaces, or new lines. Use complete variables such as <code>B01003_001E</code>, not only the table group <code>B01003</code>.</p>
+          <button id="run-custom-query" class="primary-button">Run Census query <span aria-hidden="true">↗</span></button>
+          <div id="query-message" class="query-message" role="status" aria-live="polite"></div>
+        </article>
+        <article class="panel explorer-results-panel">
+          <div class="panel-heading"><div><span class="kicker">Query results</span><h3 id="custom-result-place">No query run yet</h3></div><button id="export-custom-query" class="outline-button" hidden>Download CSV</button></div>
+          <div class="table-scroll"><table id="custom-results-table"><tbody><tr><td>Enter Census variables and run the query to see results.</td></tr></tbody></table></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="methodology-section" class="dashboard-section methodology" hidden>
+      <div class="section-heading"><div><span class="kicker">Read the data well</span><h2>Methodology &amp; sources</h2></div></div>
+      <div class="method-grid">
+        <article><span>01</span><h3>Source</h3><p>Figures come from the U.S. Census Bureau ACS 5-year Detailed Tables API. State boundaries come from Census cartographic data distributed by the open-source us-atlas project.</p></article>
+        <article><span>02</span><h3>Uncertainty</h3><p>ACS figures are survey estimates. Published 90% margins of error appear with headline measures when available. Calculated rates do not include margins of error.</p></article>
+        <article><span>03</span><h3>Availability</h3><p>ACS 5-year data cover every state and county. If the API is unavailable, the dashboard switches to a clearly labeled demo dataset.</p></article>
+        <article><span>04</span><h3>Privacy</h3><p>The dashboard uses no accounts or analytics. A Census API key stays only in page memory and is sent directly to api.census.gov for Census requests.</p></article>
+        <article><span>05</span><h3>Comparability</h3><p>Adjacent ACS 5-year estimates share four years of survey responses. For non-overlapping comparisons, compare 2015–2019 with 2020–2024 and check Census variable-change notes.</p></article>
+      </div>
+      <a class="source-link" href="https://www.census.gov/programs-surveys/acs/guidance/estimates.html" target="_blank" rel="noopener noreferrer">Read the Census Bureau’s ACS guidance <span>↗</span></a>
+    </section>
+
+    <section id="about-section" class="dashboard-section about-section" hidden>
+      <div class="section-heading"><div><span class="kicker">About the lab</span><h2>Quantitative Histories Workshop</h2></div></div>
+      <div class="about-content">
+        <p>The Quantitative Histories Workshop is a computational curriculum collective and community-centered teaching and learning lab organized around a network of collaborative projects. We use interdisciplinary perspectives and computational tools to study history, develop open educational resources and software, and explore questions of justice and futurity. As an open community, we invite knowledge exchange among participants who investigate historical events, explore data, and consider how historical understanding can inform action in the present and possibilities for the future.</p>
+        <a class="source-link" href="https://quant-shop.github.io" target="_blank" rel="noopener noreferrer">Find out more about the workshop <span aria-hidden="true">↗</span></a>
+        <div class="about-privacy"><span class="kicker">Your privacy</span><p>Your Census API key is kept only in memory while this page is open. It is never stored by Census Atlas, added to the page’s shareable URL, or included in an export. Census queries send the key directly to the Census Bureau over HTTPS, where requests may be logged. Census Atlas has no accounts or analytics and does not collect the information you enter.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="brand"><span class="lab-logo lab-logo-header"><img src="./quant_workshop_logo6.png" alt="" width="500" height="500"></span><span>Census <strong>Atlas</strong></span></div>
+    <p>Built with public data. Not affiliated with the U.S. Census Bureau.</p>
+    <p>Data refreshes when you choose a place.</p>
+    <span class="lab-logo lab-logo-footer" aria-label="Quantitative Histories Workshop"><img src="./quant_workshop_logo6.png" alt="Quantitative Histories Workshop logo" width="500" height="500"></span>
+  </footer>
+
+  <dialog id="export-dialog">
+    <form method="dialog">
+      <div class="dialog-heading"><div><span class="kicker">Take it with you</span><h2>Export this profile</h2></div><button class="icon-button" value="cancel" aria-label="Close">×</button></div>
+      <p>Download the visible estimates and their Census variable identifiers.</p>
+      <div class="export-actions">
+        <button type="button" class="primary-button" data-export="csv">Download CSV</button>
+        <button type="button" class="outline-button" data-export="json">Download JSON</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="api-key-dialog">
+    <form id="api-key-form">
+      <div class="dialog-heading"><div><span class="kicker">Unlock live data</span><h2>Use your Census API key</h2></div><button class="icon-button" type="button" data-close-key aria-label="Close">×</button></div>
+      <p>Your key stays in memory while this page is open and is never stored by Census Atlas. Census requests send it directly to <strong>api.census.gov</strong> over HTTPS as a query parameter; the Census Bureau may log those requests. It is not added to this page’s shareable URL or exports.</p>
+      <label class="input-label" for="api-key-input">Census API key</label>
+      <div class="key-input-row">
+        <input id="api-key-input" name="api-key" type="password" autocomplete="off" spellcheck="false" required placeholder="Paste your API key">
+        <button id="show-key-button" class="outline-button" type="button" aria-pressed="false">Show</button>
+      </div>
+      <p class="key-help">Don’t have one? <a href="https://api.census.gov/data/key_signup.html" target="_blank" rel="noopener noreferrer">Request a free key from the Census Bureau ↗</a></p>
+      <div class="export-actions key-actions">
+        <button type="submit" class="primary-button">Save for this tab &amp; load data</button>
+        <button type="button" class="outline-button" id="forget-key-button" hidden>Forget key</button>
+      </div>
+    </form>
+  </dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
